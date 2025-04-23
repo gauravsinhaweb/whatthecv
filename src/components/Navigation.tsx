@@ -5,7 +5,7 @@ interface NavigationProps {
   currentPage: string;
   onNavigate: (page: string) => void;
   userType: 'candidate' | 'recruiter' | null;
-  onUserTypeChange: () => void;
+  onUserTypeChange: (type: 'candidate' | 'recruiter' | null) => void;
 }
 
 const Navigation: React.FC<NavigationProps> = ({
@@ -27,17 +27,12 @@ const Navigation: React.FC<NavigationProps> = ({
       page: 'landing',
     },
     {
-      name: 'Dashboard',
-      icon: <Layout className="w-5 h-5" />,
-      page: 'candidate-portal',
-    },
-    {
       name: 'Create Resume',
       icon: <FileText className="w-5 h-5" />,
       page: 'create-resume',
     },
     {
-      name: 'Templates',
+      name: 'Browse Templates',
       icon: <Layout className="w-5 h-5" />,
       page: 'templates',
     },
@@ -78,14 +73,16 @@ const Navigation: React.FC<NavigationProps> = ({
       page: 'landing',
     },
     {
-      name: 'Templates',
-      icon: <Layout className="w-5 h-5" />,
-      page: 'templates',
+      name: "I'm a Candidate",
+      icon: <User className="w-5 h-5" />,
+      page: 'im-candidate',
+      action: () => onUserTypeChange('candidate')
     },
     {
-      name: 'Resume Checker',
-      icon: <Upload className="w-5 h-5" />,
-      page: 'upload',
+      name: "I'm a Recruiter",
+      icon: <Briefcase className="w-5 h-5" />,
+      page: 'im-recruiter',
+      action: () => onUserTypeChange('recruiter')
     },
   ];
 
@@ -100,6 +97,13 @@ const Navigation: React.FC<NavigationProps> = ({
 
   const navItems = getNavItems();
 
+  const handleNavigation = (item: any) => {
+    if (item.action) {
+      item.action();
+    }
+    onNavigate(item.page);
+  };
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="container mx-auto px-4">
@@ -112,7 +116,7 @@ const Navigation: React.FC<NavigationProps> = ({
               {navItems.map((item) => (
                 <button
                   key={item.page}
-                  onClick={() => onNavigate(item.page)}
+                  onClick={() => handleNavigation(item)}
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${currentPage === item.page
                     ? 'border-blue-500 text-slate-900'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
@@ -131,20 +135,13 @@ const Navigation: React.FC<NavigationProps> = ({
                   {userType === 'candidate' ? 'Candidate' : 'Recruiter'} Mode
                 </span>
                 <button
-                  onClick={onUserTypeChange}
+                  onClick={() => onUserTypeChange(null)}
                   className="p-2 rounded-full text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                 >
                   <LogOut className="h-5 w-5" />
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={() => onNavigate('user-select')}
-                className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Get Started
-              </button>
-            )}
+            ) : null}
           </div>
 
           <div className="-mr-2 flex items-center sm:hidden">
@@ -167,7 +164,7 @@ const Navigation: React.FC<NavigationProps> = ({
               <button
                 key={item.page}
                 onClick={() => {
-                  onNavigate(item.page);
+                  handleNavigation(item);
                   setIsMobileMenuOpen(false);
                 }}
                 className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left ${currentPage === item.page
@@ -184,7 +181,7 @@ const Navigation: React.FC<NavigationProps> = ({
             {userType ? (
               <button
                 onClick={() => {
-                  onUserTypeChange();
+                  onUserTypeChange(null);
                   setIsMobileMenuOpen(false);
                 }}
                 className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 w-full text-left"
@@ -194,20 +191,7 @@ const Navigation: React.FC<NavigationProps> = ({
                   <span className="ml-3">Switch Mode</span>
                 </div>
               </button>
-            ) : (
-              <button
-                onClick={() => {
-                  onNavigate('user-select');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 w-full text-left"
-              >
-                <div className="flex items-center text-blue-500">
-                  <User className="w-5 h-5" />
-                  <span className="ml-3">Get Started</span>
-                </div>
-              </button>
-            )}
+            ) : null}
           </div>
         </div>
       )}

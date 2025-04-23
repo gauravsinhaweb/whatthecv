@@ -136,13 +136,14 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold text-slate-800 mb-8">Upload Your Resume</h2>
+      <h2 className="text-2xl font-bold text-slate-800 mb-2">AI Resume Analysis</h2>
+      <p className="text-slate-600 mb-8">Upload your resume for a comprehensive AI-powered analysis and optimization recommendations</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Upload Resume</CardTitle>
+              <CardTitle>Upload Resume for AI Analysis</CardTitle>
             </CardHeader>
             <CardContent>
               {!externalJobDescription && (
@@ -360,7 +361,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Why Upload Your Resume?</CardTitle>
+              <CardTitle>How AI Improves Your Resume</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-4">

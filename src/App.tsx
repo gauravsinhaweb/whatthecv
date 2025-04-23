@@ -13,7 +13,16 @@ function App() {
 
   const handleUserTypeSelect = (type: 'candidate' | 'recruiter') => {
     setUserType(type);
-    setCurrentPage(type === 'candidate' ? 'candidate-portal' : 'recruiter-portal');
+    setCurrentPage(type === 'candidate' ? 'landing' : 'recruiter-portal');
+  };
+
+  const handleUserTypeChange = (type: 'candidate' | 'recruiter' | null) => {
+    if (type === null) {
+      setUserType(null);
+      setCurrentPage('landing');
+    } else {
+      handleUserTypeSelect(type);
+    }
   };
 
   const renderPage = () => {
@@ -24,12 +33,17 @@ function App() {
         return <TemplateGallery />;
       case 'upload':
         return <ResumeUpload />;
-      case 'candidate-portal':
-        return <CandidatePortal onNavigate={setCurrentPage} />;
       case 'recruiter-portal':
         return <RecruiterPortal />;
       case 'create-resume':
         return <CreateResume />;
+      case 'post-job':
+        return <Dashboard onNavigate={setCurrentPage} />;
+      case 'candidates':
+        return <Dashboard onNavigate={setCurrentPage} />;
+      case 'im-candidate':
+      case 'im-recruiter':
+        return <Dashboard onNavigate={setCurrentPage} />;
       default:
         return <Dashboard onNavigate={setCurrentPage} />;
     }
@@ -48,7 +62,7 @@ function App() {
             >
               <h2 className="text-lg font-medium text-blue-600 mb-1">I'm a Candidate</h2>
               <p className="text-sm text-slate-600">
-                Create or optimize your resume, check ATS compatibility, and apply for jobs.
+                Create or optimize your resume, browse templates, or analyze your existing resume with AI.
               </p>
             </button>
 
@@ -83,7 +97,7 @@ function App() {
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           userType={userType}
-          onUserTypeChange={() => setCurrentPage('user-select')}
+          onUserTypeChange={handleUserTypeChange}
         />
       )}
       <main>
