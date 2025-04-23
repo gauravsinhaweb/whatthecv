@@ -57,7 +57,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const modules = {
     toolbar: [
-      ['bold', 'italic', 'underline', 'strike'],
+      ['bold', 'italic', 'underline'],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['link'],
       ['clean']
@@ -65,7 +65,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   const formats = [
-    'bold', 'italic', 'underline', 'strike',
+    'bold', 'italic', 'underline',
     'list', 'bullet',
     'link'
   ];

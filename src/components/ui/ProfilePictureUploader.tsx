@@ -1,6 +1,5 @@
-import React, { useState, useRef, ChangeEvent, forwardRef, useImperativeHandle } from 'react';
 import { Camera, UserIcon, X } from 'lucide-react';
-import Button from './Button';
+import React, { ChangeEvent, forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 interface ProfilePictureUploaderProps {
   value: string;
@@ -20,8 +19,9 @@ const ProfilePictureUploader = forwardRef<HTMLInputElement, ProfilePictureUpload
   useImperativeHandle(ref, () => fileInputRef.current!);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+      const file = target.files[0];
       if (file.type.match('image.*')) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -34,7 +34,7 @@ const ProfilePictureUploader = forwardRef<HTMLInputElement, ProfilePictureUpload
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
   };
@@ -43,7 +43,7 @@ const ProfilePictureUploader = forwardRef<HTMLInputElement, ProfilePictureUpload
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
 
