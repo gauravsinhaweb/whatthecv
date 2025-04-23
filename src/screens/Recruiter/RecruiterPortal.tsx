@@ -1,8 +1,8 @@
+import { Briefcase, CheckCircle, Download, Filter, Search, User } from 'lucide-react';
 import React, { useState } from 'react';
-import { Search, FileText, Briefcase, User, CheckCircle, Filter, Download } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import Button from './ui/Button';
-import ProgressBar from './ui/ProgressBar';
+import Button from '../../components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import ProgressBar from '../../components/ui/ProgressBar';
 
 interface Candidate {
     id: string;
@@ -99,7 +99,7 @@ const RecruiterPortal: React.FC = () => {
                                     className="w-full p-2 border border-slate-300 rounded-md"
                                     placeholder="e.g. Senior Frontend Developer"
                                     value={jobTitle}
-                                    onChange={(e) => setJobTitle(e.target.value)}
+                                    onChange={(e) => setJobTitle(e.currentTarget.value)}
                                 />
                             </div>
 
@@ -112,7 +112,7 @@ const RecruiterPortal: React.FC = () => {
                                     className="w-full p-2 border border-slate-300 rounded-md"
                                     placeholder="e.g. React, TypeScript, Node.js"
                                     value={requiredSkills}
-                                    onChange={(e) => setRequiredSkills(e.target.value)}
+                                    onChange={(e) => setRequiredSkills(e.currentTarget.value)}
                                 />
                             </div>
 
@@ -125,7 +125,7 @@ const RecruiterPortal: React.FC = () => {
                                     rows={10}
                                     placeholder="Provide a detailed job description..."
                                     value={jobDescription}
-                                    onChange={(e) => setJobDescription(e.target.value)}
+                                    onChange={(e) => setJobDescription(e.currentTarget.value)}
                                 />
                             </div>
 
@@ -191,7 +191,7 @@ const RecruiterPortal: React.FC = () => {
                             className="block w-full pl-10 p-2.5 border border-slate-300 rounded-md"
                             placeholder="Search by name, title, or skills..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.currentTarget.value)}
                         />
                     </div>
 
@@ -201,7 +201,7 @@ const RecruiterPortal: React.FC = () => {
                             <select
                                 className="p-1.5 border border-slate-300 rounded-md"
                                 value={filterMinScore}
-                                onChange={(e) => setFilterMinScore(parseInt(e.target.value))}
+                                onChange={(e) => setFilterMinScore(parseInt(e.currentTarget.value))}
                             >
                                 <option value={50}>50+</option>
                                 <option value={60}>60+</option>
@@ -230,9 +230,9 @@ const RecruiterPortal: React.FC = () => {
                         filteredCandidates.map(candidate => (
                             <Card key={candidate.id} className="overflow-hidden">
                                 <div className={`h-1 ${candidate.matchScore >= 90 ? 'bg-emerald-500' :
-                                        candidate.matchScore >= 80 ? 'bg-green-500' :
-                                            candidate.matchScore >= 70 ? 'bg-yellow-500' :
-                                                'bg-orange-500'
+                                    candidate.matchScore >= 80 ? 'bg-green-500' :
+                                        candidate.matchScore >= 70 ? 'bg-yellow-500' :
+                                            'bg-orange-500'
                                     }`}></div>
                                 <CardContent className="p-0">
                                     <div className="p-4 flex flex-col md:flex-row md:items-center md:justify-between">
@@ -251,9 +251,9 @@ const RecruiterPortal: React.FC = () => {
                                             <div className="flex items-center space-x-2">
                                                 <span className="text-sm font-medium text-slate-700">Match Score:</span>
                                                 <span className={`text-sm font-bold ${candidate.matchScore >= 90 ? 'text-emerald-600' :
-                                                        candidate.matchScore >= 80 ? 'text-green-600' :
-                                                            candidate.matchScore >= 70 ? 'text-yellow-600' :
-                                                                'text-orange-600'
+                                                    candidate.matchScore >= 80 ? 'text-green-600' :
+                                                        candidate.matchScore >= 70 ? 'text-yellow-600' :
+                                                            'text-orange-600'
                                                     }`}>{candidate.matchScore}%</span>
                                             </div>
                                             <ProgressBar
@@ -328,8 +328,8 @@ const RecruiterPortal: React.FC = () => {
                 <div className="flex space-x-8">
                     <button
                         className={`pb-4 font-medium text-sm ${activeTab === 'post-job'
-                                ? 'text-blue-600 border-b-2 border-blue-600'
-                                : 'text-slate-600 hover:text-slate-800'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-slate-600 hover:text-slate-800'
                             }`}
                         onClick={() => setActiveTab('post-job')}
                     >
@@ -340,8 +340,8 @@ const RecruiterPortal: React.FC = () => {
                     </button>
                     <button
                         className={`pb-4 font-medium text-sm ${activeTab === 'candidates'
-                                ? 'text-blue-600 border-b-2 border-blue-600'
-                                : 'text-slate-600 hover:text-slate-800'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-slate-600 hover:text-slate-800'
                             }`}
                         onClick={() => setActiveTab('candidates')}
                     >

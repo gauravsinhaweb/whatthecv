@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import { Upload, FileText, X, AlertCircle, Check, Loader, FileDown, FileUp, Eye } from 'lucide-react';
-import Button from './ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { analyzeResume, extractResumeText, suggestImprovements } from '../utils/ai';
+import { AlertCircle, Check, Eye, FileText, FileUp, Loader, Upload, X } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
+import Button from '../../components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { analyzeResume, extractResumeText, suggestImprovements } from '../../utils/ai';
 
 interface ResumeUploadProps {
   jobDescription?: string;
@@ -67,8 +67,8 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFile(e.target.files[0]);
+    if (e.currentTarget.files && e.currentTarget.files.length > 0) {
+      handleFile(e.currentTarget.files[0]);
     }
   };
 
@@ -156,7 +156,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
                     rows={4}
                     placeholder="Paste the job description here for more accurate analysis..."
                     value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setJobDescription(e.currentTarget.value)}
                   ></textarea>
                   <p className="mt-1 text-xs text-slate-500">Adding a job description will tailor the analysis to the specific role</p>
                 </div>

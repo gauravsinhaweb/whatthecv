@@ -1,7 +1,7 @@
+import { Download, FileText, Lock, Plus } from 'lucide-react';
 import React, { useState } from 'react';
-import { Upload, FileText, Lock, Eye, ListFilter, Download, Plus } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import Button from './ui/Button';
+import Button from '../../components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import ResumeUpload from './ResumeUpload';
 
 interface Template {
@@ -74,7 +74,7 @@ const CandidatePortal: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
                                             className="w-full p-2 border border-slate-300 rounded-md"
                                             placeholder="e.g. Senior Frontend Developer"
                                             value={jobRole}
-                                            onChange={(e) => setJobRole(e.target.value)}
+                                            onChange={(e) => setJobRole((e.target as HTMLInputElement).value)}
                                         />
                                     </div>
                                     <div>
@@ -86,7 +86,7 @@ const CandidatePortal: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
                                             rows={6}
                                             placeholder="Paste the job description here for more accurate analysis..."
                                             value={jobDescription}
-                                            onChange={(e) => setJobDescription(e.target.value)}
+                                            onChange={(e) => setJobDescription((e.target as HTMLTextAreaElement).value)}
                                         />
                                         <p className="mt-1 text-xs text-slate-500">
                                             Adding the job description will help customize your resume for this specific role
@@ -139,7 +139,7 @@ const CandidatePortal: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
                 <h2 className="text-2xl font-bold text-slate-800 mb-4">Select a Template</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {mockTemplates.map((template) => (
-                        <Card
+                        <div
                             key={template.id}
                             className={`cursor-pointer transition-all duration-200 ${selectedTemplate === template.id
                                 ? 'border-2 border-blue-500 ring-2 ring-blue-200'
@@ -147,23 +147,25 @@ const CandidatePortal: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
                                 }`}
                             onClick={() => handleTemplateSelect(template.id)}
                         >
-                            <CardContent className="p-0 overflow-hidden">
-                                <div className="h-48 bg-slate-100 flex items-center justify-center">
-                                    <FileText className="h-12 w-12 text-slate-400" />
-                                </div>
-                                <div className="p-4">
-                                    <h3 className="font-medium text-slate-800 mb-1">{template.name}</h3>
-                                    <p className="text-sm text-slate-600 mb-3">{template.description}</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {template.tags.map((tag, i) => (
-                                            <span key={i} className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded">
-                                                {tag}
-                                            </span>
-                                        ))}
+                            <Card>
+                                <CardContent className="p-0 overflow-hidden">
+                                    <div className="h-48 bg-slate-100 flex items-center justify-center">
+                                        <FileText className="h-12 w-12 text-slate-400" />
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                    <div className="p-4">
+                                        <h3 className="font-medium text-slate-800 mb-1">{template.name}</h3>
+                                        <p className="text-sm text-slate-600 mb-3">{template.description}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {template.tags.map((tag, i) => (
+                                                <span key={i} className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     ))}
                 </div>
                 <div className="mt-8 flex justify-end">

@@ -1,10 +1,10 @@
 import { ArrowRight, ArrowUpRight, BarChart, ChevronRight, FileText, LayoutTemplate, Search, Shield } from 'lucide-react';
 import React, { useState, useRef } from 'react';
-import Button from './ui/Button';
-import { Card, CardContent } from './ui/Card';
-import ProgressBar from './ui/ProgressBar';
-import { analyzeResume, extractResumeText } from '../utils/ai';
-import './dashboard.css';
+import Button from '../../components/ui/Button';
+import { Card, CardContent } from '../../components/ui/Card';
+import ProgressBar from '../../components/ui/ProgressBar';
+import { analyzeResume, extractResumeText } from '../../utils/ai';
+import './hero.css';
 
 interface DashboardProps {
   onNavigate?: (page: string) => void;
@@ -51,9 +51,27 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   return (
     <div className="bg-white overflow-hidden">
       <header className="relative pt-20 pb-24 md:pt-28 md:pb-36 bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 overflow-hidden">
+        {/* Active users indicator */}
+        <div className="absolute top-4 left-4 md:top-6 md:left-8 z-20">
+          <div className="group flex items-center bg-gradient-to-br from-white/90 to-white/80 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-[0_2px_8px_-1px_rgba(0,0,0,0.08),0_1px_4px_-2px_rgba(0,0,0,0.02),inset_0_1px_0.5px_rgba(255,255,255,0.6)] border border-emerald-100/40 hover:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.1),0_2px_8px_-2px_rgba(0,0,0,0.05),inset_0_1px_0.5px_rgba(255,255,255,0.6)] hover:border-emerald-200/60 transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer overflow-hidden">
+            <div className="relative flex items-center justify-center mr-2.5">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-sm"></div>
+              <div className="absolute w-2 h-2 bg-emerald-500 rounded-full animate-ping opacity-70"></div>
+              <div className="absolute w-3 h-3 bg-emerald-400 rounded-full animate-pulse opacity-30"></div>
+            </div>
+            <div className="flex flex-row items-center">
+              <span className="text-xs font-semibold bg-gradient-to-br from-slate-800 to-slate-700 bg-clip-text text-transparent">39</span>
+              {/* <span className="text-xs font-medium text-slate-600 ml-0.5 whitespace-nowrap">users</span> */}
+              <span className="ml-1 opacity-100 transition-opacity duration-300 text-xs text-emerald-600">•&nbsp;Online</span>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+        </div>
+
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 opacity-30" />
         <div className="absolute inset-0">
           <div
-            className={`absolute inset-0 bg-grid-slate-900/[0.03] bg-[size:20px_20px] opacity-0 transition-opacity duration-500 opacity-100`}
+            className={`absolute inset-0 bg-grid-slate-900/[0.03] bg-[size:20px_20px] transition-opacity duration-500 opacity-100`}
             style={{ backdropFilter: 'blur(0px)' }}
           />
           <div className="absolute top-0 right-0 -translate-y-12 translate-x-56 transform-gpu blur-3xl opacity-30">
@@ -541,7 +559,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
           </div>
           <div className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-400">
-            <p>© {new Date().getFullYear()} Resume Builder AI. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} WhatTheCV. All rights reserved.</p>
           </div>
         </div>
       </footer>

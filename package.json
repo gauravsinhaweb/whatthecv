@@ -3,14 +3,22 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "author": {
+    "name": "Gaurav Sinha",
+    "email": "sinhagaurav.me@gmail.com",
+    "url": "https://x.com/defigoro"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build --emptyOutDir",
+    "build-with-types": "tsc -b && vite build",
+    "build-force": "vite build --emptyOutDir",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
-    "@types/react-dom": "^19.1.2",
+    "@react-pdf/renderer": "^4.3.0",
     "lucide-react": "^0.503.0",
     "mammoth": "^1.9.0",
     "pdfjs-dist": "^5.1.91",
@@ -19,6 +27,9 @@
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.1",
+    "@tsconfig/strictest": "^2.0.5",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.1",

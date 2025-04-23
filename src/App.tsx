@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import CandidatePortal from './components/CandidatePortal';
-import CreateResume from './components/CreateResume.tsx';
-import Dashboard from './components/Dashboard';
-import Navigation from './components/Navigation';
-import RecruiterPortal from './components/RecruiterPortal';
-import ResumeUpload from './components/ResumeUpload';
-import TemplateGallery from './components/TemplateGallery';
+import { useState, lazy, Suspense } from 'react';
+import Navigation from './components/Navigation.tsx';
+import Loading from './components/Loading.tsx';
+
+const Hero = lazy(() => import('./screens/Landing/Hero.tsx'));
+const TemplateGallery = lazy(() => import('./screens/Candidate/TemplateGallery.tsx'));
+const ResumeUpload = lazy(() => import('./screens/Candidate/ResumeUpload.tsx'));
+const RecruiterPortal = lazy(() => import('./screens/Recruiter/RecruiterPortal.tsx'));
+const CreateResume = lazy(() => import('./screens/Candidate/CreateResume.tsx'));
 
 function App() {
   const [currentPage, setCurrentPage] = useState('landing');
@@ -28,7 +29,7 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'landing':
-        return <Dashboard onNavigate={setCurrentPage} />;
+        return <Hero onNavigate={setCurrentPage} />;
       case 'templates':
         return <TemplateGallery />;
       case 'upload':
@@ -38,14 +39,14 @@ function App() {
       case 'create-resume':
         return <CreateResume />;
       case 'post-job':
-        return <Dashboard onNavigate={setCurrentPage} />;
+        return <Hero onNavigate={setCurrentPage} />;
       case 'candidates':
-        return <Dashboard onNavigate={setCurrentPage} />;
+        return <Hero onNavigate={setCurrentPage} />;
       case 'im-candidate':
       case 'im-recruiter':
-        return <Dashboard onNavigate={setCurrentPage} />;
+        return <Hero onNavigate={setCurrentPage} />;
       default:
-        return <Dashboard onNavigate={setCurrentPage} />;
+        return <Hero onNavigate={setCurrentPage} />;
     }
   };
 
@@ -101,10 +102,12 @@ function App() {
         />
       )}
       <main>
-        {currentPage === 'user-select'
-          ? renderUserTypeSelector()
-          : renderPage()
-        }
+        <Suspense fallback={<Loading />}>
+          {currentPage === 'user-select'
+            ? renderUserTypeSelector()
+            : renderPage()
+          }
+        </Suspense>
       </main>
     </div>
   );
