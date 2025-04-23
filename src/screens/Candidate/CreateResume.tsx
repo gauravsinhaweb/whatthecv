@@ -334,6 +334,22 @@ const CreateResume: React.FC = () => {
         </div>
     );
 
+    // Auto-enable profile photo display in customization when a valid profile picture is added
+    useEffect(() => {
+        const hasValidProfilePic = resumeData.personalInfo.profilePicture &&
+            resumeData.personalInfo.profilePicture.startsWith('data:image');
+
+        if (hasValidProfilePic && !customizationOptions.header.showPhoto) {
+            setCustomizationOptions(prev => ({
+                ...prev,
+                header: {
+                    ...prev.header,
+                    showPhoto: true
+                }
+            }));
+        }
+    }, [resumeData.personalInfo.profilePicture, customizationOptions.header.showPhoto]);
+
     return (
         <div className="container mx-auto px-4 py-6 max-w-7xl">
             <ResumeFullScreenModal

@@ -728,27 +728,12 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                     className="h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
                                 />
                                 <label htmlFor="showPhoto" className="ml-2 block text-sm text-slate-700">
-                                    Show photo
+                                    Show profile picture in resume
                                 </label>
                             </div>
-                            {options.header.showPhoto && (
-                                <div className="mt-2">
-                                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            id="profile-photo-upload"
-                                        />
-                                        <label
-                                            htmlFor="profile-photo-upload"
-                                            className="cursor-pointer text-blue-600 hover:text-blue-500"
-                                        >
-                                            Click to upload a photo
-                                        </label>
-                                    </div>
-                                </div>
-                            )}
+                            <p className="mt-2 text-xs text-slate-500">
+                                Note: Upload your profile picture in the "Personal Info" section of the Content tab.
+                            </p>
                         </div>
 
                         <div>

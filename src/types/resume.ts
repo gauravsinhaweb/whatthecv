@@ -6,6 +6,7 @@ export interface ResumeData {
         phone: string;
         location: string;
         summary: string;
+        profilePicture?: string;
     };
     workExperience: WorkExperience[];
     education: Education[];
@@ -155,6 +156,7 @@ export const initialResumeData: ResumeData = {
         phone: '(555) 123-4567',
         location: 'San Francisco, CA',
         summary: 'Experienced software engineer with over 8 years of expertise in full-stack web development, specializing in React, Node.js, and cloud infrastructure. Passionate about creating scalable, user-friendly applications and mentoring junior developers.',
+        profilePicture: '',
     },
     workExperience: [
         {

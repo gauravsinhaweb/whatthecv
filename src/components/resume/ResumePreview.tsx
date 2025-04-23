@@ -1,6 +1,6 @@
 import React from 'react';
 import { ResumeData, ResumeCustomizationOptions } from '../../types/resume';
-import { MapPin, Mail, Phone } from 'lucide-react';
+import { MapPin, Mail, Phone, User } from 'lucide-react';
 import { createMarkup } from '../../utils/html';
 
 interface ResumePreviewProps {
@@ -105,16 +105,28 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                         </div>
                     </div>
 
-                    {/* Avatar circle */}
-                    <div
-                        className="w-24 h-24 rounded-full flex items-center justify-center mt-4 md:mt-0 text-white text-3xl font-bold"
-                        style={{
-                            backgroundColor: getAccentColor(1),
-                            flexShrink: 0
-                        }}
-                    >
-                        {getInitials(resumeData.personalInfo.name || 'Your Name')}
-                    </div>
+                    {/* Profile picture or initials - only show if enabled in customization */}
+                    {customizationOptions.header.showPhoto ? (
+                        resumeData.personalInfo.profilePicture && resumeData.personalInfo.profilePicture.startsWith('data:image') ? (
+                            <div className="w-24 h-24 rounded-full overflow-hidden mt-4 md:mt-0 border-2 shadow-md" style={{ borderColor: getAccentColor(0.3) }}>
+                                <img
+                                    src={resumeData.personalInfo.profilePicture}
+                                    alt={resumeData.personalInfo.name || 'Profile'}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        ) : (
+                            <div
+                                className="w-24 h-24 rounded-full flex items-center justify-center mt-4 md:mt-0 text-white text-3xl font-bold"
+                                style={{
+                                    backgroundColor: getAccentColor(1),
+                                    flexShrink: 0
+                                }}
+                            >
+                                {getInitials(resumeData.personalInfo.name || 'Your Name')}
+                            </div>
+                        )
+                    ) : null}
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-8">

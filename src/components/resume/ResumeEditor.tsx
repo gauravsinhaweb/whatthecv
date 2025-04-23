@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { ResumeData } from '../../types/resume';
 import { ArrowDown, Award, BookOpen, Briefcase, ChevronDownIcon, Code, Plus, User } from 'lucide-react';
 import Button from '../ui/Button';
 import RichTextEditor from '../ui/RichTextEditor';
+import ProfilePictureUploader from '../ui/ProfilePictureUploader';
 
 // Add these styles at the top of the file
 const styles = `
@@ -60,6 +61,13 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     onRemove,
     onSkillInputKeyDown,
 }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showProfileUploader, setShowProfileUploader] = useState(false);
+
+    // Check if profile picture is a valid data URL
+    const hasValidProfilePic = resumeData.personalInfo.profilePicture &&
+        resumeData.personalInfo.profilePicture.startsWith('data:image');
+
     return (
         <div className="bg-white rounded-lg shadow-md border border-slate-200">
             <style>{styles}</style>
@@ -92,6 +100,49 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                     {expandedSections.personalInfo && activeSection === 'personalInfo' && (
                         <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
                             <div className="space-y-5">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id="show-profile-pic"
+                                            className="mr-2 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                                            checked={showProfileUploader || hasValidProfilePic}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                if (!e.currentTarget.checked) {
+                                                    // Remove profile picture data and hide uploader
+                                                    onPersonalInfoChange('profilePicture', '');
+                                                    setShowProfileUploader(false);
+                                                } else {
+                                                    // Show uploader without setting temp data
+                                                    setShowProfileUploader(true);
+                                                    // Give time for the uploader to render, then trigger click
+                                                    setTimeout(() => {
+                                                        if (fileInputRef.current) {
+                                                            fileInputRef.current.click();
+                                                        }
+                                                    }, 100);
+                                                }
+                                            }}
+                                        />
+                                        <label htmlFor="show-profile-pic" className="text-sm font-medium text-indigo-700">
+                                            Include Profile Picture
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {(showProfileUploader || hasValidProfilePic) && (
+                                    <div className="flex justify-center mb-6">
+                                        <ProfilePictureUploader
+                                            value={resumeData.personalInfo.profilePicture || ''}
+                                            onChange={(value) => {
+                                                onPersonalInfoChange('profilePicture', value);
+                                                // If we got a valid image or empty string, update state accordingly
+                                                setShowProfileUploader(!!value);
+                                            }}
+                                            ref={fileInputRef}
+                                        />
+                                    </div>
+                                )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
                                         <label className="block text-sm font-medium text-indigo-700 mb-1.5">Full Name</label>

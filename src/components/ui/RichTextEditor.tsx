@@ -7,6 +7,8 @@ const styles = `
   .quill {
     border-radius: 0.375rem;
     transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
   }
   
   .ql-container {
@@ -14,6 +16,8 @@ const styles = `
     border-bottom-right-radius: 0.375rem;
     background-color: white;
     font-family: inherit;
+    flex: 1;
+    overflow: auto;
   }
   
   .ql-toolbar {
@@ -25,6 +29,8 @@ const styles = `
   
   .ql-editor {
     min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
     font-size: 0.875rem;
   }
   
@@ -35,54 +41,55 @@ const styles = `
 `;
 
 interface RichTextEditorProps {
-    value: string;
-    onChange: (value: string) => void;
-    placeholder?: string;
-    className?: string;
-    rows?: number;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+  rows?: number;
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
-    value,
-    onChange,
-    placeholder,
-    className,
-    rows = 4,
+  value,
+  onChange,
+  placeholder,
+  className,
+  rows = 4,
 }) => {
-    const modules = {
-        toolbar: [
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-            ['link'],
-            ['clean']
-        ],
-    };
+  const modules = {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['link'],
+      ['clean']
+    ],
+  };
 
-    const formats = [
-        'bold', 'italic', 'underline', 'strike',
-        'list', 'bullet',
-        'link'
-    ];
+  const formats = [
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'link'
+  ];
 
-    const style = {
-        height: `${Math.max(rows * 24, 100)}px`,
-    };
+  const style = {
+    minHeight: `${Math.max(rows * 24, 100)}px`,
+    maxHeight: `${Math.max(rows * 24, 100) + 100}px`,
+  };
 
-    return (
-        <>
-            <style>{styles}</style>
-            <ReactQuill
-                theme="snow"
-                value={value}
-                onChange={onChange}
-                modules={modules}
-                formats={formats}
-                placeholder={placeholder}
-                className={`${className || ''}`}
-                style={style}
-            />
-        </>
-    );
+  return (
+    <>
+      <style>{styles}</style>
+      <ReactQuill
+        theme="snow"
+        value={value}
+        onChange={onChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder}
+        className={`${className || ''}`}
+        style={style}
+      />
+    </>
+  );
 };
 
 export default RichTextEditor; 
