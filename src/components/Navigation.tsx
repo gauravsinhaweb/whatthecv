@@ -106,7 +106,7 @@ const Navigation: React.FC<NavigationProps> = ({
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-blue-600">Resume<span className="text-slate-800">AI</span></span>
+              <span className="text-xl font-bold text-blue-600">WhatThe<span className="text-slate-800">CV</span></span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navItems.map((item) => (

@@ -86,7 +86,7 @@ function App() {
           onUserTypeChange={() => setCurrentPage('user-select')}
         />
       )}
-      <main className="pb-16">
+      <main>
         {currentPage === 'user-select'
           ? renderUserTypeSelector()
           : renderPage()

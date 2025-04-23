@@ -1,36 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { BarChart, FileText, Search, Shield, LayoutTemplate, ArrowRight, ChevronRight, ExternalLink, ArrowUpRight } from 'lucide-react';
-import { Card, CardContent } from './ui/Card';
+import { ArrowRight, ArrowUpRight, BarChart, ChevronRight, FileText, LayoutTemplate, Search, Shield } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 import Button from './ui/Button';
+import { Card, CardContent } from './ui/Card';
 import ProgressBar from './ui/ProgressBar';
+import { analyzeResume, extractResumeText } from '../utils/ai';
+import './dashboard.css';
 
 interface DashboardProps {
   onNavigate?: (page: string) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [activeFeature, setActiveFeature] = useState(0);
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    setIsVisible(true);
-
-    const featureInterval = setInterval(() => {
-      setActiveFeature(prev => (prev + 1) % 3);
-    }, 4000);
-
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      clearInterval(featureInterval);
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  const [file, setFile] = useState<File | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [score, setScore] = useState<number | null>(null);
+  const [keywords, setKeywords] = useState<{ matched: string[], missing: string[] } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleNavigate = (page: string) => {
     if (onNavigate) {
@@ -38,30 +23,37 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     }
   };
 
-  const features = [
-    {
-      title: "Optimized for ATS",
-      description: "Professional templates designed to pass through Applicant Tracking Systems with ease",
-      icon: <BarChart className="h-6 w-6 text-blue-600" />
-    },
-    {
-      title: "AI-Powered Analysis",
-      description: "Get actionable feedback on your resume with our advanced AI technology",
-      icon: <FileText className="h-6 w-6 text-purple-600" />
-    },
-    {
-      title: "Job-Specific Tailoring",
-      description: "Customize your resume for specific job listings to increase your chances",
-      icon: <Search className="h-6 w-6 text-emerald-600" />
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      const selectedFile = target.files[0];
+      setFile(selectedFile);
+
+      try {
+        setIsAnalyzing(true);
+        const resumeText = await extractResumeText(selectedFile);
+        const analysis = await analyzeResume(resumeText);
+
+        setScore(analysis.score);
+        setKeywords(analysis.keywords);
+      } catch (error) {
+        console.error('Analysis error:', error);
+      } finally {
+        setIsAnalyzing(false);
+      }
     }
-  ];
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <div className="bg-white overflow-hidden">
       <header className="relative pt-20 pb-24 md:pt-28 md:pb-36 bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 overflow-hidden">
         <div className="absolute inset-0">
           <div
-            className={`absolute inset-0 bg-grid-slate-900/[0.03] bg-[size:20px_20px] opacity-0 transition-opacity duration-500 ${isVisible ? 'opacity-100' : ''}`}
+            className={`absolute inset-0 bg-grid-slate-900/[0.03] bg-[size:20px_20px] opacity-0 transition-opacity duration-500 opacity-100`}
             style={{ backdropFilter: 'blur(0px)' }}
           />
           <div className="absolute top-0 right-0 -translate-y-12 translate-x-56 transform-gpu blur-3xl opacity-30">
@@ -85,7 +77,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className={`transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className={`transition-all duration-1000 transform opacity-100 translate-y-0`}>
               <div className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6">
                 AI-Powered Resume Platform
               </div>
@@ -95,16 +87,27 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   <span className="absolute -bottom-2 left-0 right-0 h-1.5 bg-blue-600 rounded-full transform scale-x-100 origin-bottom" />
                 </span> Resume
               </h1>
+              <div className="mt-3 inline-block px-4 py-2 bg-gradient-to-r from-pink-600 to-red-600 text-white font-medium text-sm rounded-lg transform rotate-[-1deg] shadow-md">
+                <span className="italic">"No fluff, no buzzwords, just brutal optimization"</span>
+              </div>
               <p className="mt-6 text-xl text-slate-600 leading-relaxed max-w-xl">
                 Leverage AI to create, analyze, and improve your resume for maximum success with Applicant Tracking Systems.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row gap-5">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={handleFileSelect}
+                />
                 <Button
                   size="lg"
-                  onClick={() => handleNavigate('upload')}
+                  onClick={handleUploadClick}
                   className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg group"
+                  isLoading={isAnalyzing}
                 >
-                  <span>Try ATS Checker</span>
+                  <span>{isAnalyzing ? 'Analyzing...' : 'Try ATS Checker'}</span>
                   <ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:rotate-45" />
                 </Button>
                 <Button
@@ -118,10 +121,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 </Button>
               </div>
             </div>
-            <div className={`transition-all duration-1000 delay-300 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-              <div className="bg-white/90 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-xl relative md:left-10 border border-slate-100 hover:shadow-2xl transition-all duration-300">
+            <div className={`transition-all duration-1000 delay-300 transform opacity-100 translate-y-0`}>
+              <div className={`bg-white/90 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-xl relative md:left-10 border ${score !== null ? 'border-blue-300 shadow-blue-100/50' : 'border-slate-100'} hover:shadow-2xl transition-all duration-500 ${score !== null ? 'animate-pulse-once' : ''}`}>
                 <div className="absolute -top-3 -right-3 px-4 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-sm font-medium shadow-md">
-                  Live Demo
+                  {score !== null ? 'Your Results' : 'Live Demo'}
                 </div>
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-slate-800">ATS Score Preview</h3>
@@ -129,32 +132,52 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <div className="mb-5 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-slate-500">Compatibility Score</p>
-                    <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">82%</h3>
+                    <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{score !== null ? `${score}%` : '82%'}</h3>
                   </div>
                   <div className="p-4 bg-blue-100 rounded-full">
                     <BarChart className="h-7 w-7 text-blue-600" />
                   </div>
                 </div>
-                <ProgressBar value={82} max={100} size="md" className="mt-2 mb-6" />
+                <ProgressBar value={score !== null ? score : 82} max={100} size="md" className="mt-2 mb-6" />
                 <div className="space-y-4">
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 transition-all hover:shadow-md">
                     <h4 className="font-medium text-slate-800 text-sm">Keywords Match</h4>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
-                        React
-                      </span>
-                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
-                        TypeScript
-                      </span>
-                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
-                        JavaScript
-                      </span>
-                      <span className="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">
-                        Docker
-                      </span>
-                      <span className="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">
-                        AWS
-                      </span>
+                      {keywords && keywords.matched.length > 0 ? (
+                        keywords.matched.slice(0, 3).map((keyword, idx) => (
+                          <span key={idx} className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
+                            {keyword}
+                          </span>
+                        ))
+                      ) : (
+                        <>
+                          <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
+                            React
+                          </span>
+                          <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
+                            TypeScript
+                          </span>
+                          <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
+                            JavaScript
+                          </span>
+                        </>
+                      )}
+                      {keywords && keywords.missing.length > 0 ? (
+                        keywords.missing.slice(0, 2).map((keyword, idx) => (
+                          <span key={idx} className="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                            {keyword}
+                          </span>
+                        ))
+                      ) : (
+                        <>
+                          <span className="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                            Docker
+                          </span>
+                          <span className="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                            AWS
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <Button
@@ -162,7 +185,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                     className="mt-4 rounded-xl shadow-sm hover:shadow-lg transition-all bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 hover:from-blue-600 hover:to-indigo-600"
                     onClick={() => handleNavigate('upload')}
                   >
-                    Try with Your Resume
+                    {score !== null ? 'View Full Insight' : 'Try with Your Resume'}
                   </Button>
                 </div>
               </div>
@@ -181,8 +204,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
       <section className="py-24 md:py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-white via-blue-50/30 to-white pointer-events-none"></div>
+        <div className="absolute top-0 right-0 transform -translate-y-1/4 translate-x-1/4 opacity-10">
+          <svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="250" cy="250" r="250" fill="#3B82F6" />
+          </svg>
+        </div>
+        <div className="absolute bottom-0 left-0 transform translate-y-1/4 -translate-x-1/4 opacity-10">
+          <svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="250" cy="250" r="250" fill="#8B5CF6" />
+          </svg>
+        </div>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-20">
             <div className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-4">
               Why Choose Us
             </div>
@@ -194,79 +227,139 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 transition-all duration-500">
-            {[
-              {
-                icon: <BarChart className="h-7 w-7 text-blue-600" />,
-                bgColor: "bg-blue-100",
-                title: "ATS Optimization",
-                description: "Get your resume scored against Applicant Tracking Systems and receive detailed improvement suggestions.",
-                cta: "Check your score",
-                link: "upload",
-                textColor: "text-blue-600",
-                hoverColor: "hover:text-blue-700"
-              },
-              {
-                icon: <LayoutTemplate className="h-7 w-7 text-emerald-600" />,
-                bgColor: "bg-emerald-100",
-                title: "Professional Templates",
-                description: "Choose from multiple ATS-friendly templates designed for tech professionals.",
-                cta: "Browse templates",
-                link: "templates",
-                textColor: "text-emerald-600",
-                hoverColor: "hover:text-emerald-700"
-              },
-              {
-                icon: <Shield className="h-7 w-7 text-amber-600" />,
-                bgColor: "bg-amber-100",
-                title: "Privacy Control",
-                description: "Choose whether your resume is visible to recruiters or keep it private while you work on it.",
-                cta: "Learn more",
-                link: "candidate-portal",
-                textColor: "text-amber-600",
-                hoverColor: "hover:text-amber-700"
-              },
-              {
-                icon: <FileText className="h-7 w-7 text-purple-600" />,
-                bgColor: "bg-purple-100",
-                title: "Job Targeting",
-                description: "Tailor your resume for specific job descriptions to maximize your match score.",
-                cta: "Target your resume",
-                link: "upload",
-                textColor: "text-purple-600",
-                hoverColor: "hover:text-purple-700"
-              },
-              {
-                icon: <Search className="h-7 w-7 text-pink-600" />,
-                bgColor: "bg-pink-100",
-                title: "For Recruiters",
-                description: "Find matching candidates by uploading your job description and filtering by skills.",
-                cta: "Post a job",
-                link: "recruiter-portal",
-                textColor: "text-pink-600",
-                hoverColor: "hover:text-pink-700"
-              }
-            ].map((feature, index) => (
-              <Card key={index} className="border border-slate-100 rounded-xl transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group">
-                <CardContent className="pt-8 pb-6">
-                  <div className={`w-14 h-14 ${feature.bgColor} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                    {feature.icon}
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-3">{feature.title}</h3>
-                  <p className="text-slate-600 mb-4">
-                    {feature.description}
-                  </p>
-                  <Button
-                    variant="ghost"
-                    className={`p-0 h-auto flex items-center ${feature.textColor} ${feature.hoverColor} group`}
-                    size="sm"
-                    onClick={() => handleNavigate(feature.link)}
-                  >
-                    {feature.cta} <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-20">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 md:p-10 shadow-lg border border-blue-100">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-blue-500 text-white mb-6 shadow-md">
+                  <BarChart className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">ATS Optimization</h3>
+                <p className="text-lg text-slate-700 mb-6">
+                  Get your resume scored against Applicant Tracking Systems and receive detailed improvement suggestions to increase your chances of landing interviews.
+                </p>
+                <ul className="space-y-3 mb-8">
+                  {['Keyword analysis', 'Format compatibility', 'Content assessment', 'Improvement recommendations'].map((feature, i) => (
+                    <li key={i} className="flex items-start">
+                      <div className="mr-3 mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="text-slate-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => handleNavigate('upload')}
+                  className="rounded-xl transition-all duration-300 hover:translate-y-[-2px] shadow-md hover:shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0"
+                >
+                  Try ATS Checker <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 md:p-10 shadow-lg border border-emerald-100">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-emerald-500 text-white mb-6 shadow-md">
+                  <LayoutTemplate className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">Professional Templates</h3>
+                <p className="text-lg text-slate-700 mb-6">
+                  Choose from multiple ATS-friendly templates designed specifically for tech professionals and other industries.
+                </p>
+                <ul className="space-y-3 mb-8">
+                  {['Modern designs', 'Industry-specific formats', 'Customizable sections', 'Export to multiple formats'].map((feature, i) => (
+                    <li key={i} className="flex items-start">
+                      <div className="mr-3 mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="text-slate-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => handleNavigate('templates')}
+                  className="rounded-xl transition-all duration-300 hover:translate-y-[-2px] shadow-md hover:shadow-lg bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-0"
+                >
+                  Browse Templates <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: <Shield className="h-7 w-7 text-amber-600" />,
+                  bgColor: "bg-amber-100",
+                  title: "Privacy Control",
+                  description: "Choose whether your resume is visible to recruiters or keep it private while you work on it.",
+                  features: ['Profile visibility settings', 'Data protection', 'Selective sharing'],
+                  cta: "Learn more",
+                  link: "candidate-portal",
+                  textColor: "text-amber-600",
+                  hoverColor: "hover:text-amber-700",
+                  buttonColor: "bg-amber-600 hover:bg-amber-700"
+                },
+                {
+                  icon: <FileText className="h-7 w-7 text-purple-600" />,
+                  bgColor: "bg-purple-100",
+                  title: "Job Targeting",
+                  description: "Tailor your resume for specific job descriptions to maximize your match score.",
+                  features: ['Job description analysis', 'Keyword suggestions', 'Skills matching'],
+                  cta: "Target your resume",
+                  link: "upload",
+                  textColor: "text-purple-600",
+                  hoverColor: "hover:text-purple-700",
+                  buttonColor: "bg-purple-600 hover:bg-purple-700"
+                },
+                {
+                  icon: <Search className="h-7 w-7 text-pink-600" />,
+                  bgColor: "bg-pink-100",
+                  title: "For Recruiters",
+                  description: "Find matching candidates by uploading your job description and filtering by skills.",
+                  features: ['Candidate database', 'Skills filtering', 'Direct messaging'],
+                  cta: "Post a job",
+                  link: "recruiter-portal",
+                  textColor: "text-pink-600",
+                  hoverColor: "hover:text-pink-700",
+                  buttonColor: "bg-pink-600 hover:bg-pink-700"
+                }
+              ].map((feature, index) => (
+                <Card key={index} className="border border-slate-100 rounded-xl transition-all duration-300 hover:shadow-xl hover:-translate-y-2 overflow-hidden">
+                  <div className={`h-2 ${feature.buttonColor.split(' ')[0]}`}></div>
+                  <CardContent className="pt-8 pb-6">
+                    <div className={`w-14 h-14 ${feature.bgColor} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                      {feature.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800 mb-3">{feature.title}</h3>
+                    <p className="text-slate-600 mb-4">
+                      {feature.description}
+                    </p>
+                    <ul className="space-y-2 mb-6">
+                      {feature.features.map((item, i) => (
+                        <li key={i} className="flex items-center text-sm">
+                          <div className={`w-1.5 h-1.5 rounded-full ${feature.textColor} mr-2`}></div>
+                          <span className="text-slate-600">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      className={`rounded-xl text-white ${feature.buttonColor} transition-all duration-300 hover:shadow`}
+                      size="sm"
+                      onClick={() => handleNavigate(feature.link)}
+                    >
+                      {feature.cta}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="mt-24 text-center">
+              <div className="inline-block rounded-full px-6 py-3 bg-blue-100 text-blue-600 font-medium max-w-lg mx-auto">
+                "Our platform is designed to bridge the gap between qualified candidates and their dream jobs."
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -292,114 +385,63 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16 relative">
-            <div className="hidden md:block absolute top-24 left-[20%] right-[20%] h-2 bg-blue-100 rounded-full z-0"></div>
+          <div className="relative mt-20">
+            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-100 via-blue-300 to-indigo-200 transform -translate-y-1/2 rounded-full z-0"></div>
 
-            {[
-              {
-                number: "1",
-                title: "Upload Your Resume",
-                description: "Upload your existing resume or start from scratch with our templates.",
-                delay: ""
-              },
-              {
-                number: "2",
-                title: "AI Analysis",
-                description: "Our AI analyzes your resume for ATS compatibility and suggests improvements.",
-                delay: "md:mt-16"
-              },
-              {
-                number: "3",
-                title: "Optimize & Export",
-                description: "Implement the suggestions, choose your privacy settings, and export your optimized resume.",
-                delay: "md:mt-32"
-              }
-            ].map((step, index) => (
-              <div key={index} className={`relative z-10 text-center ${step.delay} transition-all duration-500 hover:-translate-y-2`}>
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg border-4 border-white hover:scale-110 transition-transform duration-300">
-                  <span className="text-white text-xl font-bold">{step.number}</span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">{step.title}</h3>
-                <p className="text-slate-600 max-w-xs mx-auto">
-                  {step.description}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-20 text-center">
-            <Button
-              size="lg"
-              onClick={() => handleNavigate('user-select')}
-              className="rounded-full px-8 transition-all duration-300 hover:translate-y-[-2px] shadow-lg hover:shadow-xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0"
-            >
-              Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 bg-gradient-to-br from-blue-50 to-indigo-50 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-grid-slate-900/[0.02] bg-[size:24px_24px]" />
-        </div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl p-8 md:p-12 shadow-xl hover:shadow-2xl transition-all duration-300 border border-slate-100">
-              <div className="text-center mb-10">
-                <div className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-4">
-                  Featured
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
-                  Unlock the Full Potential of Your Resume
-                </h2>
-                <p className="text-lg text-slate-600">
-                  Join thousands of professionals who have optimized their job applications
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                {[
-                  {
-                    value: "94%",
-                    label: "Higher interview rate",
-                    bgColor: "bg-blue-50",
-                    textColor: "text-blue-600"
-                  },
-                  {
-                    value: "75%",
-                    label: "Faster hiring process",
-                    bgColor: "bg-emerald-50",
-                    textColor: "text-emerald-600"
-                  },
-                  {
-                    value: "10K+",
-                    label: "Successful matches",
-                    bgColor: "bg-purple-50",
-                    textColor: "text-purple-600"
-                  }
-                ].map((stat, index) => (
-                  <div key={index} className={`flex flex-col items-center p-6 rounded-xl ${stat.bgColor} transition-transform duration-300 hover:scale-105`}>
-                    <span className={`text-4xl font-bold ${stat.textColor} mb-2`}>{stat.value}</span>
-                    <p className="text-sm text-slate-600 text-center">{stat.label}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8 relative">
+              {[
+                {
+                  number: "1",
+                  title: "Upload Your Resume",
+                  description: "Upload your existing resume or start from scratch with our templates.",
+                  icon: <FileText className="h-8 w-8 text-white" />,
+                  color: "from-blue-500 to-blue-600"
+                },
+                {
+                  number: "2",
+                  title: "AI Analysis",
+                  description: "Our AI analyzes your resume for ATS compatibility and suggests improvements.",
+                  icon: <BarChart className="h-8 w-8 text-white" />,
+                  color: "from-indigo-500 to-indigo-600"
+                },
+                {
+                  number: "3",
+                  title: "Optimize & Export",
+                  description: "Implement the suggestions, choose your privacy settings, and export your optimized resume.",
+                  icon: <ArrowUpRight className="h-8 w-8 text-white" />,
+                  color: "from-purple-500 to-purple-600"
+                }
+              ].map((step, index) => (
+                <div key={index} className="relative z-10 group">
+                  <div className="bg-white rounded-2xl shadow-xl p-8 transition-all duration-500 group-hover:-translate-y-6 border border-slate-100">
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
+                      <div className={`w-20 h-20 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center shadow-lg border-4 border-white group-hover:scale-110 transition-all duration-300`}>
+                        {step.icon}
+                      </div>
+                    </div>
+                    <div className="mt-12 text-center">
+                      <div className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold mb-4">
+                        Step {step.number}
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-800 mb-4">{step.title}</h3>
+                      <p className="text-slate-600">
+                        {step.description}
+                      </p>
+                    </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="flex justify-center">
-                <Button
-                  size="lg"
-                  onClick={() => handleNavigate('user-select')}
-                  className="rounded-full px-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:translate-y-[-2px] bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0"
-                >
-                  Start Your Journey <ExternalLink className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
+                  {index < 2 && (
+                    <div className="hidden md:block absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2 z-20">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center shadow-md border-4 border-white">
+                        <ArrowRight className="h-5 w-5 text-indigo-500" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
-
       <footer className="bg-slate-900 text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-slate-100/[0.03] bg-[size:24px_24px]" />
         <div className="container mx-auto px-4 relative z-10">
