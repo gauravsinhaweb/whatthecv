@@ -1,5 +1,6 @@
 import { ArrowRight, ArrowUpRight, BarChart, ChevronRight, FileText, LayoutTemplate, Search, Shield } from 'lucide-react';
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import ProgressBar from '../../components/ui/ProgressBar';
@@ -16,10 +17,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const [score, setScore] = useState<number | null>(null);
   const [keywords, setKeywords] = useState<{ matched: string[], missing: string[] } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const handleNavigate = (page: string) => {
     if (onNavigate) {
       onNavigate(page);
+    } else {
+      navigate(`/${page === 'landing' ? '' : page}`);
     }
   };
 

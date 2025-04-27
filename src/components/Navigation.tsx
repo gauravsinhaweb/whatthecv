@@ -1,20 +1,21 @@
 import { Briefcase, FileText, Home, Layout, LogOut, Menu, Upload, User, X } from 'lucide-react';
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getPathFromPage, getPageFromPath } from '../routes';
 
 interface NavigationProps {
-  currentPage: string;
-  onNavigate: (page: string) => void;
-  userType: 'candidate' | 'recruiter' | null;
   onUserTypeChange: (type: 'candidate' | 'recruiter' | null) => void;
+  userType: 'candidate' | 'recruiter' | null;
 }
 
 const Navigation: React.FC<NavigationProps> = ({
-  currentPage,
-  onNavigate,
   userType,
   onUserTypeChange
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPage = getPageFromPath(location.pathname);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -101,7 +102,7 @@ const Navigation: React.FC<NavigationProps> = ({
     if (item.action) {
       item.action();
     }
-    onNavigate(item.page);
+    navigate(getPathFromPage(item.page));
   };
 
   return (

@@ -1,6 +1,8 @@
 import { useState, lazy, Suspense } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Navigation from './components/Navigation.tsx';
 import Loading from './components/Loading.tsx';
+import { routes, getPathFromPage } from './routes';
 
 const Hero = lazy(() => import('./screens/Landing/Hero.tsx'));
 const TemplateGallery = lazy(() => import('./screens/Candidate/TemplateGallery.tsx'));
@@ -9,44 +11,21 @@ const RecruiterPortal = lazy(() => import('./screens/Recruiter/RecruiterPortal.t
 const CreateResume = lazy(() => import('./screens/Candidate/CreateResume.tsx'));
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('landing');
   const [userType, setUserType] = useState<'candidate' | 'recruiter' | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleUserTypeSelect = (type: 'candidate' | 'recruiter') => {
     setUserType(type);
-    setCurrentPage(type === 'candidate' ? 'landing' : 'recruiter-portal');
+    navigate(type === 'candidate' ? '/' : '/recruiter-portal');
   };
 
   const handleUserTypeChange = (type: 'candidate' | 'recruiter' | null) => {
     if (type === null) {
       setUserType(null);
-      setCurrentPage('landing');
+      navigate('/');
     } else {
       handleUserTypeSelect(type);
-    }
-  };
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'landing':
-        return <Hero onNavigate={setCurrentPage} />;
-      case 'templates':
-        return <TemplateGallery />;
-      case 'upload':
-        return <ResumeUpload />;
-      case 'recruiter-portal':
-        return <RecruiterPortal />;
-      case 'create-resume':
-        return <CreateResume />;
-      case 'post-job':
-        return <Hero onNavigate={setCurrentPage} />;
-      case 'candidates':
-        return <Hero onNavigate={setCurrentPage} />;
-      case 'im-candidate':
-      case 'im-recruiter':
-        return <Hero onNavigate={setCurrentPage} />;
-      default:
-        return <Hero onNavigate={setCurrentPage} />;
     }
   };
 
@@ -80,7 +59,7 @@ function App() {
 
           <div className="mt-8 text-center">
             <button
-              onClick={() => setCurrentPage('landing')}
+              onClick={() => navigate('/')}
               className="text-sm text-slate-500 hover:text-slate-700"
             >
               Back to Home
@@ -93,20 +72,31 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {currentPage !== 'user-select' && (
+      {location.pathname !== '/user-select' && (
         <Navigation
-          currentPage={currentPage}
-          onNavigate={setCurrentPage}
           userType={userType}
           onUserTypeChange={handleUserTypeChange}
         />
       )}
       <main>
         <Suspense fallback={<Loading />}>
-          {currentPage === 'user-select'
-            ? renderUserTypeSelector()
-            : renderPage()
-          }
+          <Routes>
+            {routes.map((route) => (
+              route.path === '/user-select' ? (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={renderUserTypeSelector()}
+                />
+              ) : (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
+              )
+            ))}
+          </Routes>
         </Suspense>
       </main>
     </div>
