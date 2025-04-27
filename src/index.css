@@ -1,3 +1,96 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@page {
+    size: 210mm 297mm;
+    margin: 0;
+}
+
+/* Special class added when printing */
+body.print-mode .printable-content {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    z-index: 9999 !important;
+}
+
+@media print {
+
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 297mm !important;
+        width: 210mm !important;
+        overflow: hidden !important;
+    }
+
+    /* Hide everything by default */
+    body * {
+        visibility: hidden !important;
+    }
+
+    /* Show only the resume preview and its children */
+    .printable-content,
+    .printable-content * {
+        visibility: visible !important;
+    }
+
+    /* Remove container constraints */
+    .container {
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Ensure the preview spans the full page */
+    .printable-content {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        overflow: visible !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Reset all transforms */
+    .printable-content *,
+    .print-container {
+        transform: none !important;
+    }
+
+    /* Hide specific UI elements completely */
+    button,
+    .print-hide,
+    #root>div>div>div.flex>div:nth-child(1) {
+        display: none !important;
+    }
+
+    /* Prevent any extra pages */
+    @page {
+        size: 210mm 297mm;
+        margin: 0;
+    }
+
+    @page :first {
+        margin-top: 0;
+    }
+
+    @page :left {
+        margin-left: 0;
+    }
+
+    @page :right {
+        margin-right: 0;
+    }
+}

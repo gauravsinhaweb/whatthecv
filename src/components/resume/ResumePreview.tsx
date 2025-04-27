@@ -49,24 +49,31 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
     return (
         <div
-            className="bg-white rounded mx-auto border overflow-hidden shadow-lg transition-all w-full print:shadow-none"
+            className="bg-white rounded mx-auto border overflow-hidden shadow-lg transition-all w-full print:shadow-none print:border-0 printable-content"
+            data-id="resume-root"
             style={{
-                maxHeight: fullScreen ? 'none' : '100%',
+                maxHeight: fullScreen ? '297mm' : '100%',
                 boxShadow: '0 0 8px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05), 0 8px 16px rgba(0, 0, 0, 0.05)',
                 fontFamily: fontStack,
                 color: '#1a202c',
+                breakInside: 'avoid',
+                pageBreakInside: 'avoid',
+                width: '210mm',
+                minHeight: '297mm',
             }}
         >
             <div
-                className="p-8 sm:p-12"
+                className="p-8 sm:p-12 print:p-12"
+                data-id="resume-content"
                 style={{
                     height: '100%',
                     overflowY: 'auto',
                     position: 'relative',
+                    backgroundColor: '#fff'
                 }}
             >
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-8">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-8" data-id="resume-header">
                     <div className="max-w-2xl">
                         <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight">
                             {resumeData.personalInfo.name || 'YOUR NAME'}
@@ -129,9 +136,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     ) : null}
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex flex-col md:flex-row gap-8" data-id="resume-body">
                     {/* Left Column - Main Content */}
-                    <div className="flex-1">
+                    <div className="flex-1" data-id="resume-main-column">
                         {/* Summary */}
                         {resumeData.personalInfo.summary && (
                             <div className="mb-8">
@@ -225,7 +232,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     </div>
 
                     {/* Right Column - Skills & Projects */}
-                    <div className="md:w-2/5">
+                    <div className="md:w-2/5" data-id="resume-side-column">
                         {/* Skills */}
                         {resumeData.skills.length > 0 && (
                             <div className="mb-8">
@@ -294,6 +301,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     customizationOptions.footer.showName) && (
                         <div
                             className="mt-8 pt-3 text-xs text-center border-t"
+                            data-id="resume-footer"
                             style={{
                                 borderColor: 'rgba(0, 0, 0, 0.1)',
                                 opacity: 0.7
