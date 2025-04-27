@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { ResumeData } from '../../types/resume';
+import { ResumeData } from '../../../../types/resume';
 import { ArrowDown, Award, BookOpen, Briefcase, ChevronDownIcon, Code, Plus, User } from 'lucide-react';
-import Button from '../ui/Button';
-import RichTextEditor from '../ui/RichTextEditor';
-import ProfilePictureUploader from '../ui/ProfilePictureUploader';
+import Button from '../../../../components/ui/Button';
+import RichTextEditor from '../../../../components/ui/RichTextEditor';
+import ProfilePictureUploader from '../../../../components/ui/ProfilePictureUploader';
 
 // Add these styles at the top of the file
 const styles = `

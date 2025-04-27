@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Printer } from 'lucide-react';
-import { ResumeData, ResumeCustomizationOptions } from '../../types/resume';
+import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
 import ResumePreview from './ResumePreview';
 
 interface ResumeFullScreenModalProps {

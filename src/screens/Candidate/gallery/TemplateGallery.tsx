@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Search, Filter, Check } from 'lucide-react';
-import { Card, CardContent } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import { mockTemplates } from '../../utils/mockData';
-import { Template } from '../../types';
+import { Card, CardContent } from '../../../components/ui/Card';
+import Button from '../../../components/ui/Button';
+import { mockTemplates } from '../../../utils/mockData';
+import { Template } from '../../../types';
 
 interface TemplateCardProps {
   template: Template;

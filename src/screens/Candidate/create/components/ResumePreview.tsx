@@ -1,7 +1,7 @@
 import React from 'react';
-import { ResumeData, ResumeCustomizationOptions } from '../../types/resume';
+import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
 import { MapPin, Mail, Phone, User } from 'lucide-react';
-import { createMarkup } from '../../utils/html';
+import { createMarkup } from '../../../../utils/html';
 
 interface ResumePreviewProps {
     resumeData: ResumeData;

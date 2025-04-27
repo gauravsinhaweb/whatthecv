@@ -1,8 +1,8 @@
 import { AlertCircle, Check, Eye, FileText, FileUp, Loader, Upload, X } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
-import Button from '../../components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
-import { analyzeResume, extractResumeText, suggestImprovements } from '../../utils/ai';
+import Button from '../../../components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
+import { analyzeResume, extractResumeText, suggestImprovements } from '../../../utils/ai';
 
 interface ResumeUploadProps {
   jobDescription?: string;

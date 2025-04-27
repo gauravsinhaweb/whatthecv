@@ -1,5 +1,5 @@
 import { ResumeData, ResumeCustomizationOptions } from '../types/resume';
-import ResumePreview from '../components/create-resume/ResumePreview';
+import ResumePreview from '../screens/Candidate/create/components/ResumePreview';
 import React from 'react';
 
 export const setupPrintHandlers = () => {

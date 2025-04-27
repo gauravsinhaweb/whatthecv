@@ -1,12 +1,12 @@
 import { Eye, EyeOff, FileDown, Layout, Maximize2, Palette } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
-import ResumeCustomizationPanel from '../../components/create-resume/ResumeCustomizationPanel';
-import ResumeEditor from '../../components/create-resume/ResumeEditor';
-import ResumeFullScreenModal from '../../components/create-resume/ResumeFullScreenModal';
-import Button from '../../components/ui/Button';
-import { useResumeState } from '../../hooks/useResumeState';
-import { exportResumeToPDF } from '../../utils/resumeExport';
-import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../../utils/resumeUI';
+import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
+import ResumeEditor from './components/ResumeEditor';
+import ResumeFullScreenModal from './components/ResumeFullScreenModal';
+import Button from '../../../components/ui/Button';
+import { useResumeState } from '../../../hooks/useResumeState';
+import { exportResumeToPDF } from '../../../utils/resumeExport';
+import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../../../utils/resumeUI';
 
 const CreateResume: React.FC = () => {
     const {

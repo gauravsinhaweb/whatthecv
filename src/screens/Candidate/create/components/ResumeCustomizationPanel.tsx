@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import {
     ArrowDownUp,
     Columns,
@@ -8,11 +8,11 @@ import {
     Ruler,
     Type,
 } from 'lucide-react';
-import Tabs from '../ui/Tabs';
-import RadioGroup from '../ui/RadioGroup';
-import ColorPicker from '../ui/ColorPicker';
-import Slider from '../ui/Slider';
-import Button from '../ui/Button';
+import Tabs from '../../../../components/ui/Tabs';
+import RadioGroup from '../../../../components/ui/RadioGroup';
+import ColorPicker from '../../../../components/ui/ColorPicker';
+import Slider from '../../../../components/ui/Slider';
+import Button from '../../../../components/ui/Button';
 
 export interface ResumeCustomizationOptions {
     layout: {
@@ -376,11 +376,13 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                         className="hidden"
                                         id="background-image-upload"
                                         onChange={(e) => {
-                                            const file = e.target.files?.[0];
+                                            const target = e.target as HTMLInputElement;
+                                            const file = target.files?.[0];
                                             if (file) {
                                                 const reader = new FileReader();
                                                 reader.onload = (event) => {
-                                                    handleChange('colors', 'backgroundImage', event.target?.result);
+                                                    const target = event.target as FileReader;
+                                                    handleChange('colors', 'backgroundImage', target.result);
                                                 };
                                                 reader.readAsDataURL(file);
                                             }
@@ -504,7 +506,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                             <h3 className="text-lg font-medium text-slate-800 mb-3">Specific Font</h3>
                             <select
                                 value={options.font.specificFont}
-                                onChange={(e) => handleChange('font', 'specificFont', e.target.value)}
+                                onChange={(e) => {
+                                    const target = e.target as HTMLSelectElement;
+                                    handleChange('font', 'specificFont', target.value);
+                                }}
                                 className="w-full p-2 border border-slate-300 rounded-md"
                             >
                                 {FONT_OPTIONS.map((font) => (
@@ -653,7 +658,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                         type="checkbox"
                                         id="nameBold"
                                         checked={options.header.nameBold}
-                                        onChange={(e) => handleChange('header', 'nameBold', e.target.checked)}
+                                        onChange={(e) => {
+                                            const target = e.target as HTMLInputElement;
+                                            handleChange('header', 'nameBold', target.checked);
+                                        }}
                                         className="h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
                                     />
                                     <label htmlFor="nameBold" className="ml-2 block text-sm text-slate-700">
@@ -724,7 +732,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                     type="checkbox"
                                     id="showPhoto"
                                     checked={options.header.showPhoto}
-                                    onChange={(e) => handleChange('header', 'showPhoto', e.target.checked)}
+                                    onChange={(e) => {
+                                        const target = e.target as HTMLInputElement;
+                                        handleChange('header', 'showPhoto', target.checked);
+                                    }}
                                     className="h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
                                 />
                                 <label htmlFor="showPhoto" className="ml-2 block text-sm text-slate-700">
@@ -744,9 +755,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                         type="checkbox"
                                         id="showPageNumbers"
                                         checked={options.footer.showPageNumbers}
-                                        onChange={(e) =>
-                                            handleChange('footer', 'showPageNumbers', e.target.checked)
-                                        }
+                                        onChange={(e) => {
+                                            const target = e.target as HTMLInputElement;
+                                            handleChange('footer', 'showPageNumbers', target.checked);
+                                        }}
                                         className="h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
                                     />
                                     <label htmlFor="showPageNumbers" className="ml-2 block text-sm text-slate-700">
@@ -758,7 +770,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                         type="checkbox"
                                         id="showEmail"
                                         checked={options.footer.showEmail}
-                                        onChange={(e) => handleChange('footer', 'showEmail', e.target.checked)}
+                                        onChange={(e) => {
+                                            const target = e.target as HTMLInputElement;
+                                            handleChange('footer', 'showEmail', target.checked);
+                                        }}
                                         className="h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
                                     />
                                     <label htmlFor="showEmail" className="ml-2 block text-sm text-slate-700">
@@ -770,7 +785,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                         type="checkbox"
                                         id="showName"
                                         checked={options.footer.showName}
-                                        onChange={(e) => handleChange('footer', 'showName', e.target.checked)}
+                                        onChange={(e) => {
+                                            const target = e.target as HTMLInputElement;
+                                            handleChange('footer', 'showName', target.checked);
+                                        }}
                                         className="h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
                                     />
                                     <label htmlFor="showName" className="ml-2 block text-sm text-slate-700">
