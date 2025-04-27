@@ -63,7 +63,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             }}
         >
             <div
-                className="p-8 sm:p-12 print:p-12"
+                className="p-8 sm:p-12 print:p-12 hide-scrollbar"
                 data-id="resume-content"
                 style={{
                     height: '100%',
