@@ -109,7 +109,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   <span className="absolute -bottom-2 left-0 right-0 h-1.5 bg-blue-600 rounded-full transform scale-x-100 origin-bottom" />
                 </span> Resume
               </h1>
-              <div className="mt-3 inline-block px-4 py-2 bg-gradient-to-r from-pink-600 to-red-600 text-white font-medium text-sm rounded-lg transform rotate-[-1deg] shadow-md">
+              <div className="mt-3 inline-block px-4 py-2 cursor-pointer bg-gradient-to-r from-pink-600 to-red-600 text-white font-medium text-sm rounded-lg transform rotate-[-1deg] shadow-md hover:rotate-0 ">
                 <span className="italic">"No fluff, no buzzwords, just brutal optimization"</span>
               </div>
               <p className="mt-6 text-xl text-slate-600 leading-relaxed max-w-xl">
