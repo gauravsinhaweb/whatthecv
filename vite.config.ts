@@ -21,14 +21,20 @@ export default defineConfig({
         manualChunks: {
           vendor: ['preact', 'react-dom', '@google/generative-ai'],
           candidate: [
-            './src/screens/Candidate/CreateResume.tsx',
-            './src/screens/Candidate/ResumeUpload.tsx',
-            './src/screens/Candidate/TemplateGallery.tsx',
+            './src/screens/Candidate/create/CreateResume.tsx',
+            './src/screens/Candidate/analyze/ResumeUpload.tsx',
+            './src/screens/Candidate/gallery/TemplateGallery.tsx',
           ],
           recruiter: ['./src/screens/Recruiter/RecruiterPortal.tsx'],
           landing: ['./src/screens/Landing/Hero.tsx'],
+          pdfjs: ['pdfjs-dist']
         }
       }
     }
-  }
+  },
+  optimizeDeps: {
+    include: ['pdfjs-dist']
+  },
+  // Handle PDF.js worker files properly
+  assetsInclude: ['**/*.worker.js', '**/*.worker.min.js']
 })

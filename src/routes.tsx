@@ -2,14 +2,19 @@ import { lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
 
 const Hero = lazy(() => import('./screens/Landing/Hero.tsx'));
+const LandingPage = lazy(() => import('./screens/Landing/LandingPage.tsx'));
 const TemplateGallery = lazy(() => import('./screens/Candidate/gallery/TemplateGallery.tsx'));
-const ResumeUpload = lazy(() => import('./screens/Candidate/upload/ResumeUpload.tsx'));
+const ResumeUpload = lazy(() => import('./screens/Candidate/analyze/ResumeUpload.tsx'));
 const RecruiterPortal = lazy(() => import('./screens/Recruiter/RecruiterPortal.tsx'));
 const CreateResume = lazy(() => import('./screens/Candidate/create/CreateResume.tsx'));
 
 export const routes: RouteObject[] = [
     {
         path: '/',
+        element: <LandingPage />,
+    },
+    {
+        path: '/hero',
         element: <Hero />,
     },
     {
@@ -17,7 +22,7 @@ export const routes: RouteObject[] = [
         element: <TemplateGallery />,
     },
     {
-        path: '/upload',
+        path: '/analyze',
         element: <ResumeUpload />,
     },
     {
@@ -42,7 +47,7 @@ export const routes: RouteObject[] = [
     },
     {
         path: '*',
-        element: <Hero />,
+        element: <LandingPage />,
     },
 ];
 
@@ -53,7 +58,7 @@ export const getPathFromPage = (page: string): string => {
         case 'templates':
             return '/templates';
         case 'upload':
-            return '/upload';
+            return '/analyze';
         case 'recruiter-portal':
             return '/recruiter-portal';
         case 'create-resume':
@@ -76,7 +81,7 @@ export const getPathFromPage = (page: string): string => {
 export const getPageFromPath = (path: string): string => {
     if (path === '/') return 'landing';
     if (path === '/templates') return 'templates';
-    if (path === '/upload') return 'upload';
+    if (path === '/analyze') return 'upload';
     if (path === '/recruiter-portal') return 'recruiter-portal';
     if (path === '/create-resume') return 'create-resume';
     if (path === '/post-job') return 'post-job';

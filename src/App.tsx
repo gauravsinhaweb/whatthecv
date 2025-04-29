@@ -5,10 +5,10 @@ import Loading from './components/Loading.tsx';
 import { routes, getPathFromPage } from './routes';
 
 const Hero = lazy(() => import('./screens/Landing/Hero.tsx'));
-const TemplateGallery = lazy(() => import('./screens/Candidate/TemplateGallery.tsx'));
-const ResumeUpload = lazy(() => import('./screens/Candidate/ResumeUpload.tsx'));
+const TemplateGallery = lazy(() => import('./screens/Candidate/gallery/TemplateGallery.tsx'));
+const ResumeUpload = lazy(() => import('./screens/Candidate/analyze/ResumeUpload.tsx'));
 const RecruiterPortal = lazy(() => import('./screens/Recruiter/RecruiterPortal.tsx'));
-const CreateResume = lazy(() => import('./screens/Candidate/CreateResume.tsx'));
+const CreateResume = lazy(() => import('./screens/Candidate/create/CreateResume.tsx'));
 
 function App() {
   const [userType, setUserType] = useState<'candidate' | 'recruiter' | null>(null);

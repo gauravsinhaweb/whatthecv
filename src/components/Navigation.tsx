@@ -23,12 +23,12 @@ const Navigation: React.FC<NavigationProps> = ({
 
   const getCandidateNavItems = () => [
     {
-      name: 'Home',
-      icon: <Home className="w-5 h-5" />,
-      page: 'landing',
+      name: 'Analyze',
+      icon: <Upload className="w-5 h-5" />,
+      page: 'upload',
     },
     {
-      name: 'Create Resume',
+      name: 'Create',
       icon: <FileText className="w-5 h-5" />,
       page: 'create-resume',
     },
@@ -37,19 +37,9 @@ const Navigation: React.FC<NavigationProps> = ({
       icon: <Layout className="w-5 h-5" />,
       page: 'templates',
     },
-    {
-      name: 'Upload Resume',
-      icon: <Upload className="w-5 h-5" />,
-      page: 'upload',
-    },
   ];
 
   const getRecruiterNavItems = () => [
-    {
-      name: 'Home',
-      icon: <Home className="w-5 h-5" />,
-      page: 'landing',
-    },
     {
       name: 'Dashboard',
       icon: <Layout className="w-5 h-5" />,
@@ -68,11 +58,6 @@ const Navigation: React.FC<NavigationProps> = ({
   ];
 
   const getGuestNavItems = () => [
-    {
-      name: 'Home',
-      icon: <Home className="w-5 h-5" />,
-      page: 'landing',
-    },
     {
       name: "I'm a Candidate",
       icon: <User className="w-5 h-5" />,
@@ -105,13 +90,22 @@ const Navigation: React.FC<NavigationProps> = ({
     navigate(getPathFromPage(item.page));
   };
 
+  const goToHome = () => {
+    navigate('/');
+  };
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-blue-600">WhatThe<span className="text-slate-800">CV</span></span>
+              <span
+                className="text-xl font-bold text-blue-600 cursor-pointer"
+                onClick={goToHome}
+              >
+                WhatThe<span className="text-slate-800">CV</span>
+              </span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navItems.map((item) => (
