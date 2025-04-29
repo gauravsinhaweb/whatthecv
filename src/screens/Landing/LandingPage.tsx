@@ -22,7 +22,7 @@ import Button from '../../components/ui/Button';
 import FaqSection from '../../components/landing/FaqSection';
 import { containerVariants, itemVariants, cardVariants } from '../../utils/animations';
 import '../../components/landing/landing.css';
-import resumeBuilderImg from '../../../public/assets/create-resume.png'
+import resumeBuilderImg from '/assets/create-resume.png'
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
