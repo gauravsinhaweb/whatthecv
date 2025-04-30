@@ -18,21 +18,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({
     triggerFileInput
 }) => {
     return (
-        <div className="py-6">
-            <div className="mb-8 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm">
-                <div className="text-center mb-4">
-                    <span className="inline-block px-4 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                        AI-Powered Resume Analysis
-                    </span>
-                    <h2 className="text-xl md:text-2xl font-bold text-slate-800 mt-2">
-                        Get Instant Feedback on Your Resume
-                    </h2>
-                    <p className="text-slate-600 max-w-xl mx-auto mt-2">
-                        Our AI analyzes your resume against industry standards and provides actionable improvements
-                    </p>
-                </div>
-            </div>
-
+        <div>
             <div
                 className={`relative border-3 border-dashed rounded-xl overflow-hidden transition-all duration-300 ease-in-out 
           ${isDragging ? 'border-blue-500 bg-blue-50 scale-102 shadow-lg' : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50'}`}
@@ -103,54 +89,17 @@ const UploadArea: React.FC<UploadAreaProps> = ({
                 </div>
             </div>
 
-            <div className="mt-8">
-                <h4 className="text-base font-semibold text-slate-700 mb-4 flex items-center">
-                    <Sparkles className="h-4 w-4 text-blue-500 mr-2" />
-                    Features & Benefits
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200 shadow-sm transition-transform hover:scale-[1.02] duration-300">
-                        <div className="flex items-start">
-                            <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center mr-4 mt-1 shadow-sm">
-                                <FilePlus className="h-5 w-5 text-white" />
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-slate-800 mb-1">ATS Compatibility</h4>
-                                <p className="text-sm text-slate-600">
-                                    Get scored on how well your resume performs with Applicant Tracking Systems
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-xl border border-purple-200 shadow-sm transition-transform hover:scale-[1.02] duration-300">
-                        <div className="flex items-start">
-                            <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center mr-4 mt-1 shadow-sm">
-                                <FileText className="h-5 w-5 text-white" />
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-slate-800 mb-1">Intelligent Suggestions</h4>
-                                <p className="text-sm text-slate-600">
-                                    Receive personalized recommendations to improve each section of your resume
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-5 rounded-xl border border-emerald-200 shadow-sm transition-transform hover:scale-[1.02] duration-300">
-                        <div className="flex items-start">
-                            <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center mr-4 mt-1 shadow-sm">
-                                <Shield className="h-5 w-5 text-white" />
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-slate-800 mb-1">Privacy Protected</h4>
-                                <p className="text-sm text-slate-600">
-                                    Your resume data is processed securely and never shared or stored permanently
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+            <div className="mt-8 mb-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm">
+                <div className="text-center mb-4">
+                    <span className="inline-block px-4 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                        AI-Powered Resume Analysis
+                    </span>
+                    <h2 className="text-xl md:text-2xl font-bold text-slate-800 mt-2">
+                        Get Instant Feedback on Your Resume
+                    </h2>
+                    <p className="text-slate-600 max-w-xl mx-auto mt-2">
+                        Our AI analyzes your resume against industry standards and provides actionable improvements
+                    </p>
                 </div>
             </div>
         </div>

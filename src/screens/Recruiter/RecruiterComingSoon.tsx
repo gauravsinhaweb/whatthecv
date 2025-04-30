@@ -1,0 +1,89 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Clock, Briefcase } from 'lucide-react';
+import Button from '../../components/ui/Button';
+
+const RecruiterComingSoon: React.FC = () => {
+    const navigate = useNavigate();
+
+    return (
+        <div className="container mx-auto px-4 py-16 max-w-4xl">
+            <div className="text-center mb-8">
+                <div className="flex justify-center mb-6">
+                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Briefcase className="h-10 w-10 text-blue-600" />
+                    </div>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">
+                    Recruiter Portal - Coming Soon
+                </h1>
+                <div className="flex items-center justify-center space-x-2 mb-6">
+                    <Clock className="h-5 w-5 text-blue-500" />
+                    <p className="text-slate-600">Launching shortly</p>
+                </div>
+                <p className="text-slate-600 max-w-2xl mx-auto mb-8">
+                    We're working hard to bring you a comprehensive set of tools for recruiters.
+                    The Recruiter Portal will help you find the perfect candidates, post jobs,
+                    and streamline your hiring process.
+                </p>
+                <Button
+                    onClick={() => navigate('/')}
+                    leftIcon={<ArrowLeft className="h-4 w-4 mr-2" />}
+                    variant="outline"
+                >
+                    Back to Home
+                </Button>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6 md:p-8 mt-12">
+                <h2 className="text-xl font-semibold text-slate-800 mb-4">
+                    Features Coming to the Recruiter Portal
+                </h2>
+                <div className="grid md:grid-cols-2 gap-6 mt-6">
+                    <div className="border border-slate-200 rounded-lg p-4">
+                        <h3 className="font-medium text-slate-800 mb-2">Job Posting</h3>
+                        <p className="text-sm text-slate-600">
+                            Create and manage job listings with detailed requirements and qualifications.
+                        </p>
+                    </div>
+                    <div className="border border-slate-200 rounded-lg p-4">
+                        <h3 className="font-medium text-slate-800 mb-2">AI-Powered Matching</h3>
+                        <p className="text-sm text-slate-600">
+                            Automatically find candidates whose resumes best match your job requirements.
+                        </p>
+                    </div>
+                    <div className="border border-slate-200 rounded-lg p-4">
+                        <h3 className="font-medium text-slate-800 mb-2">Candidate Management</h3>
+                        <p className="text-sm text-slate-600">
+                            Track applicants, schedule interviews, and collaborate with your team.
+                        </p>
+                    </div>
+                    <div className="border border-slate-200 rounded-lg p-4">
+                        <h3 className="font-medium text-slate-800 mb-2">Analytics Dashboard</h3>
+                        <p className="text-sm text-slate-600">
+                            Get insights into your hiring process with comprehensive analytics and reports.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="text-center mt-12">
+                <p className="text-slate-500 text-sm">
+                    Want to get notified when the Recruiter Portal launches?
+                </p>
+                <div className="flex max-w-md mx-auto mt-4">
+                    <input
+                        type="email"
+                        placeholder="Your email address"
+                        className="flex-grow p-2 border border-slate-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 transition-colors">
+                        Notify Me
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default RecruiterComingSoon; 

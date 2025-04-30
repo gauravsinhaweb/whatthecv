@@ -41,7 +41,7 @@ const LandingPage: React.FC = () => {
                 { name: "Templates", path: "/templates" },
                 { name: "Resume Builder", path: "/create-resume" },
                 { name: "ATS Checker", path: "/analyze" },
-                { name: "For Recruiters", path: "/recruiter-portal" }
+                { name: "For Recruiters", path: "/recruiter-coming-soon" }
             ]
         },
         {
