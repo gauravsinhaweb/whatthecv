@@ -69,3 +69,18 @@ Absolutely! Your platform **WhatTheCV** has a solid core and strong appeal for b
 ---
 
 Want me to help mock up a sample UI/UX layout or onboarding flow based on these features?
+
+---
+
+30th apr
+
+- signup login - give verified badge
+- recruter onboarding
+- cover letter
+- maintain versions
+- app in-purchase
+- improved resume after analysis and view full analysis - breakdown prompts
+- 1 more template support
+- 2 page resume support
+- wrap up design resume
+- separate BE - auth with role (candidate/ recruiter), analyze, template

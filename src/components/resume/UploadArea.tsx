@@ -95,7 +95,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({
                         AI-Powered Resume Analysis
                     </span>
                     <h2 className="text-xl md:text-2xl font-bold text-slate-800 mt-2">
-                        Get Instant Feedback on Your Resume
+                        Get Instant Feedback
                     </h2>
                     <p className="text-slate-600 max-w-xl mx-auto mt-2">
                         Our AI analyzes your resume against industry standards and provides actionable improvements
