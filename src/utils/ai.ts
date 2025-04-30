@@ -15,7 +15,6 @@ export interface AIAnalysisResult {
   };
 }
 
-// New function to check if text is a resume
 export async function isResumeDocument(text: string): Promise<boolean> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -39,11 +38,10 @@ ${text.slice(0, 2000)}`; // Only analyze first 2000 chars for efficiency
     const response = await result.response;
     const prediction = response.text().toLowerCase().trim();
 
-    // Simple boolean extraction from response
     return prediction.includes('true');
   } catch (error) {
     console.error('Resume detection error:', error);
-    return true; // Default to true in case of error to avoid blocking workflow
+    return true; 
   }
 }
 
@@ -52,10 +50,8 @@ export async function analyzeResume(
   jobDescription?: string
 ): Promise<AIAnalysisResult> {
   try {
-    // First check if this is a resume document
     const isResume = await isResumeDocument(resumeText);
 
-    // If not a resume, return early with minimal analysis
     if (!isResume) {
       return {
         score: 0,

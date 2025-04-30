@@ -5,7 +5,6 @@ import Button from '../../../../components/ui/Button';
 import RichTextEditor from '../../../../components/ui/RichTextEditor';
 import ProfilePictureUploader from '../../../../components/ui/ProfilePictureUploader';
 
-// Add these styles at the top of the file
 const styles = `
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
@@ -64,7 +63,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showProfileUploader, setShowProfileUploader] = useState(false);
 
-    // Check if profile picture is a valid data URL
     const hasValidProfilePic = resumeData.personalInfo.profilePicture &&
         resumeData.personalInfo.profilePicture.startsWith('data:image');
 
@@ -109,13 +107,10 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             checked={showProfileUploader || hasValidProfilePic}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                 if (!e.currentTarget.checked) {
-                                                    // Remove profile picture data and hide uploader
                                                     onPersonalInfoChange('profilePicture', '');
                                                     setShowProfileUploader(false);
                                                 } else {
-                                                    // Show uploader without setting temp data
                                                     setShowProfileUploader(true);
-                                                    // Give time for the uploader to render, then trigger click
                                                     setTimeout(() => {
                                                         if (fileInputRef.current) {
                                                             fileInputRef.current.click();
@@ -136,7 +131,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             value={resumeData.personalInfo.profilePicture || ''}
                                             onChange={(value) => {
                                                 onPersonalInfoChange('profilePicture', value);
-                                                // If we got a valid image or empty string, update state accordingly
                                                 setShowProfileUploader(!!value);
                                             }}
                                             ref={fileInputRef}

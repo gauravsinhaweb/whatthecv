@@ -23,7 +23,6 @@ const CreateResume: React.FC = () => {
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
 
-    // Handle escape key to close modal
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && isFullScreenPreview) {
@@ -33,7 +32,6 @@ const CreateResume: React.FC = () => {
 
         document.addEventListener('keydown', handleEscKey);
 
-        // Lock body scroll when modal is open
         if (isFullScreenPreview) {
             document.body.style.overflow = 'hidden';
         } else {
@@ -46,7 +44,6 @@ const CreateResume: React.FC = () => {
         };
     }, [isFullScreenPreview]);
 
-    // Setup print handlers
     useEffect(() => {
         setupPrintHandlers();
     }, []);
@@ -64,7 +61,6 @@ const CreateResume: React.FC = () => {
         [resumeData, activeSection, expandedSections, handlers, skillInput]
     );
 
-    // Handle export to PDF
     const handleExportPDF = () => {
         exportResumeToPDF(resumeData);
     };

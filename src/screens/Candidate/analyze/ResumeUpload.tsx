@@ -26,7 +26,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
   const [jobDescription, setJobDescription] = useState<string>(externalJobDescription || '');
   const [hasJobDescription, setHasJobDescription] = useState<boolean>(!!externalJobDescription);
 
-  // Use external job description when it changes
   useEffect(() => {
     if (externalJobDescription) {
       setJobDescription(externalJobDescription);
@@ -58,7 +57,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     setIsUploading(true);
 
     try {
-      // Using extractResumeText instead of extractText to get normalized text
       const resumeText = await extractResumeText(selectedFile);
 
       if (!resumeText || resumeText.trim().length < 50) {
@@ -103,7 +101,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
       return;
     }
 
-    // Reset states
     setFile(selectedFile);
     setUploadStatus('idle');
     setErrorMessage('');
@@ -111,7 +108,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     setExtractedText('');
     setSectionImprovements({});
 
-    // Automatically start processing the file
     processResume(selectedFile);
   };
 
@@ -136,8 +132,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     setIsGeneratingImprovements(true);
 
     try {
-      // For simplicity, we'll use the entire resume text
-      // In a real app, you'd extract just the relevant section
       const improvements = await suggestImprovements(section, extractedText, jobDescription || undefined);
 
       setSectionImprovements(prev => ({

@@ -15,7 +15,6 @@ const ProfilePictureUploader = forwardRef<HTMLInputElement, ProfilePictureUpload
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Forward the ref to the file input
   useImperativeHandle(ref, () => fileInputRef.current!);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
