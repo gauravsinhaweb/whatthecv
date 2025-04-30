@@ -1,28 +1,26 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
     ArrowUpRight,
     BarChart,
     ChevronRight,
     FileCheck,
-    Search,
-    Target,
     FileText,
-    ThumbsUp,
     Github,
-    Twitter,
     Linkedin,
     Mail,
-    Heart,
-    GitBranch,
-    Star
+    Search,
+    StarIcon,
+    Target,
+    ThumbsUp,
+    Twitter
 } from 'lucide-react';
-import Button from '../../components/ui/Button';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import FaqSection from '../../components/landing/FaqSection';
-import { containerVariants, itemVariants, cardVariants } from '../../utils/animations';
 import '../../components/landing/landing.css';
-import resumeBuilderImg from '/assets/create-resume.png'
+import Button from '../../components/ui/Button';
+import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
+import resumeBuilderImg from '/assets/create-resume.png';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -59,7 +57,7 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="relative pt-20 pb-32 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50">
                 {/* GitHub Badges */}
-                <div className="absolute top-6 right-6 z-30 flex items-center">
+                {/* <div className="absolute top-6 left-4 z-30 flex items-center">
                     <a
                         href="https://github.com/gauravsinhaweb/whatthecv"
                         target="_blank"
@@ -75,10 +73,10 @@ const LandingPage: React.FC = () => {
                         rel="noopener noreferrer"
                         className="flex items-center px-4 py-2 rounded-md gap-1.5 text-slate-800 hover:text-slate-900 transition-colors  hover:-translate-y-[2px]"
                     >
-                        <Heart className="h-4 w-4 text-pink-500" />
-                        <span className="text-xs font-medium">Sponsor</span>
+                        <StarIcon className="h-4 w-4 text-yellow-500" />
+                        <span className="text-xs font-medium">Star</span>
                     </a>
-                </div>
+                </div> */}
 
                 <motion.div
                     className="absolute inset-0 bg-grid-slate-900/[0.03] bg-[size:20px_20px]"
@@ -557,6 +555,10 @@ const LandingPage: React.FC = () => {
                                 </ul>
                             </div>
                         ))}
+                        <div className="hidden sm:ml-6 sm:flex sm:items-center self-start">
+                            <a href="https://www.buymeacoffee.com/gauravsinha" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 40px !important;width: 160px !important;" />
+                            </a>
+                        </div>
                     </div>
 
                     <div className="border-t border-slate-800 pt-8 mt-8 text-center text-slate-500 text-sm">

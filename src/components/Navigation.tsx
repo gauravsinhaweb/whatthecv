@@ -1,4 +1,4 @@
-import { Briefcase, FileText, Layout, Menu, Upload, X } from 'lucide-react';
+import { Briefcase, FileText, Layout, Menu, Upload, X, Coffee } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getPageFromPath } from '../routes';
@@ -77,7 +77,6 @@ const Navigation: React.FC = () => {
               ))}
             </div>
           </div>
-
           <div className="-mr-2 flex items-center sm:hidden">
             <button
               onClick={toggleMobileMenu}
@@ -109,6 +108,15 @@ const Navigation: React.FC = () => {
                 </div>
               </button>
             ))}
+            <a
+              href="https://buymeacoffee.com/gauravsinha"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 w-full text-left"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style={{ height: '2rem', width: 'auto' }} />
+            </a>
           </div>
         </div>
       )}
