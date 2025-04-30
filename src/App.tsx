@@ -1,18 +1,11 @@
-import { lazy, Suspense } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import Navigation from './components/Navigation.tsx';
+import { Suspense } from 'react';
+import { Route, Routes } from 'react-router-dom';
 import Loading from './components/Loading.tsx';
+import Navigation from './components/Navigation.tsx';
 import { routes } from './routes';
 
-const Hero = lazy(() => import('./screens/Landing/Hero.tsx'));
-const TemplateGallery = lazy(() => import('./screens/Candidate/gallery/TemplateGallery.tsx'));
-const ResumeUpload = lazy(() => import('./screens/Candidate/analyze/ResumeUpload.tsx'));
-const RecruiterComingSoon = lazy(() => import('./screens/Recruiter/RecruiterComingSoon.tsx'));
-const CreateResume = lazy(() => import('./screens/Candidate/create/CreateResume.tsx'));
 
 function App() {
-  const location = useLocation();
-
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />

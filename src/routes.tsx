@@ -1,7 +1,6 @@
 import { lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
 
-const Hero = lazy(() => import('./screens/Landing/Hero.tsx'));
 const LandingPage = lazy(() => import('./screens/Landing/LandingPage.tsx'));
 const TemplateGallery = lazy(() => import('./screens/Candidate/gallery/TemplateGallery.tsx'));
 const ResumeUpload = lazy(() => import('./screens/Candidate/analyze/ResumeUpload.tsx'));
@@ -12,10 +11,6 @@ export const routes: RouteObject[] = [
     {
         path: '/',
         element: <LandingPage />,
-    },
-    {
-        path: '/hero',
-        element: <Hero />,
     },
     {
         path: '/templates',
