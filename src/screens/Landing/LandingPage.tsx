@@ -17,7 +17,7 @@ import {
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import FaqSection from '../../components/landing/FaqSection';
-import '../../components/landing/landing.css';
+import './landing.css';
 import Button from '../../components/ui/Button';
 import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
 import resumeBuilderImg from '/assets/create-resume.png';
@@ -57,33 +57,27 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="relative pt-20 pb-32 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50">
                 {/* GitHub Badges */}
-                {/* <div className="absolute top-6 left-4 z-30 flex items-center">
+                <div className="absolute top-6 right-4 z-30 flex items-center">
                     <a
                         href="https://github.com/gauravsinhaweb/whatthecv"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center px-4 py-2 rounded-md gap-1.5 text-slate-800 hover:text-slate-900 transition-colors hover:-translate-y-[2px]"
+                        className="flex items-center px-4 py-2 bg-white/80 backdrop-blur-sm rounded-md gap-1.5 text-slate-800 hover:text-slate-900 transition-colors hover:-translate-y-[2px] shadow-sm hover:shadow-md"
                     >
                         <Github className="h-4 w-4" />
-                        <span className="text-xs font-medium">Contribute</span>
+                        <span className="text-xs font-medium">Star on GitHub</span>
                     </a>
-                    <a
-                        href="https://github.com/sponsors/gauravsinhaweb"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center px-4 py-2 rounded-md gap-1.5 text-slate-800 hover:text-slate-900 transition-colors  hover:-translate-y-[2px]"
-                    >
-                        <StarIcon className="h-4 w-4 text-yellow-500" />
-                        <span className="text-xs font-medium">Star</span>
-                    </a>
-                </div> */}
+                </div>
 
-                <motion.div
-                    className="absolute inset-0 bg-grid-slate-900/[0.03] bg-[size:20px_20px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1 }}
-                />
+                <div className="absolute inset-0 overflow-hidden">
+                    <motion.div
+                        className="absolute inset-0 bg-grid-slate-900/[0.03] bg-[size:20px_20px]"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 1 }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#f8faff] via-[#f8faff]/80 to-transparent pointer-events-none" />
+                </div>
                 <div className="absolute top-0 right-0 -translate-y-12 translate-x-56 transform-gpu blur-3xl opacity-30">
                     <svg viewBox="0 0 1368 1521" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
                         <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
@@ -175,14 +169,13 @@ const LandingPage: React.FC = () => {
                             Live Preview
                         </div>
                         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-                            <img
-                                src="/screenshots/resume-preview.jpg"
-                                alt="Resume Builder Preview"
+                            <video
+                                autoPlay
+                                muted
+                                playsInline
+                                loop
+                                src="/assets/demo.mp4"
                                 className="w-full h-auto"
-                                onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = 'https://placehold.co/800x450/EEF2FF/3B82F6?text=Resume+Builder+Preview';
-                                }}
                             />
                         </div>
                     </motion.div>
