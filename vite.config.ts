@@ -14,6 +14,10 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    middlewareMode: false,
+  },
+  preview: {
+    port: 3000,
   },
   build: {
     rollupOptions: {
@@ -26,7 +30,7 @@ export default defineConfig({
             './src/screens/Candidate/gallery/TemplateGallery.tsx',
           ],
           recruiter: ['./src/screens/Recruiter/RecruiterPortal.tsx'],
-          landing: ['./src/screens/Landing/Hero.tsx'],
+          landing: ['./src/screens/Landing/LandingPage.tsx'],
           pdfjs: ['pdfjs-dist']
         }
       }
