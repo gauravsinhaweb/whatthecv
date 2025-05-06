@@ -89,7 +89,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({
                 </div>
             </div>
 
-            <div className="mt-8 mb-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm">
+            <div className="mt-8  rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm">
                 <div className="text-center mb-4">
                     <span className="inline-block px-4 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                         AI-Powered Resume Analysis

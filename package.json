@@ -19,6 +19,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
     "@react-pdf/renderer": "^4.3.0",
+    "clsx": "^2.1.1",
     "framer-motion": "^12.9.2",
     "lucide-react": "^0.503.0",
     "mammoth": "^1.9.0",
@@ -27,11 +28,13 @@
     "react-dom": "^19.1.0",
     "react-quill": "^2.0.0",
     "react-router-dom": "^7.5.2",
-    "react-split-pane": "^0.1.92"
+    "react-split-pane": "^0.1.92",
+    "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.1",
     "@tsconfig/strictest": "^2.0.5",
+    "@types/node": "^22.15.14",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "autoprefixer": "^10.4.21",

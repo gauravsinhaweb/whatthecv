@@ -1,0 +1,29 @@
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+/* Resume analysis dashboard styling */
+.analysis-tab-content {
+    min-height: 400px;
+}
+
+/* Smooth transition for tab panels */
+.tab-transition {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 640px) {
+    .analysis-tab-content {
+        min-height: 300px;
+    }
+}
