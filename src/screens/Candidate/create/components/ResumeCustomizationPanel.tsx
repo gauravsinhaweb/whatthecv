@@ -8,7 +8,7 @@ import {
     Ruler,
     Type,
 } from 'lucide-react';
-import Tabs from '../../../../components/ui/Tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/ui/Tabs';
 import RadioGroup from '../../../../components/ui/RadioGroup';
 import ColorPicker from '../../../../components/ui/ColorPicker';
 import Slider from '../../../../components/ui/Slider';
@@ -204,21 +204,32 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                 </div>
             </div>
 
-            <Tabs
-                tabs={[
-                    { id: 'layout', label: 'Layout', icon: <LayoutGrid className="w-4 h-4" /> },
-                    { id: 'colors', label: 'Colors', icon: <Palette className="w-4 h-4" /> },
-                    { id: 'spacing', label: 'Spacing', icon: <Ruler className="w-4 h-4" /> },
-                    { id: 'font', label: 'Font', icon: <Type className="w-4 h-4" /> },
-                    { id: 'header', label: 'Header', icon: <ArrowDownUp className="w-4 h-4" /> },
-                ]}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-            />
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                    <TabsTrigger value="layout">
+                        <LayoutGrid className="w-4 h-4 mr-2" />
+                        Layout
+                    </TabsTrigger>
+                    <TabsTrigger value="colors">
+                        <Palette className="w-4 h-4 mr-2" />
+                        Colors
+                    </TabsTrigger>
+                    <TabsTrigger value="spacing">
+                        <Ruler className="w-4 h-4 mr-2" />
+                        Spacing
+                    </TabsTrigger>
+                    <TabsTrigger value="font">
+                        <Type className="w-4 h-4 mr-2" />
+                        Font
+                    </TabsTrigger>
+                    <TabsTrigger value="header">
+                        <ArrowDownUp className="w-4 h-4 mr-2" />
+                        Header
+                    </TabsTrigger>
+                </TabsList>
 
-            <div className="bg-white rounded-lg shadow p-4">
-                {activeTab === 'layout' && (
-                    <div className="space-y-6">
+                <TabsContent value="layout">
+                    <div className="space-y-6 bg-white rounded-lg shadow p-4 mt-4">
                         <div>
                             <h3 className="text-lg font-medium text-slate-800 mb-3">Columns</h3>
                             <RadioGroup
@@ -291,10 +302,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                             </div>
                         </div>
                     </div>
-                )}
+                </TabsContent>
 
-                {activeTab === 'colors' && (
-                    <div className="space-y-6">
+                <TabsContent value="colors">
+                    <div className="space-y-6 bg-white rounded-lg shadow p-4 mt-4">
                         <div>
                             <h3 className="text-lg font-medium text-slate-800 mb-3">Colors Mode</h3>
                             <RadioGroup
@@ -399,10 +410,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                             </div>
                         )}
                     </div>
-                )}
+                </TabsContent>
 
-                {activeTab === 'spacing' && (
-                    <div className="space-y-6">
+                <TabsContent value="spacing">
+                    <div className="space-y-6 bg-white rounded-lg shadow p-4 mt-4">
                         <div>
                             <h3 className="text-lg font-medium text-slate-800 mb-3">Font Size</h3>
                             <Slider
@@ -483,10 +494,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                             />
                         </div>
                     </div>
-                )}
+                </TabsContent>
 
-                {activeTab === 'font' && (
-                    <div className="space-y-6">
+                <TabsContent value="font">
+                    <div className="space-y-6 bg-white rounded-lg shadow p-4 mt-4">
                         <div>
                             <h3 className="text-lg font-medium text-slate-800 mb-3">Font Family</h3>
                             <RadioGroup
@@ -583,10 +594,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                             </div>
                         </div>
                     </div>
-                )}
+                </TabsContent>
 
-                {activeTab === 'header' && (
-                    <div className="space-y-6">
+                <TabsContent value="header">
+                    <div className="space-y-6 bg-white rounded-lg shadow p-4 mt-4">
                         <div>
                             <h3 className="text-lg font-medium text-slate-800 mb-3">Header Details</h3>
                             <div className="space-y-4">
@@ -798,8 +809,8 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 };

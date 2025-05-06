@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ArrowDown, ArrowUp, Award, Check, ChevronDown, ChevronUp, FileQuestion, FileText, FileWarning, Loader, Plus, Target, X } from 'lucide-react';
 import Button from '../ui/Button';
 import './styles.css';
+import FullAnalysisView from './FullAnalysisView';
+import { AnalysisCategory, performDetailedAnalysis } from '../../services/analysisService';
 
 interface AnalysisResultsProps {
     analysisResult: any;
@@ -23,6 +25,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
     clearFile,
 }) => {
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+    const [showFullAnalysis, setShowFullAnalysis] = useState(false);
 
     const toggleSection = (section: string) => {
         setExpandedSections(prev => ({
@@ -53,6 +56,10 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
         if (score >= 80) return 'Great! Your resume is well-optimized for ATS systems.';
         if (score >= 60) return 'Your resume needs some improvements for better ATS compatibility.';
         return 'Your resume needs significant improvements to pass ATS filters.';
+    };
+
+    const handleGenerateDetailedAnalysis = async (category: AnalysisCategory) => {
+        return await performDetailedAnalysis(category, extractedText);
     };
 
     // If the document is not a resume, show a specialized UI
@@ -237,7 +244,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
                     </p>
 
                     {analysisResult.keywords.missing.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-2 md:gap-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
                             {analysisResult.keywords.missing.map((keyword: string, i: number) => (
                                 <div
                                     key={i}
@@ -374,10 +381,23 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
                 >
                     Upload Different Resume
                 </Button>
-                <Button className="w-full sm:w-auto text-xs md:text-sm py-2">
+                <Button
+                    onClick={() => setShowFullAnalysis(true)}
+                    className="w-full sm:w-auto text-xs md:text-sm py-2"
+                >
                     View Full Analysis
                 </Button>
             </div>
+
+            {/* Full Analysis Modal */}
+            {showFullAnalysis && (
+                <FullAnalysisView
+                    analysisResult={analysisResult}
+                    file={file}
+                    onClose={() => setShowFullAnalysis(false)}
+                    generateDetailedAnalysis={handleGenerateDetailedAnalysis}
+                />
+            )}
         </div>
     );
 };
