@@ -139,7 +139,17 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 <div className="flex flex-col md:flex-row gap-8" data-id="resume-body">
                     {/* Left Column - Main Content */}
                     <div className="flex-1" data-id="resume-main-column">
-                        {/* Summary section removed */}
+                        {/* Summary section - only show if it exists */}
+                        {resumeData.personalInfo.summary && (
+                            <div className="mb-8">
+                                <h2 className="text-lg font-bold uppercase mb-2 pb-1 border-b border-gray-900">
+                                    SUMMARY
+                                </h2>
+                                <div className="text-sm">
+                                    <SafeHTML html={resumeData.personalInfo.summary} />
+                                </div>
+                            </div>
+                        )}
 
                         {/* Work Experience */}
                         {resumeData.workExperience.some(

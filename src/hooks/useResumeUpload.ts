@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { analyzeResume, extractResumeText } from '../utils/ai';
+import { analyzeResume, extractResumeText, ResumeTextResult } from '../utils/ai';
 
 export interface AnalysisResult {
     score: number;
@@ -37,6 +37,7 @@ interface UploadState {
 export function useResumeUpload(jobDescription: string) {
     const [file, setFile] = useState<File | null>(null);
     const [extractedText, setExtractedText] = useState<string>('');
+    const [extractedLinks, setExtractedLinks] = useState<ResumeTextResult['links']>([]);
     const [uploadState, setUploadState] = useState<UploadState>({
         isDragging: false,
         isUploading: false,
@@ -54,18 +55,20 @@ export function useResumeUpload(jobDescription: string) {
         updateUploadState({ isUploading: true });
 
         try {
-            const resumeText = await extractResumeText(selectedFile);
+            const resumeResult = await extractResumeText(selectedFile);
 
-            console.log('Extracted upload:', resumeText);
+            console.log('Extracted upload:', resumeResult);
+            console.log('Extracted links:', resumeResult.links);
 
-            if (!resumeText || resumeText.trim().length < 50) {
+            if (!resumeResult.text || resumeResult.text.trim().length < 50) {
                 throw new Error('Could not extract sufficient text from the resume. Please try a different file.');
             }
 
-            setExtractedText(resumeText);
+            setExtractedText(resumeResult.text);
+            setExtractedLinks(resumeResult.links);
             updateUploadState({ isUploading: false, isAnalyzing: true });
 
-            const analysis = await analyzeResume(resumeText, jobDescription || undefined);
+            const analysis = await analyzeResume(resumeResult.text, jobDescription || undefined);
 
             if (!analysis) {
                 throw new Error('Failed to analyze the resume. Please try again.');
@@ -111,6 +114,7 @@ export function useResumeUpload(jobDescription: string) {
         });
         setAnalysisResult(null);
         setExtractedText('');
+        setExtractedLinks([]);
 
         processResume(selectedFile);
     };
@@ -147,6 +151,7 @@ export function useResumeUpload(jobDescription: string) {
         updateUploadState({ uploadStatus: 'idle' });
         setAnalysisResult(null);
         setExtractedText('');
+        setExtractedLinks([]);
     };
 
     const tryAgain = () => {
@@ -159,6 +164,7 @@ export function useResumeUpload(jobDescription: string) {
     return {
         file,
         extractedText,
+        extractedLinks,
         uploadState,
         analysisResult,
         onDragOver,

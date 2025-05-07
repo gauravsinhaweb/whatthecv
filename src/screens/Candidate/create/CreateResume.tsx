@@ -37,11 +37,15 @@ const CreateResume: React.FC = () => {
 
                 // Convert EnhancedResumeData to ResumeData format
                 const convertedData: ResumeData = {
-                    personalInfo: enhancedResumeData.personalInfo,
+                    personalInfo: {
+                        ...enhancedResumeData.personalInfo,
+                        // Move summary from top level to personalInfo if it exists
+                        summary: enhancedResumeData.personalInfo.summary || ''
+                    },
                     workExperience: enhancedResumeData.workExperience,
                     education: enhancedResumeData.education,
                     skills: enhancedResumeData.skills,
-                    projects: enhancedResumeData.projects
+                    projects: enhancedResumeData.projects,
                 };
 
                 // Update resume data with the enhanced content
