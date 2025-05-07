@@ -54,6 +54,15 @@ export interface EnhancedResumeData {
   }[];
 }
 
+export interface ResumeTextResult {
+  text: string;
+  links: {
+    url: string;
+    text: string;
+    type: 'github' | 'linkedin' | 'portfolio' | 'email' | 'other';
+  }[];
+}
+
 export async function isResumeDocument(text: string): Promise<boolean> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -433,7 +442,10 @@ async function extractPdfWithFallbacks(file: File): Promise<string> {
           (async () => {
             try {
               const page = await pdf.getPage(pageNum);
-              const textContent = await page.getTextContent();
+              const textContent = await page.getTextContent({
+                // Enable advanced options to capture hyperlinks
+                includeMarkedContent: true,
+              });
 
               // Extract text content from each item
               const text = textContent.items
@@ -574,10 +586,10 @@ export async function enhanceResume(resumeText: string): Promise<EnhancedResumeD
     // Extract structured information from the resume
     const structure = await extractResumeStructure(resumeText);
 
-    // Skip summary generation - summary has been removed from the preview
-
     // Calculate total number of work experiences to adjust bullet points
     const totalWorkExperiences = structure.workExperience.length;
+    // Calculate total number of projects to adjust description length
+    const totalProjects = structure.projects.length;
 
     console.log("Enhancing resume for ATS optimization...");
 
@@ -586,11 +598,12 @@ export async function enhanceResume(resumeText: string): Promise<EnhancedResumeD
       enhancedWorkExperience,
       enhancedEducation,
       enhancedSkills,
-      enhancedProjects
+      enhancedProjects,
+      shortSummary
     ] = await Promise.all([
       // Enhance work experience for ATS optimization
       Promise.all(structure.workExperience.map(exp =>
-        enhanceResumeSection('experience', exp.description, totalWorkExperiences)
+        enhanceResumeSection('experience', exp.description, totalWorkExperiences, totalProjects)
           .then(enhanced => ({ ...exp, description: enhanced }))
       )),
       // Don't process descriptions for education entries
@@ -736,11 +749,28 @@ export async function enhanceResume(resumeText: string): Promise<EnhancedResumeD
 
         return skillsList;
       }),
-      // Enhance project descriptions for better ATS performance
-      Promise.all(structure.projects.map(proj =>
-        enhanceResumeSection('project', proj.description)
-          .then(enhanced => ({ ...proj, description: enhanced }))
-      ))
+      // Enhance project descriptions for better ATS performance 
+      // Only keep the two most important projects
+      Promise.all(
+        // Sort projects by importance - prioritize those with more technologies/details
+        structure.projects
+          .sort((a, b) => {
+            // Complex projects typically have longer descriptions and more technologies
+            const aScore = (a.description?.length || 0) + (a.technologies?.length || 0) * 2;
+            const bScore = (b.description?.length || 0) + (b.technologies?.length || 0) * 2;
+            return bScore - aScore; // Sort descending by "complexity score"
+          })
+          // Only keep the top 2 projects
+          .slice(0, 2)
+          .map(proj =>
+            enhanceResumeSection('project', proj.description, undefined, totalProjects)
+              .then(enhanced => ({ ...proj, description: enhanced }))
+          )
+      ),
+      // Generate short summary for resumes with <= 2 work experiences
+      totalWorkExperiences <= 2 ?
+        enhanceResumeSection('summary', structure.personalInfo.summary || '') :
+        Promise.resolve("")
     ]);
 
     console.log("Resume enhanced for ATS optimization successfully");
@@ -749,7 +779,8 @@ export async function enhanceResume(resumeText: string): Promise<EnhancedResumeD
     return {
       personalInfo: {
         ...structure.personalInfo,
-        summary: "" // Set empty summary as we've removed it from the preview
+        // Only include summary if there are not more than 2 work experiences
+        summary: totalWorkExperiences <= 2 ? shortSummary : ""
       },
       workExperience: enhancedWorkExperience,
       education: enhancedEducation,
@@ -762,7 +793,7 @@ export async function enhanceResume(resumeText: string): Promise<EnhancedResumeD
   }
 }
 
-async function enhanceResumeSection(sectionType: string, content: string, totalItems?: number): Promise<string> {
+async function enhanceResumeSection(sectionType: string, content: string, totalWorkItems?: number, totalProjects?: number): Promise<string> {
   if (!content || content.trim().length === 0) {
     return '';
   }
@@ -781,12 +812,12 @@ async function enhanceResumeSection(sectionType: string, content: string, totalI
   let maxBulletPoints = 4; // Default
   let maxWordsPerBullet = 20; // Default
 
-  if (sectionType === 'experience' && totalItems) {
+  if (sectionType === 'experience' && totalWorkItems) {
     // Adjust max bullet points based on total work experiences
-    if (totalItems >= 5) {
+    if (totalWorkItems >= 5) {
       maxBulletPoints = 2; // Fewer bullets for many experiences
       maxWordsPerBullet = 15;
-    } else if (totalItems >= 3) {
+    } else if (totalWorkItems >= 3) {
       maxBulletPoints = 3; // Medium number of bullets for average experiences
       maxWordsPerBullet = 18;
     } else {
@@ -798,13 +829,51 @@ async function enhanceResumeSection(sectionType: string, content: string, totalI
     sectionWordLimits.experience = maxBulletPoints * maxWordsPerBullet;
   }
 
+  // Dynamically adjust project descriptions based on total projects
+  if (sectionType === 'project' && totalProjects) {
+    // Adjust word limit based on number of projects
+    if (totalProjects >= 5) {
+      sectionWordLimits.project = 30; // Very short for many projects
+    } else if (totalProjects >= 3) {
+      sectionWordLimits.project = 45; // Medium length for 3-4 projects
+    } else {
+      sectionWordLimits.project = 60; // Full length for 1-2 projects
+    }
+  }
+
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     // Create section-specific prompts with layout guidance
     let prompt;
 
-    if (sectionType === 'skills') {
+    if (sectionType === 'summary') {
+      prompt = `Create a concise professional summary for an early-career professional with limited work experience.
+
+Format requirements:
+- Create a SINGLE CONCISE PARAGRAPH (not bullet points)
+- STRICT WORD LIMIT: Maximum ${sectionWordLimits.summary} words total
+- Focus on candidate's professional identity, core skills, and career objectives
+- Emphasize technical proficiency and key qualifications that make them stand out
+- Include relevant industry keywords for ATS optimization
+- Use strong, confident language with active voice
+- Avoid clichés and generic phrases like "team player" or "hard worker"
+- Highlight specialized skills, relevant education, and any notable achievements
+- Keep tone professional and achievement-focused
+- Do NOT use first-person pronouns (I, me, my)
+- If the original contains relevant details, maintain them
+
+Original content (if any):
+${content || "No existing summary provided."}
+
+If no content is provided, create a professional summary based on general best practices for early-career professionals.
+
+Example format:
+"Results-driven Software Engineer with expertise in JavaScript, React, and Node.js. Demonstrates strong problem-solving abilities through development of responsive web applications and API integrations. Excels in collaborative environments with a focus on clean, maintainable code and efficient user experiences."
+
+Respond with ONLY the enhanced summary paragraph - no additional text or explanations.`;
+    }
+    else if (sectionType === 'skills') {
       prompt = `Extract and enhance professional technical skills from the following resume content for maximum ATS compatibility.
       
 Return ONLY a comma-separated list of high-value, ATS-optimized technical skills.
@@ -873,7 +942,7 @@ Respond with ONLY the enhanced bullet points - no additional text.`;
 
 Format requirements:
 - Create a SINGLE CONCISE PARAGRAPH (NOT bullet points)
-- STRICT WORD LIMIT: Maximum 60 words total
+- STRICT WORD LIMIT: Maximum ${sectionWordLimits.project} words total
 - No line breaks within the paragraph
 - PRESERVE ALL key details, technologies, and achievements from the original content
 - Focus on being technical, achievement-oriented, and keyword-rich
@@ -945,6 +1014,14 @@ Respond with ONLY the enhanced content, no explanations or commentary.`;
       enhancedText = enhancedText.replace(/\n+/g, ' ');
     }
 
+    // For summary, ensure it's a clean paragraph
+    if (sectionType === 'summary') {
+      // Remove any bullet points or line numbers
+      enhancedText = enhancedText.replace(/^[\s•\-*]+|^\d+[\.\)]\s*/gm, '');
+      // Remove line breaks
+      enhancedText = enhancedText.replace(/\n+/g, ' ');
+    }
+
     // Apply word count limits to prevent overflow
     const wordLimit = sectionWordLimits[sectionType as keyof typeof sectionWordLimits] || sectionWordLimits.default;
 
@@ -953,8 +1030,8 @@ Respond with ONLY the enhanced content, no explanations or commentary.`;
       if (words.length > wordLimit) {
         console.log(`Truncating ${sectionType} from ${words.length} to ${wordLimit} words`);
 
-        if (sectionType === 'project') {
-          // For project, just truncate to word limit and add a period if needed
+        if (sectionType === 'project' || sectionType === 'summary') {
+          // For project or summary, just truncate to word limit and add a period if needed
           enhancedText = words.slice(0, wordLimit).join(' ');
           if (!enhancedText.endsWith('.')) {
             enhancedText += '.';
