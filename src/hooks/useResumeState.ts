@@ -1,250 +1,115 @@
 import { useState, useCallback, useEffect } from 'react';
-import { ResumeData, ResumeCustomizationOptions, defaultCustomizationOptions, initialResumeData } from '../types/resume';
+import { useResumeStore } from '../store/resumeStore';
+import { saveResumeData, saveCompleteResumeData, saveResumeDraft } from '../utils/resumeSaveUtils';
+import { formatBulletPoints, formatAllDescriptions } from '../utils/resumeFormatUtils';
 
 export const useResumeState = () => {
-    const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
+    const {
+        // Resume data
+        resumeData,
+        setResumeData,
+        updatePersonalInfo,
+        updateWorkExperience,
+        updateEducation,
+        updateProject,
+        addWorkExperience,
+        addEducation,
+        addProject,
+        removeWorkExperience,
+        removeEducation,
+        removeProject,
+        addSkill,
+        removeSkill,
+
+        // UI state
+        activeSection,
+        expandedSections,
+        previewScale,
+        setActiveSection,
+        setExpandedSections,
+        toggleSection,
+        editSection,
+        setPreviewScale,
+        handleZoomIn,
+        handleZoomOut,
+
+        // Customization
+        customizationOptions,
+        setCustomizationOptions,
+    } = useResumeStore();
+
+    // Local state for skill input (keep this in component level as it's purely UI input state)
     const [skillInput, setSkillInput] = useState('');
-    const [activeSection, setActiveSection] = useState<string>('personalInfo');
-    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-        personalInfo: true,
-        workExperience: false,
-        education: false,
-        skills: false,
-        projects: false,
-    });
-    const [customizationOptions, setCustomizationOptions] = useState<ResumeCustomizationOptions>(defaultCustomizationOptions);
-    const [previewScale, setPreviewScale] = useState(70);
 
-    const handleZoomIn = useCallback(() => {
-        setPreviewScale(prev => Math.min(prev + 10, 150));
-    }, []);
-
-    const handleZoomOut = useCallback(() => {
-        setPreviewScale(prev => Math.max(prev - 10, 50));
-    }, []);
-
-    const handlePersonalInfoChange = useCallback((field: string, value: string) => {
-        setResumeData(prev => ({
-            ...prev,
-            personalInfo: {
-                ...prev.personalInfo,
-                [field]: value,
-            },
-        }));
-    }, []);
-
-    const handleWorkExperienceChange = useCallback((id: string, field: string, value: string | boolean) => {
-        setResumeData(prev => ({
-            ...prev,
-            workExperience: prev.workExperience.map((item) =>
-                item.id === id ? { ...item, [field]: value } : item
-            ),
-        }));
-    }, []);
-
-    const handleEducationChange = useCallback((id: string, field: string, value: string) => {
-        setResumeData(prev => ({
-            ...prev,
-            education: prev.education.map((item) =>
-                item.id === id ? { ...item, [field]: value } : item
-            ),
-        }));
-    }, []);
-
-    const handleProjectChange = useCallback((id: string, field: string, value: string) => {
-        setResumeData(prev => ({
-            ...prev,
-            projects: prev.projects.map((item) =>
-                item.id === id ? { ...item, [field]: value } : item
-            ),
-        }));
-    }, []);
-
-    const addWorkExperience = useCallback(() => {
-        setResumeData(prev => {
-            const newId = String(prev.workExperience.length + 1);
-            return {
-                ...prev,
-                workExperience: [
-                    ...prev.workExperience,
-                    {
-                        id: newId,
-                        title: '',
-                        company: '',
-                        location: '',
-                        startDate: '',
-                        endDate: '',
-                        current: false,
-                        description: '',
-                    },
-                ],
-            };
-        });
-    }, []);
-
-    const addEducation = useCallback(() => {
-        setResumeData(prev => {
-            const newId = String(prev.education.length + 1);
-            return {
-                ...prev,
-                education: [
-                    ...prev.education,
-                    {
-                        id: newId,
-                        degree: '',
-                        institution: '',
-                        location: '',
-                        startDate: '',
-                        endDate: '',
-                        description: '',
-                    },
-                ],
-            };
-        });
-    }, []);
-
-    const addProject = useCallback(() => {
-        setResumeData(prev => {
-            const newId = String(prev.projects.length + 1);
-            return {
-                ...prev,
-                projects: [
-                    ...prev.projects,
-                    {
-                        id: newId,
-                        name: '',
-                        description: '',
-                        technologies: '',
-                        link: '',
-                    },
-                ],
-            };
-        });
-    }, []);
-
-    const removeWorkExperience = useCallback((id: string) => {
-        setResumeData(prev => ({
-            ...prev,
-            workExperience: prev.workExperience.filter((item) => item.id !== id),
-        }));
-    }, []);
-
-    const removeEducation = useCallback((id: string) => {
-        setResumeData(prev => ({
-            ...prev,
-            education: prev.education.filter((item) => item.id !== id),
-        }));
-    }, []);
-
-    const removeProject = useCallback((id: string) => {
-        setResumeData(prev => ({
-            ...prev,
-            projects: prev.projects.filter((item) => item.id !== id),
-        }));
-    }, []);
-
-    const addSkill = useCallback(() => {
-        if (skillInput.trim() && !resumeData.skills.includes(skillInput.trim())) {
-            setResumeData(prev => ({
-                ...prev,
-                skills: [...prev.skills, skillInput.trim()],
-            }));
-            setSkillInput('');
+    // Auto-format bullet points when editing descriptions
+    useEffect(() => {
+        const formattedData = formatAllDescriptions(resumeData);
+        if (JSON.stringify(formattedData) !== JSON.stringify(resumeData)) {
+            setResumeData(formattedData);
         }
-    }, [skillInput, resumeData.skills]);
-
-    const removeSkill = useCallback((skill: string) => {
-        setResumeData(prev => ({
-            ...prev,
-            skills: prev.skills.filter((s) => s !== skill),
-        }));
-    }, []);
+    }, [resumeData, setResumeData]);
 
     const handleSkillInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            addSkill();
+            addSkill(skillInput);
+            setSkillInput('');
         }
-    }, [addSkill]);
+    }, [addSkill, skillInput]);
+
+    const handlePersonalInfoChange = useCallback((field: string, value: string) => {
+        updatePersonalInfo(field, value);
+    }, [updatePersonalInfo]);
+
+    const handleWorkExperienceChange = useCallback((id: string, field: string, value: string | boolean) => {
+        // Apply formatting to description fields
+        if (field === 'description' && typeof value === 'string') {
+            value = formatBulletPoints(value);
+        }
+        updateWorkExperience(id, field, value);
+    }, [updateWorkExperience]);
+
+    const handleEducationChange = useCallback((id: string, field: string, value: string) => {
+        // Apply formatting to description fields
+        if (field === 'description') {
+            value = formatBulletPoints(value);
+        }
+        updateEducation(id, field, value);
+    }, [updateEducation]);
+
+    const handleProjectChange = useCallback((id: string, field: string, value: string) => {
+        // Apply formatting to description fields
+        if (field === 'description') {
+            value = formatBulletPoints(value);
+        }
+        updateProject(id, field, value);
+    }, [updateProject]);
+
+    const handleAddSkill = useCallback(() => {
+        if (skillInput.trim()) {
+            addSkill(skillInput);
+            setSkillInput('');
+        }
+    }, [skillInput, addSkill]);
 
     const saveResume = useCallback(() => {
-        const resumeJSON = JSON.stringify(resumeData, null, 2);
-        const blob = new Blob([resumeJSON], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_resume.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Format all descriptions before saving
+        const formattedData = formatAllDescriptions(resumeData);
+        saveResumeData(formattedData);
     }, [resumeData]);
 
     const saveResumeWithOptions = useCallback(() => {
-        const completeData = {
-            resumeData,
-            customizationOptions,
-        };
-        const dataJSON = JSON.stringify(completeData, null, 2);
-        const blob = new Blob([dataJSON], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_complete_resume.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Format all descriptions before saving
+        const formattedData = formatAllDescriptions(resumeData);
+        saveCompleteResumeData(formattedData, customizationOptions);
     }, [resumeData, customizationOptions]);
 
-    const saveAsDraft = useCallback(() => {
-        const completeData = {
-            resumeData,
-            customizationOptions,
-            savedAt: new Date().toISOString(),
-            isDraft: true,
-        };
-        localStorage.setItem('resumeDraft', JSON.stringify(completeData));
+    const handleSaveAsDraft = useCallback(() => {
+        // Format all descriptions before saving
+        const formattedData = formatAllDescriptions(resumeData);
+        saveResumeDraft(formattedData, customizationOptions);
         alert('Resume saved as draft');
     }, [resumeData, customizationOptions]);
-
-    const toggleSection = useCallback((section: string) => {
-        setExpandedSections(prev => {
-            const newState = {
-                ...prev,
-                [section]: !prev[section]
-            };
-
-            if (!prev[section]) {
-                setActiveSection(section);
-            }
-
-            return newState;
-        });
-    }, []);
-
-    const editSection = useCallback((section: string) => {
-        setActiveSection(section);
-        setExpandedSections(prev => ({
-            ...prev,
-            [section]: true
-        }));
-    }, []);
-
-    useEffect(() => {
-        const hasValidProfilePic = resumeData.personalInfo.profilePicture &&
-            resumeData.personalInfo.profilePicture.startsWith('data:image');
-
-        if (hasValidProfilePic && !customizationOptions.header.showPhoto) {
-            setCustomizationOptions(prev => ({
-                ...prev,
-                header: {
-                    ...prev.header,
-                    showPhoto: true
-                }
-            }));
-        }
-    }, [resumeData.personalInfo.profilePicture, customizationOptions.header.showPhoto]);
 
     return {
         resumeData,
@@ -272,12 +137,12 @@ export const useResumeState = () => {
             removeWorkExperience,
             removeEducation,
             removeProject,
-            addSkill,
+            addSkill: handleAddSkill,
             removeSkill,
             handleSkillInputKeyDown,
             saveResume,
             saveResumeWithOptions,
-            saveAsDraft,
+            saveAsDraft: handleSaveAsDraft,
             toggleSection,
             editSection,
         }

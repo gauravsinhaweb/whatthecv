@@ -1,14 +1,37 @@
-import { CheckCircle, Clock, Eye, FileText, Gauge, Laptop, Loader, Sparkles, Upload } from 'lucide-react';
-import React, { useCallback, useState, useEffect } from 'react';
-import Button from '../../../components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
-import { analyzeResume, extractResumeText, suggestImprovements } from '../../../utils/ai';
-import AnalysisResults from '../../../components/resume/AnalysisResults';
-import ProgressStatus from '../../../components/resume/ProgressStatus';
-import ErrorState from '../../../components/resume/ErrorState';
-import UploadArea from '../../../components/resume/UploadArea';
+import { CheckCircle, Sparkles, Upload } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
 import AnalysisDashboard from '../../../components/resume/AnalysisDashboard';
+import ErrorState from '../../../components/resume/ErrorState';
+import HowItWorks from '../../../components/resume/HowItWorks';
+import ProgressStatus from '../../../components/resume/ProgressStatus';
+import Button from '../../../components/ui/Button';
+import { analyzeResume, extractResumeText } from '../../../utils/ai';
 import './styles.css';
+
+export interface AnalysisResult {
+  score: number;
+  feedback?: {
+    strengths: string[];
+    weaknesses: string[];
+    improvements: string[];
+  };
+  sections?: {
+    [key: string]: {
+      score: number;
+      feedback: string;
+    };
+  };
+  keywords?: {
+    matched?: string[];
+    missing: string[];
+    present?: string[];
+  };
+  atsCompatibility?: {
+    score: number;
+    issues: string[];
+  };
+  [key: string]: any; // Allow for additional properties
+}
 
 interface ResumeUploadProps {
   jobDescription?: string;
@@ -22,9 +45,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
-  const [isGeneratingImprovements, setIsGeneratingImprovements] = useState(false);
-  const [sectionImprovements, setSectionImprovements] = useState<{ [key: string]: string[] }>({});
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [jobDescription, setJobDescription] = useState<string>(externalJobDescription || '');
   const [hasJobDescription, setHasJobDescription] = useState<boolean>(!!externalJobDescription);
 
@@ -60,6 +81,8 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
 
     try {
       const resumeText = await extractResumeText(selectedFile);
+
+      console.log('Extracted upload:', resumeText);
 
       if (!resumeText || resumeText.trim().length < 50) {
         throw new Error('Could not extract sufficient text from the resume. Please try a different file.');
@@ -108,7 +131,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     setErrorMessage('');
     setAnalysisResult(null);
     setExtractedText('');
-    setSectionImprovements({});
 
     processResume(selectedFile);
   };
@@ -125,26 +147,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     setUploadStatus('idle');
     setAnalysisResult(null);
     setExtractedText('');
-    setSectionImprovements({});
-  };
-
-  const generateSectionImprovement = async (section: string) => {
-    if (!extractedText || isGeneratingImprovements) return;
-
-    setIsGeneratingImprovements(true);
-
-    try {
-      const improvements = await suggestImprovements(section, extractedText, jobDescription || undefined);
-
-      setSectionImprovements(prev => ({
-        ...prev,
-        [section]: improvements
-      }));
-    } catch (error) {
-      console.error('Error generating improvements:', error);
-    } finally {
-      setIsGeneratingImprovements(false);
-    }
   };
 
   const triggerFileInput = () => {
@@ -161,7 +163,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 mb-3">AI Resume Analysis</h1>
         <p className="text-slate-600 max-w-2xl mx-auto text-lg">
           Our advanced AI analyzes your resume for ATS compatibility, keyword optimization,
           and provides tailored recommendations to help you land more interviews
@@ -250,7 +251,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
                     size="lg"
                     className="px-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-md"
                   >
-                    Select Resume File
+                    Select File
                   </Button>
                   <p className="mt-4 text-xs text-slate-400">
                     Supported formats: PDF, DOC, DOCX, TXT (Max size: 5MB)
@@ -303,67 +304,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
           </div>
         )}
 
-        <div className="mt-16 bg-white rounded-xl shadow-xl overflow-hidden border border-slate-200">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-5">
-            <div className="flex items-center">
-              <div className="p-2 bg-white/20 rounded-lg mr-3">
-                <Gauge className="h-6 w-6" />
-              </div>
-              <h2 className="text-xl font-bold">How It Works</h2>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 flex flex-col h-full shadow-sm transition-all duration-300 hover:shadow-md hover:translate-y-[-2px]">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-4 shadow-md">
-                  <Upload className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="font-medium text-slate-800 mb-2 text-lg">Upload & Extract</h3>
-                <p className="text-slate-600 flex-grow">
-                  Upload your resume in PDF, DOC, DOCX, or TXT format. Our system extracts and processes the text content.
-                </p>
-                <div className="mt-4 flex items-center">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shadow-sm">
-                    <span className="text-xs text-white font-bold">1</span>
-                  </div>
-                  <div className="ml-2 text-xs font-medium text-blue-700">Step 1</div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-b from-indigo-50 to-indigo-100 rounded-xl p-6 border border-indigo-200 flex flex-col h-full shadow-sm transition-all duration-300 hover:shadow-md hover:translate-y-[-2px]">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center mb-4 shadow-md">
-                  <Laptop className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="font-medium text-slate-800 mb-2 text-lg">AI Analysis</h3>
-                <p className="text-slate-600 flex-grow">
-                  Advanced AI evaluates your resume against ATS systems and industry standards for optimal formatting.
-                </p>
-                <div className="mt-4 flex items-center">
-                  <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center shadow-sm">
-                    <span className="text-xs text-white font-bold">2</span>
-                  </div>
-                  <div className="ml-2 text-xs font-medium text-indigo-700">Step 2</div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-b from-emerald-50 to-emerald-100 rounded-xl p-6 border border-emerald-200 flex flex-col h-full shadow-sm transition-all duration-300 hover:shadow-md hover:translate-y-[-2px]">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-4 shadow-md">
-                  <CheckCircle className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="font-medium text-slate-800 mb-2 text-lg">Get Feedback</h3>
-                <p className="text-slate-600 flex-grow">
-                  Receive instant feedback with actionable suggestions to improve your resume's effectiveness.
-                </p>
-                <div className="mt-4 flex items-center">
-                  <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center shadow-sm">
-                    <span className="text-xs text-white font-bold">3</span>
-                  </div>
-                  <div className="ml-2 text-xs font-medium text-emerald-700">Step 3</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <HowItWorks />
       </div>
     </div>
   );
