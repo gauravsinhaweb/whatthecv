@@ -7,6 +7,9 @@ import Button from '../../../components/ui/Button';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { exportResumeToPDF } from '../../../utils/resumeExport';
 import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../../../utils/resumeUI';
+import { EnhancedResumeData } from '../../../utils/ai';
+import { ResumeData } from '../../../types/resume';
+import { useResumeStore } from '../../../store/resumeStore';
 
 const CreateResume: React.FC = () => {
     const {
@@ -19,9 +22,38 @@ const CreateResume: React.FC = () => {
         handlers
     } = useResumeState();
 
+    // Get enhanced resume data and setResumeData from Zustand store
+    const { enhancedResumeData, setEnhancedResumeData, setResumeData } = useResumeStore();
+
     const [isMobilePreviewVisible, setIsMobilePreviewVisible] = useState(false);
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
+
+    useEffect(() => {
+        // Check for enhanced resume data in the store
+        if (enhancedResumeData) {
+            try {
+                console.log('Found enhanced resume data:', enhancedResumeData);
+
+                // Convert EnhancedResumeData to ResumeData format
+                const convertedData: ResumeData = {
+                    personalInfo: enhancedResumeData.personalInfo,
+                    workExperience: enhancedResumeData.workExperience,
+                    education: enhancedResumeData.education,
+                    skills: enhancedResumeData.skills,
+                    projects: enhancedResumeData.projects
+                };
+
+                // Update resume data with the enhanced content
+                setResumeData(convertedData);
+
+                // Clear enhanced data from store
+                setEnhancedResumeData(null);
+            } catch (error) {
+                console.error('Error loading enhanced resume data:', error);
+            }
+        }
+    }, [enhancedResumeData, setResumeData, setEnhancedResumeData]);
 
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
 import { MapPin, Mail, Phone, User } from 'lucide-react';
-import { createMarkup } from '../../../../utils/html';
+import { createMarkup, SafeHTML } from '../../../../utils/html';
 
 interface ResumePreviewProps {
     resumeData: ResumeData;
@@ -139,18 +139,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 <div className="flex flex-col md:flex-row gap-8" data-id="resume-body">
                     {/* Left Column - Main Content */}
                     <div className="flex-1" data-id="resume-main-column">
-                        {/* Summary */}
-                        {resumeData.personalInfo.summary && (
-                            <div className="mb-8">
-                                <h2 className="text-lg font-bold uppercase mb-2 pb-1 border-b border-gray-900">
-                                    SUMMARY
-                                </h2>
-                                <div
-                                    className="text-justify"
-                                    dangerouslySetInnerHTML={createMarkup(resumeData.personalInfo.summary)}
-                                />
-                            </div>
-                        )}
+                        {/* Summary section removed */}
 
                         {/* Work Experience */}
                         {resumeData.workExperience.some(
@@ -182,7 +171,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                             </div>
                                                         )}
                                                         {exp.description && (
-                                                            <div className="text-sm" dangerouslySetInnerHTML={createMarkup(exp.description)} />
+                                                            <SafeHTML
+                                                                html={exp.description}
+                                                                className="text-sm"
+                                                            />
                                                         )}
                                                     </div>
                                                 </div>
@@ -193,7 +185,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                         {/* Education */}
                         {resumeData.education.some(
-                            (edu) => edu.degree || edu.institution || edu.description
+                            (edu) => edu.degree || edu.institution
                         ) && (
                                 <div className="mb-8">
                                     <h2 className="text-lg font-bold uppercase mb-2 pb-1 border-b border-gray-900">
@@ -201,7 +193,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     </h2>
                                     <div className="space-y-5">
                                         {resumeData.education
-                                            .filter((edu) => edu.degree || edu.institution || edu.description)
+                                            .filter((edu) => edu.degree || edu.institution)
                                             .map((edu, index) => (
                                                 <div key={index} className="mb-5">
                                                     <div className="flex flex-col">
@@ -219,9 +211,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                     <span>{edu.location}</span>
                                                                 )}
                                                             </div>
-                                                        )}
-                                                        {edu.description && (
-                                                            <div className="text-sm" dangerouslySetInnerHTML={createMarkup(edu.description)} />
                                                         )}
                                                     </div>
                                                 </div>
@@ -269,7 +258,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                         {project.name || 'Project Name'}
                                                     </h3>
                                                     {project.description && (
-                                                        <div className="text-sm mt-1" dangerouslySetInnerHTML={createMarkup(project.description)} />
+                                                        <SafeHTML
+                                                            html={project.description}
+                                                            className="text-sm mt-1"
+                                                        />
                                                     )}
                                                     {project.technologies && (
                                                         <div className="text-sm mt-2 text-gray-600">

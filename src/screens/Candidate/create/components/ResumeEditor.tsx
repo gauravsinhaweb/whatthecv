@@ -190,12 +190,15 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
                                         value={resumeData.personalInfo.location}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => onPersonalInfoChange('location', e.currentTarget.value)}
-                                        placeholder="San Francisco, CA"
+                                        placeholder="Country (e.g., United States)"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">Professional Summary</label>
+                                    <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3 text-sm">
+                                        <span className="font-semibold">Pro tip:</span> A concise, impactful summary is essential. Keep it to 2-3 sentences highlighting your expertise and career focus.
+                                    </div>
                                     <RichTextEditor
                                         value={resumeData.personalInfo.summary}
                                         onChange={(value) => onPersonalInfoChange('summary', value)}
@@ -275,7 +278,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                     className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
                                                     value={exp.location}
                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => onWorkExperienceChange(exp.id, 'location', e.currentTarget.value)}
-                                                    placeholder="San Francisco, CA"
+                                                    placeholder="Country (e.g., United States)"
                                                 />
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -322,10 +325,13 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-indigo-700 mb-1.5">Description</label>
+                                                <div className="bg-indigo-50 border-l-4 border-indigo-500 p-2 mb-2 text-xs">
+                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line.
+                                                </div>
                                                 <RichTextEditor
                                                     value={exp.description}
                                                     onChange={(value) => onWorkExperienceChange(exp.id, 'description', value)}
-                                                    placeholder="Describe your responsibilities and achievements..."
+                                                    placeholder="• Describe your responsibilities and achievements..."
                                                     rows={4}
                                                 />
                                             </div>
@@ -414,7 +420,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                     className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
                                                     value={edu.location}
                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => onEducationChange(edu.id, 'location', e.currentTarget.value)}
-                                                    placeholder="City, State"
+                                                    placeholder="Country (e.g., United States)"
                                                 />
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -441,10 +447,13 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-emerald-700 mb-1.5">Description</label>
+                                                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-2 mb-2 text-xs">
+                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line.
+                                                </div>
                                                 <RichTextEditor
                                                     value={edu.description}
                                                     onChange={(value) => onEducationChange(edu.id, 'description', value)}
-                                                    placeholder="Relevant coursework, achievements, etc..."
+                                                    placeholder="• Relevant coursework, achievements, etc..."
                                                     rows={3}
                                                 />
                                             </div>
@@ -492,6 +501,9 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                             <div className="space-y-5">
                                 <div>
                                     <label className="block text-sm font-medium text-amber-700 mb-1.5">Add Skills</label>
+                                    <div className="bg-amber-50 border-l-4 border-amber-500 p-3 mb-3 text-sm">
+                                        <span className="font-semibold">Important:</span> Enter only one-word skills. Maximum 16 skills allowed. For multi-word skills, use hyphens (e.g. ReactJS, Machine-Learning).
+                                    </div>
                                     <div className="flex">
                                         <input
                                             type="text"
@@ -504,11 +516,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         <Button
                                             onClick={onSkillChange.addSkill}
                                             className="rounded-l-none bg-amber-600 hover:bg-amber-700 transition-colors"
+                                            disabled={resumeData.skills.length >= 16}
                                         >
                                             Add
                                         </Button>
                                     </div>
-                                    <p className="mt-2 text-xs text-slate-500">Press Enter to add multiple skills</p>
+                                    <p className="mt-2 text-xs text-slate-500">Press Enter to add multiple skills ({resumeData.skills.length}/16 used)</p>
                                 </div>
 
                                 <div className="mt-6">
@@ -591,10 +604,13 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-purple-700 mb-1.5">Description</label>
+                                                <div className="bg-purple-50 border-l-4 border-purple-500 p-2 mb-2 text-xs">
+                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line.
+                                                </div>
                                                 <RichTextEditor
                                                     value={project.description}
                                                     onChange={(value) => onProjectChange(project.id, 'description', value)}
-                                                    placeholder="Brief description of the project..."
+                                                    placeholder="• Brief description of the project..."
                                                     rows={3}
                                                 />
                                             </div>

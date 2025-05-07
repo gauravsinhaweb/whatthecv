@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Award, BarChart2, Check, Clock, Download, FileText, KeyRound, Layers, Loader2, Plus, RefreshCw, Target, Zap, AlertCircle, X } from 'lucide-react';
-import Button from '../ui/Button';
+import { AlertCircle, Award, BarChart2, Check, Clock, Download, FileText, KeyRound, Layers, Loader2, Plus, Target, Wand2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnalysisCategory, performDetailedAnalysis } from '../../services/analysisService';
-import { Progress } from '../ui/Progress';
+import { useResumeStore } from '../../store/resumeStore';
+import { enhanceResume } from '../../utils/ai';
 import { Badge } from '../ui/Badge';
+import Button from '../ui/Button';
+import { Progress } from '../ui/Progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/Tabs';
+import EnhancingLoader from './EnhancingLoader';
 
 interface AnalysisDashboardProps {
     analysisResult: any;
@@ -27,6 +31,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     file,
     clearFile
 }) => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<AnalysisTab>('overview');
     const [analysisData, setAnalysisData] = useState<Record<AnalysisCategory, CategoryAnalysis>>({
         format: { score: null, details: [], isLoading: false },
@@ -37,6 +42,15 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     const [expandedSuggestions, setExpandedSuggestions] = useState<string[]>([]);
     const [goodPoints, setGoodPoints] = useState<string[]>([]);
     const [improvementPoints, setImprovementPoints] = useState<string[]>([]);
+
+    // Use Zustand store instead of local state
+    const {
+        isEnhancing,
+        setIsEnhancing,
+        enhancementStage,
+        setEnhancementStage,
+        setEnhancedResumeData
+    } = useResumeStore();
 
     // Start all analyses when component mounts
     useEffect(() => {
@@ -209,6 +223,67 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
             </div>
         );
     };
+
+    const handleEnhanceResume = async () => {
+        if (!extractedText || isEnhancing) return;
+
+        setIsEnhancing(true);
+        setEnhancementStage('extracting');
+
+        try {
+            // Add a small delay to show the different stages for better UX
+            setTimeout(() => setEnhancementStage('enhancing'), 1000);
+            console.log('Extracted Analysis', extractedText);
+
+            const result = await enhanceResume(extractedText);
+
+            setEnhancementStage('finalizing');
+
+            // Save enhanced resume data to Zustand store instead of localStorage
+            setEnhancedResumeData(result);
+
+            setTimeout(() => {
+                // Navigate to create-resume route
+                navigate('/create-resume');
+                setIsEnhancing(false);
+            }, 800);
+        } catch (error) {
+            console.error('Error enhancing resume:', error);
+            setIsEnhancing(false);
+            setEnhancedResumeData(null);
+        }
+    };
+
+    const renderFileActions = () => (
+        <div className="flex justify-end items-center gap-3 pt-4">
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFile}
+                className="border-slate-300 text-slate-700"
+            >
+                Upload Another Resume
+            </Button>
+            <Button
+                size="sm"
+                onClick={handleEnhanceResume}
+                disabled={isEnhancing}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+            >
+                {isEnhancing ? (
+                    <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Enhancing...
+                    </>
+                ) : (
+                    <>
+                        <Wand2 className="h-4 w-4 mr-2" />
+                        Create My Resume
+                    </>
+                )}
+            </Button>
+        </div>
+    );
 
     const renderOverviewTab = () => (
         <div className="space-y-6 animate-fadeIn">
@@ -431,379 +506,419 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                 </div>
             </div>
 
-            {/* File actions */}
-            <div className="flex justify-end items-center gap-3 pt-4">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearFile}
-                    className="border-slate-300 text-slate-700"
-                >
-                    Upload Another Resume
-                </Button>
-                <Button
-                    size="sm"
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Report
-                </Button>
-            </div>
+            {renderFileActions()}
         </div>
     );
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            <div className="p-2 bg-white/20 rounded-lg mr-3">
-                                <Award className="h-5 w-5" />
+            {isEnhancing ? (
+                <EnhancingLoader stage={enhancementStage} />
+            ) : (
+                <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-white/20 rounded-lg mr-3">
+                                    <Award className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold">Resume Analysis</h2>
+                                    <p className="text-xs text-blue-100">
+                                        {file && <span className="opacity-80">Analyzing: {file.name}</span>}
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-lg font-bold">Resume Analysis</h2>
-                                <p className="text-xs text-blue-100">
-                                    {file && <span className="opacity-80">Analyzing: {file.name}</span>}
-                                </p>
+                            <div className="flex items-center space-x-3">
+                                <Badge
+                                    variant="outline"
+                                    className="bg-white/10 border-white/20 text-white"
+                                >
+                                    Score: {getOverallScore()}%
+                                </Badge>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={clearFile}
+                                    className="text-white hover:bg-white/20"
+                                >
+                                    Change File
+                                </Button>
                             </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <Badge
-                                variant="outline"
-                                className="bg-white/10 border-white/20 text-white"
-                            >
-                                Score: {getOverallScore()}%
-                            </Badge>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={clearFile}
-                                className="text-white hover:bg-white/20"
-                            >
-                                Change File
-                            </Button>
                         </div>
                     </div>
-                </div>
 
-                <div>
-                    <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as AnalysisTab)} className="p-0">
-                        <TabsList className="w-full border-b border-slate-200 px-5 pt-1 rounded-none bg-white h-auto gap-2">
-                            {(Object.keys({
-                                overview: { label: 'Overview', icon: Award },
-                                format: { label: 'Format', icon: FileText },
-                                content: { label: 'Content', icon: BarChart2 },
-                                keywords: { label: 'Keywords', icon: KeyRound },
-                                improvement: { label: 'Improvements', icon: Layers }
-                            }) as AnalysisTab[]).map(tab => {
-                                const config = {
+                    <div>
+                        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as AnalysisTab)} className="p-0">
+                            <TabsList className="w-full border-b border-slate-200 px-5 pt-1 rounded-none bg-white h-auto gap-2">
+                                {(Object.keys({
                                     overview: { label: 'Overview', icon: Award },
                                     format: { label: 'Format', icon: FileText },
                                     content: { label: 'Content', icon: BarChart2 },
                                     keywords: { label: 'Keywords', icon: KeyRound },
                                     improvement: { label: 'Improvements', icon: Layers }
-                                }[tab];
+                                }) as AnalysisTab[]).map(tab => {
+                                    const config = {
+                                        overview: { label: 'Overview', icon: Award },
+                                        format: { label: 'Format', icon: FileText },
+                                        content: { label: 'Content', icon: BarChart2 },
+                                        keywords: { label: 'Keywords', icon: KeyRound },
+                                        improvement: { label: 'Improvements', icon: Layers }
+                                    }[tab];
 
-                                return (
-                                    <TabsTrigger
-                                        key={tab}
-                                        value={tab}
-                                        className="data-[state=active]:border-b-2 data-[state=active]:border-b-blue-600 data-[state=active]:text-blue-700 data-[state=active]:bg-transparent data-[state=active]:rounded-none data-[state=active]:shadow-none px-3 rounded-none flex items-center gap-1.5 pb-2.5"
-                                    >
-                                        <config.icon className="h-4 w-4" />
-                                        {config.label}
-                                    </TabsTrigger>
-                                );
-                            })}
-                        </TabsList>
-                        <div className="p-6">
-                            <TabsContent value="overview" className="m-0 p-0">
-                                {renderOverviewTab()}
-                            </TabsContent>
-                            <TabsContent value="format" className="m-0 p-0">
-                                {analysisData.format.isLoading ? (
-                                    <div className="flex flex-col items-center justify-center py-12">
-                                        <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
-                                            <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-                                        </div>
-                                        <h3 className="text-lg font-medium text-slate-800 mb-2">Analyzing Format</h3>
-                                        <p className="text-slate-500 text-sm max-w-md text-center">
-                                            We're analyzing your resume's format for ATS compatibility, layout issues, and best practices.
-                                        </p>
-                                    </div>
-                                ) : !analysisData.format.score ? (
-                                    <div className="flex flex-col items-center justify-center py-12">
-                                        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                                            <Clock className="h-8 w-8 text-slate-400" />
-                                        </div>
-                                        <h3 className="text-lg font-medium text-slate-800 mb-2">Format Analysis Queued</h3>
-                                        <p className="text-slate-500 text-sm max-w-md text-center mb-6">
-                                            Your resume's format will be analyzed shortly.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6 animate-fadeIn">
+                                    return (
+                                        <TabsTrigger
+                                            key={tab}
+                                            value={tab}
+                                            className="data-[state=active]:border-b-2 data-[state=active]:border-b-blue-600 data-[state=active]:text-blue-700 data-[state=active]:bg-transparent data-[state=active]:rounded-none data-[state=active]:shadow-none px-3 rounded-none flex items-center gap-1.5 pb-2.5"
+                                        >
+                                            <config.icon className="h-4 w-4" />
+                                            {config.label}
+                                        </TabsTrigger>
+                                    );
+                                })}
+                            </TabsList>
+                            <div className="p-6">
+                                <TabsContent value="overview" className="m-0 p-0">
+                                    {renderOverviewTab()}
+                                </TabsContent>
+                                <TabsContent value="format" className="m-0 p-0">
+                                    <div className="space-y-6">
                                         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-lg font-semibold text-slate-800">Format Analysis</h3>
                                                 <div className="flex items-center">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${getScoreBgColor(analysisData.format.score)}`}>
-                                                        <FileText className={`h-6 w-6 ${getScoreColor(analysisData.format.score)}`} />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-lg font-semibold text-slate-800">Format Analysis</h3>
-                                                        <p className="text-sm text-slate-500">Assessment of your resume's structure and layout</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center">
-                                                    {renderScoreMeter(analysisData.format.score)}
-                                                    <div className="ml-3">
-                                                        <Badge variant={analysisData.format.score >= 80 ? "success" : analysisData.format.score >= 60 ? "warning" : "destructive"} className="mb-1">
-                                                            {analysisData.format.score >= 80 ? 'Well Formatted' : analysisData.format.score >= 60 ? 'Needs Improvement' : 'Formatting Issues'}
-                                                        </Badge>
-                                                        <p className="text-xs text-slate-500">Format Score</p>
-                                                    </div>
+                                                    <span className={`text-xl font-bold ${getScoreColor(analysisData.format.score ?? 0)}`}>
+                                                        {analysisData.format.score ?? "--"}
+                                                    </span>
+                                                    <span className="text-xs text-slate-500 ml-1">/100</span>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-4">
-                                                {analysisData.format.details.map((detail, index) => (
-                                                    <div key={index} className="flex items-start p-3 rounded-lg border border-slate-200 bg-slate-50">
-                                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5 ${detail.includes("Good") || detail.includes("Excellent") ?
-                                                            "bg-emerald-100 text-emerald-600" :
-                                                            detail.includes("Missing") || detail.includes("Issue") ?
-                                                                "bg-red-100 text-red-600" :
-                                                                "bg-amber-100 text-amber-600"
-                                                            }`}>
-                                                            {detail.includes("Good") || detail.includes("Excellent") ? (
-                                                                <Check className="h-3 w-3" />
-                                                            ) : detail.includes("Missing") || detail.includes("Issue") ? (
-                                                                <X className="h-3 w-3" />
+                                            {analysisData.format.isLoading ? (
+                                                <div className="flex flex-col items-center justify-center py-12">
+                                                    <Loader2 className="h-8 w-8 text-blue-500 animate-spin mb-2" />
+                                                    <p className="text-slate-500 text-sm">Analyzing resume format...</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {analysisData.format.details.length > 0 ? (
+                                                        analysisData.format.details.map((detail, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className={`p-4 rounded-lg border ${detail.includes("Good") || detail.includes("Excellent") || detail.includes("Well")
+                                                                    ? "bg-emerald-50 border-emerald-200"
+                                                                    : "bg-amber-50 border-amber-200"
+                                                                    }`}
+                                                            >
+                                                                <div className="flex">
+                                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 ${detail.includes("Good") || detail.includes("Excellent") || detail.includes("Well")
+                                                                        ? "bg-emerald-100"
+                                                                        : "bg-amber-100"
+                                                                        }`}>
+                                                                        {detail.includes("Good") || detail.includes("Excellent") || detail.includes("Well") ? (
+                                                                            <Check className="h-3.5 w-3.5 text-emerald-600" />
+                                                                        ) : (
+                                                                            <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                                                                        )}
+                                                                    </div>
+                                                                    <span className="text-sm">{detail}</span>
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="text-center py-12 bg-slate-50 rounded-lg">
+                                                            <p className="text-slate-500">No format analysis available yet.</p>
+                                                            <button
+                                                                onClick={() => runAnalysis('format')}
+                                                                className="mt-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100"
+                                                            >
+                                                                Run Format Analysis
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="content" className="m-0 p-0">
+                                    <div className="space-y-6">
+                                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-lg font-semibold text-slate-800">Content Analysis</h3>
+                                                <div className="flex items-center">
+                                                    <span className={`text-xl font-bold ${getScoreColor(analysisData.content.score ?? 0)}`}>
+                                                        {analysisData.content.score ?? "--"}
+                                                    </span>
+                                                    <span className="text-xs text-slate-500 ml-1">/100</span>
+                                                </div>
+                                            </div>
+
+                                            {analysisData.content.isLoading ? (
+                                                <div className="flex flex-col items-center justify-center py-12">
+                                                    <Loader2 className="h-8 w-8 text-blue-500 animate-spin mb-2" />
+                                                    <p className="text-slate-500 text-sm">Analyzing resume content...</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {analysisData.content.details.length > 0 ? (
+                                                        analysisData.content.details.map((detail, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className={`p-4 rounded-lg border ${detail.includes("Good") || detail.includes("Excellent") || detail.includes("Well")
+                                                                    ? "bg-emerald-50 border-emerald-200"
+                                                                    : "bg-amber-50 border-amber-200"
+                                                                    }`}
+                                                            >
+                                                                <div className="flex">
+                                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 ${detail.includes("Good") || detail.includes("Excellent") || detail.includes("Well")
+                                                                        ? "bg-emerald-100"
+                                                                        : "bg-amber-100"
+                                                                        }`}>
+                                                                        {detail.includes("Good") || detail.includes("Excellent") || detail.includes("Well") ? (
+                                                                            <Check className="h-3.5 w-3.5 text-emerald-600" />
+                                                                        ) : (
+                                                                            <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                                                                        )}
+                                                                    </div>
+                                                                    <span className="text-sm">{detail}</span>
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="text-center py-12 bg-slate-50 rounded-lg">
+                                                            <p className="text-slate-500">No content analysis available yet.</p>
+                                                            <button
+                                                                onClick={() => runAnalysis('content')}
+                                                                className="mt-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100"
+                                                            >
+                                                                Run Content Analysis
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="keywords" className="m-0 p-0">
+                                    <div className="space-y-6">
+                                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-lg font-semibold text-slate-800">Keywords Analysis</h3>
+                                            </div>
+
+                                            {analysisData.tailoring.isLoading ? (
+                                                <div className="flex flex-col items-center justify-center py-12">
+                                                    <Loader2 className="h-8 w-8 text-blue-500 animate-spin mb-2" />
+                                                    <p className="text-slate-500 text-sm">Analyzing keywords and tailoring...</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-6">
+                                                    <div>
+                                                        <h4 className="text-md font-medium text-slate-700 mb-3">
+                                                            <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full mr-2 text-xs">
+                                                                Matched Keywords
+                                                            </span>
+                                                        </h4>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                                            {analysisResult.keywords && analysisResult.keywords.matched ? (
+                                                                analysisResult.keywords.matched.map((keyword: string, i: number) => (
+                                                                    <div key={i} className="flex items-center p-2 rounded-lg bg-emerald-50 border border-emerald-200">
+                                                                        <Check className="h-4 w-4 text-emerald-500 mr-2" />
+                                                                        <span className="text-sm text-slate-700">{keyword}</span>
+                                                                    </div>
+                                                                ))
                                                             ) : (
-                                                                <AlertCircle className="h-3 w-3" />
+                                                                <p className="text-slate-500 col-span-3 p-4 bg-slate-50 rounded-lg text-center">
+                                                                    No matched keywords available
+                                                                </p>
                                                             )}
                                                         </div>
-                                                        <span className="text-sm text-slate-700">{detail}</span>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </TabsContent>
-                            <TabsContent value="content" className="m-0 p-0">
-                                {analysisData.content.isLoading ? (
-                                    <div className="flex flex-col items-center justify-center py-12">
-                                        <div className="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center mb-4">
-                                            <Loader2 className="h-8 w-8 text-purple-500 animate-spin" />
-                                        </div>
-                                        <h3 className="text-lg font-medium text-slate-800 mb-2">Analyzing Content</h3>
-                                        <p className="text-slate-500 text-sm max-w-md text-center">
-                                            We're analyzing your resume's content quality and effectiveness.
-                                        </p>
-                                    </div>
-                                ) : !analysisData.content.score ? (
-                                    <div className="flex flex-col items-center justify-center py-12">
-                                        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                                            <Clock className="h-8 w-8 text-slate-400" />
-                                        </div>
-                                        <h3 className="text-lg font-medium text-slate-800 mb-2">Content Analysis Queued</h3>
-                                        <p className="text-slate-500 text-sm max-w-md text-center mb-6">
-                                            Your resume's content will be analyzed shortly.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6 animate-fadeIn">
-                                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                                                <div className="flex items-center">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${getScoreBgColor(analysisData.content.score)}`}>
-                                                        <BarChart2 className={`h-6 w-6 ${getScoreColor(analysisData.content.score)}`} />
-                                                    </div>
+
                                                     <div>
-                                                        <h3 className="text-lg font-semibold text-slate-800">Content Analysis</h3>
-                                                        <p className="text-sm text-slate-500">Assessment of your resume's content quality</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center">
-                                                    {renderScoreMeter(analysisData.content.score)}
-                                                    <div className="ml-3">
-                                                        <Badge variant={analysisData.content.score >= 80 ? "success" : analysisData.content.score >= 60 ? "warning" : "destructive"} className="mb-1">
-                                                            {analysisData.content.score >= 80 ? 'Excellent Content' : analysisData.content.score >= 60 ? 'Needs Improvement' : 'Content Issues'}
-                                                        </Badge>
-                                                        <p className="text-xs text-slate-500">Content Score</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                {analysisData.content.details.map((detail, index) => (
-                                                    <div key={index} className="flex items-start p-3 rounded-lg border border-slate-200 bg-slate-50">
-                                                        <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                                                            <Check className="h-3 w-3 text-purple-600" />
-                                                        </div>
-                                                        <span className="text-sm text-slate-700">{detail}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </TabsContent>
-                            <TabsContent value="keywords" className="m-0 p-0">
-                                {analysisData.tailoring.isLoading ? (
-                                    <div className="flex flex-col items-center justify-center py-12">
-                                        <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
-                                            <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
-                                        </div>
-                                        <h3 className="text-lg font-medium text-slate-800 mb-2">Analyzing Keywords</h3>
-                                        <p className="text-slate-500 text-sm max-w-md text-center">
-                                            We're analyzing your resume's keyword optimization and job relevance.
-                                        </p>
-                                    </div>
-                                ) : !analysisData.tailoring.score ? (
-                                    <div className="flex flex-col items-center justify-center py-12">
-                                        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                                            <Clock className="h-8 w-8 text-slate-400" />
-                                        </div>
-                                        <h3 className="text-lg font-medium text-slate-800 mb-2">Keyword Analysis Queued</h3>
-                                        <p className="text-slate-500 text-sm max-w-md text-center mb-6">
-                                            Your resume's keywords will be analyzed shortly.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6 animate-fadeIn">
-                                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                                                <div className="flex items-center">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${getScoreBgColor(analysisData.tailoring.score)}`}>
-                                                        <KeyRound className={`h-6 w-6 ${getScoreColor(analysisData.tailoring.score)}`} />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-lg font-semibold text-slate-800">Keyword Analysis</h3>
-                                                        <p className="text-sm text-slate-500">Assessment of job-specific keyword alignment</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center">
-                                                    {renderScoreMeter(analysisData.tailoring.score)}
-                                                    <div className="ml-3">
-                                                        <Badge variant={analysisData.tailoring.score >= 80 ? "success" : analysisData.tailoring.score >= 60 ? "warning" : "destructive"} className="mb-1">
-                                                            {analysisData.tailoring.score >= 80 ? 'Well Optimized' : analysisData.tailoring.score >= 60 ? 'Needs Improvement' : 'Missing Keywords'}
-                                                        </Badge>
-                                                        <p className="text-xs text-slate-500">Keyword Score</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="mb-6">
-                                                <h4 className="text-sm font-medium text-slate-700 mb-3">Missing Keywords</h4>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                                    {analysisResult.keywords.missing.map((keyword: string, i: number) => (
-                                                        <div key={i} className="flex items-center p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
-                                                            <Plus className="h-4 w-4 text-emerald-500 mr-2" />
-                                                            <span className="text-sm text-slate-700">{keyword}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                {analysisData.tailoring.details.map((detail, index) => (
-                                                    <div key={index} className="flex items-start p-3 rounded-lg border border-slate-200 bg-slate-50">
-                                                        <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                                                            <Check className="h-3 w-3 text-emerald-600" />
-                                                        </div>
-                                                        <span className="text-sm text-slate-700">{detail}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </TabsContent>
-                            <TabsContent value="improvement" className="m-0 p-0">
-                                {analysisData.sections.isLoading ? (
-                                    <div className="flex flex-col items-center justify-center py-12">
-                                        <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-4">
-                                            <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
-                                        </div>
-                                        <h3 className="text-lg font-medium text-slate-800 mb-2">Analyzing Improvements</h3>
-                                        <p className="text-slate-500 text-sm max-w-md text-center">
-                                            We're finding improvement opportunities for each section of your resume.
-                                        </p>
-                                    </div>
-                                ) : !analysisData.sections.score ? (
-                                    <div className="flex flex-col items-center justify-center py-12">
-                                        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                                            <Clock className="h-8 w-8 text-slate-400" />
-                                        </div>
-                                        <h3 className="text-lg font-medium text-slate-800 mb-2">Improvement Analysis Queued</h3>
-                                        <p className="text-slate-500 text-sm max-w-md text-center mb-6">
-                                            Your resume's improvement opportunities will be analyzed shortly.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6 animate-fadeIn">
-                                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                                                <div className="flex items-center">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${getScoreBgColor(analysisData.sections.score)}`}>
-                                                        <Layers className={`h-6 w-6 ${getScoreColor(analysisData.sections.score)}`} />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-lg font-semibold text-slate-800">Improvement Suggestions</h3>
-                                                        <p className="text-sm text-slate-500">Section-specific enhancement opportunities</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center">
-                                                    {renderScoreMeter(analysisData.sections.score)}
-                                                    <div className="ml-3">
-                                                        <Badge variant={analysisData.sections.score >= 80 ? "success" : analysisData.sections.score >= 60 ? "warning" : "destructive"} className="mb-1">
-                                                            {analysisData.sections.score >= 80 ? 'Well Structured' : analysisData.sections.score >= 60 ? 'Needs Improvement' : 'Structure Issues'}
-                                                        </Badge>
-                                                        <p className="text-xs text-slate-500">Structure Score</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                {analysisData.sections.details.map((detail, index) => (
-                                                    <div key={index} className="flex items-start p-3 rounded-lg border border-slate-200 bg-slate-50">
-                                                        <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                                                            <Check className="h-3 w-3 text-amber-600" />
-                                                        </div>
-                                                        <span className="text-sm text-slate-700">{detail}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            <div className="space-y-4 mt-6">
-                                                {analysisResult.suggestions.map((suggestion: any, idx: number) => (
-                                                    <div key={idx} className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-                                                        <h4 className="text-sm font-medium text-amber-800 mb-3">{suggestion.section}</h4>
-                                                        <div className="space-y-2">
-                                                            {suggestion.improvements.map((improvement: string, i: number) => (
-                                                                <div key={i} className="flex items-start">
-                                                                    <div className="w-5 h-5 rounded-full bg-amber-100 flex-shrink-0 flex items-center justify-center mt-0.5 mr-2">
-                                                                        <Check className="h-3 w-3 text-amber-600" />
+                                                        <h4 className="text-md font-medium text-slate-700 mb-3">
+                                                            <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full mr-2 text-xs">
+                                                                Missing Keywords
+                                                            </span>
+                                                        </h4>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                                            {analysisResult.keywords && analysisResult.keywords.missing ? (
+                                                                analysisResult.keywords.missing.map((keyword: string, i: number) => (
+                                                                    <div key={i} className="flex items-center p-2 rounded-lg bg-amber-50 border border-amber-200">
+                                                                        <Plus className="h-4 w-4 text-amber-500 mr-2" />
+                                                                        <span className="text-sm text-slate-700">{keyword}</span>
                                                                     </div>
-                                                                    <div className="text-sm text-slate-700 bg-white p-3 rounded-lg border border-amber-100 flex-grow">
-                                                                        {improvement}
+                                                                ))
+                                                            ) : (
+                                                                <p className="text-slate-500 col-span-3 p-4 bg-slate-50 rounded-lg text-center">
+                                                                    No missing keywords analysis available
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <h4 className="text-md font-medium text-slate-700 mb-3">Tailoring Advice</h4>
+                                                        <div className="space-y-3">
+                                                            {analysisData.tailoring.details.length > 0 ? (
+                                                                analysisData.tailoring.details.map((detail, index) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="p-3 rounded-lg border border-blue-100 bg-blue-50"
+                                                                    >
+                                                                        <span className="text-sm text-slate-700">{detail}</span>
                                                                     </div>
+                                                                ))
+                                                            ) : (
+                                                                <div className="text-center py-12 bg-slate-50 rounded-lg">
+                                                                    <p className="text-slate-500">No tailoring analysis available yet.</p>
+                                                                    <button
+                                                                        onClick={() => runAnalysis('tailoring')}
+                                                                        className="mt-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100"
+                                                                    >
+                                                                        Run Tailoring Analysis
+                                                                    </button>
                                                                 </div>
-                                                            ))}
+                                                            )}
                                                         </div>
                                                     </div>
-                                                ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="improvement" className="m-0 p-0">
+                                    <div className="space-y-6">
+                                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-lg font-semibold text-slate-800">Suggested Improvements</h3>
+                                            </div>
+
+                                            <div className="space-y-6">
+                                                {/* Section Improvements */}
+                                                <div>
+                                                    <h4 className="text-md font-medium text-slate-700 mb-3">By Section</h4>
+                                                    <div className="space-y-3">
+                                                        {analysisResult.suggestions && analysisResult.suggestions.length > 0 ? (
+                                                            analysisResult.suggestions.map((suggestion: any, index: number) => (
+                                                                <div key={index} className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                                                    <div className="flex items-center justify-between cursor-pointer mb-2" onClick={() => toggleSuggestion(suggestion.section)}>
+                                                                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{suggestion.section}</span>
+                                                                        {expandedSuggestions.includes(suggestion.section) ? (
+                                                                            <button className="text-slate-400 hover:text-slate-500">
+                                                                                <AlertCircle className="h-4 w-4" />
+                                                                            </button>
+                                                                        ) : (
+                                                                            <button className="text-slate-400 hover:text-slate-500">
+                                                                                <Plus className="h-4 w-4" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {expandedSuggestions.includes(suggestion.section) && (
+                                                                        <div className="pl-4 border-l-2 border-blue-200 space-y-3 animate-expandY">
+                                                                            {suggestion.improvements.map((improvement: string, i: number) => (
+                                                                                <div key={i} className="flex items-start">
+                                                                                    <Check className="h-4 w-4 text-emerald-500 mr-2 mt-0.5 flex-shrink-0" />
+                                                                                    <span className="text-sm text-slate-700">{improvement}</span>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="flex flex-col items-center justify-center py-6 text-center">
+                                                                <p className="text-sm text-slate-500">No section-specific improvements available.</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* General Improvements */}
+                                                <div>
+                                                    <h4 className="text-md font-medium text-slate-700 mb-3">General Improvements</h4>
+                                                    <div className="space-y-3">
+                                                        {improvementPoints.length > 0 ? (
+                                                            improvementPoints.map((point, i) => (
+                                                                <div key={i} className="flex items-start p-3 rounded-lg border border-amber-200 bg-amber-50">
+                                                                    <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                                                                        <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                                                                    </div>
+                                                                    <span className="text-sm text-slate-700">{point}</span>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="flex flex-col items-center justify-center py-6 text-center">
+                                                                <p className="text-sm text-slate-500">No general improvements available yet.</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Sections Analysis */}
+                                                <div>
+                                                    <h4 className="text-md font-medium text-slate-700 mb-3">Sections Analysis</h4>
+                                                    <div className="space-y-3">
+                                                        {analysisData.sections.isLoading ? (
+                                                            <div className="flex flex-col items-center justify-center py-12">
+                                                                <Loader2 className="h-8 w-8 text-blue-500 animate-spin mb-2" />
+                                                                <p className="text-slate-500 text-sm">Analyzing resume sections...</p>
+                                                            </div>
+                                                        ) : (
+                                                            analysisData.sections.details.length > 0 ? (
+                                                                analysisData.sections.details.map((detail, index) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={`p-4 rounded-lg border ${detail.includes("Good") || detail.includes("Excellent") || detail.includes("Well")
+                                                                            ? "bg-emerald-50 border-emerald-200"
+                                                                            : "bg-amber-50 border-amber-200"
+                                                                            }`}
+                                                                    >
+                                                                        <div className="flex">
+                                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 ${detail.includes("Good") || detail.includes("Excellent") || detail.includes("Well")
+                                                                                ? "bg-emerald-100"
+                                                                                : "bg-amber-100"
+                                                                                }`}>
+                                                                                {detail.includes("Good") || detail.includes("Excellent") || detail.includes("Well") ? (
+                                                                                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                                                                                ) : (
+                                                                                    <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                                                                                )}
+                                                                            </div>
+                                                                            <span className="text-sm">{detail}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                <div className="text-center py-12 bg-slate-50 rounded-lg">
+                                                                    <p className="text-slate-500">No sections analysis available yet.</p>
+                                                                    <button
+                                                                        onClick={() => runAnalysis('sections')}
+                                                                        className="mt-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100"
+                                                                    >
+                                                                        Run Sections Analysis
+                                                                    </button>
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                )}
-                            </TabsContent>
-                        </div>
-                    </Tabs>
+                                </TabsContent>
+                            </div>
+                        </Tabs>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

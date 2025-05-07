@@ -15,6 +15,45 @@ export interface AIAnalysisResult {
   };
 }
 
+export interface EnhancedResumeData {
+  personalInfo: {
+    name: string;
+    title: string;
+    email: string;
+    phone: string;
+    location: string;
+    summary: string;
+    profilePicture?: string;
+  };
+  workExperience: {
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    description: string;
+  }[];
+  education: {
+    id: string;
+    degree: string;
+    institution: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }[];
+  skills: string[];
+  projects: {
+    id: string;
+    name: string;
+    description: string;
+    technologies: string;
+    link: string;
+  }[];
+}
+
 export async function isResumeDocument(text: string): Promise<boolean> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -41,7 +80,7 @@ ${text.slice(0, 2000)}`; // Only analyze first 2000 chars for efficiency
     return prediction.includes('true');
   } catch (error) {
     console.error('Resume detection error:', error);
-    return true; 
+    return true;
   }
 }
 
@@ -340,7 +379,7 @@ export async function extractText(file: File): Promise<string> {
     } else {
       throw new Error('Failed to extract text from the resume. Please try a different file or format.');
     }
-  } 
+  }
 }
 
 // PDF extraction with multiple fallback strategies
@@ -527,5 +566,570 @@ export async function extractResumeText(file: File): Promise<string> {
   } catch (error) {
     console.error('Resume text extraction failed:', error);
     throw error;
-  } 
+  }
+}
+
+export async function enhanceResume(resumeText: string): Promise<EnhancedResumeData> {
+  try {
+    // Extract structured information from the resume
+    const structure = await extractResumeStructure(resumeText);
+
+    // Skip summary generation - summary has been removed from the preview
+
+    // Calculate total number of work experiences to adjust bullet points
+    const totalWorkExperiences = structure.workExperience.length;
+
+    console.log("Enhancing resume for ATS optimization...");
+
+    // Process each section in parallel - focus on ATS optimization of existing content
+    const [
+      enhancedWorkExperience,
+      enhancedEducation,
+      enhancedSkills,
+      enhancedProjects
+    ] = await Promise.all([
+      // Enhance work experience for ATS optimization
+      Promise.all(structure.workExperience.map(exp =>
+        enhanceResumeSection('experience', exp.description, totalWorkExperiences)
+          .then(enhanced => ({ ...exp, description: enhanced }))
+      )),
+      // Don't process descriptions for education entries
+      Promise.all(structure.education.map(edu => ({ ...edu, description: "" }))),
+      // Extract and optimize skills for ATS recognition
+      enhanceResumeSection('skills', structure.skills.join(', ')).then(skills => {
+        // First split by comma (the primary separator we asked for in the prompt)
+        const skillsList = skills.split(',')
+          .map(skill => skill.trim())
+          // Filter out empty strings, non-alphabetic strings, and common non-skill words
+          .filter(skill => {
+            // Skip if empty or too short
+            if (!skill || skill.length < 2) return false;
+
+            // Skip if it's just a non-alphabetic character
+            if (!/[a-z]/i.test(skill)) return false;
+
+            // Skip common non-skill words
+            const lowerSkill = skill.toLowerCase();
+            const nonSkillWords = [
+              'and', 'the', 'of', 'in', 'for', 'with', 'on', 'at', 'by', 'to',
+              'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+              'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should',
+              'can', 'could', 'may', 'might', 'must', 'shall', 'using', 'leveraging',
+              'improving', 'creating', 'developing', 'building', 'working', 'implementing',
+              'skills', 'proficient', 'experienced', 'knowledgeable', 'familiar'
+            ];
+
+            return !nonSkillWords.includes(lowerSkill);
+          })
+          // Clean up and format skill names for ATS readability
+          .map(skill => {
+            // Technical term mappings for common skills
+            const technicalTermMap: Record<string, string> = {
+              'rest': 'REST',
+              'rest-api': 'REST API',
+              'restapi': 'REST API',
+              'restful': 'RESTful',
+              'restful-api': 'RESTful API',
+              'node.js': 'Node.js',
+              'nodejs': 'Node.js',
+              'node-js': 'Node.js',
+              'react.js': 'React.js',
+              'reactjs': 'React',
+              'react-js': 'React',
+              'typescript': 'TypeScript',
+              'javascript': 'JavaScript',
+              'vue.js': 'Vue.js',
+              'vuejs': 'Vue',
+              'vue-js': 'Vue',
+              'angular.js': 'Angular.js',
+              'angularjs': 'Angular',
+              'angular-js': 'Angular',
+              'express.js': 'Express.js',
+              'expressjs': 'Express',
+              'express-js': 'Express',
+              'next.js': 'Next.js',
+              'nextjs': 'Next.js',
+              'next-js': 'Next.js',
+              'nosql': 'NoSQL',
+              'mongodb': 'MongoDB',
+              'postgresql': 'PostgreSQL',
+              'mysql': 'MySQL',
+              'mariadb': 'MariaDB',
+              'graphql': 'GraphQL',
+              'docker': 'Docker',
+              'kubernetes': 'Kubernetes',
+              'aws': 'AWS',
+              'gcp': 'GCP',
+              'azure': 'Azure',
+              'ci/cd': 'CI/CD',
+              'cicd': 'CI/CD',
+              'ci-cd': 'CI/CD',
+              'react-native': 'React Native',
+              'reactnative': 'React Native',
+              'machine-learning': 'Machine Learning',
+              'machinelearning': 'Machine Learning',
+              'deep-learning': 'Deep Learning',
+              'deeplearning': 'Deep Learning',
+              'data-science': 'Data Science',
+              'datascience': 'Data Science',
+              'devops': 'DevOps',
+              'git': 'Git',
+              'github': 'GitHub',
+              'gitlab': 'GitLab',
+              'bitbucket': 'Bitbucket',
+              'python-fastapi': 'Python FastAPI',
+              'pythonfastapi': 'Python FastAPI',
+              'expo-react-native': 'React Native',
+              'exporeactnative': 'React Native',
+              'fastapi': 'FastAPI',
+              'java-spring': 'Java Spring',
+              'javaspring': 'Java Spring',
+              'spring-boot': 'Spring Boot',
+              'springboot': 'Spring Boot',
+            };
+
+            // Handle hyphenated or multi-word skills with proper technical capitalization
+            if (skill.includes('-') || skill.includes('.') || skill.includes(' ')) {
+              // Convert skill to lowercase for mapping lookup
+              const lowerSkill = skill.toLowerCase().replace(/\s+/g, '-');
+
+              // Check if this is a known technical term
+              if (technicalTermMap[lowerSkill]) {
+                return technicalTermMap[lowerSkill];
+              }
+
+              // For two-word combinations, prefer spaces over camelCase/PascalCase
+              if (skill.includes('-') || skill.includes(' ')) {
+                const words = skill.replace(/-/g, ' ').split(/\s+/);
+                if (words.length === 2) {
+                  return words.map(word =>
+                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                  ).join(' ');
+                }
+              }
+
+              // Otherwise, convert to PascalCase (remove hyphens, spaces, dots and capitalize each word)
+              return skill
+                .replace(/[-.\s]+(\w)/g, (_, char) => char.toUpperCase())
+                .replace(/^(\w)/, (_, char) => char.toUpperCase());
+            }
+
+            // Handle known individual skill terms
+            if (technicalTermMap[skill.toLowerCase()]) {
+              return technicalTermMap[skill.toLowerCase()];
+            }
+
+            // Properly capitalize single-word skills (preserve acronyms like AWS, SQL)
+            if (skill === skill.toUpperCase() && skill.length <= 5) {
+              return skill; // Preserve acronyms
+            } else {
+              // Capitalize first letter for regular skills
+              return skill.charAt(0).toUpperCase() + skill.slice(1).toLowerCase();
+            }
+          })
+          // Remove duplicates (case-insensitive)
+          .filter((skill, index, self) => {
+            return self.findIndex(s => s.toLowerCase() === skill.toLowerCase()) === index;
+          })
+          // Limit to 16 skills
+          .slice(0, 16);
+
+        return skillsList;
+      }),
+      // Enhance project descriptions for better ATS performance
+      Promise.all(structure.projects.map(proj =>
+        enhanceResumeSection('project', proj.description)
+          .then(enhanced => ({ ...proj, description: enhanced }))
+      ))
+    ]);
+
+    console.log("Resume enhanced for ATS optimization successfully");
+
+    // Construct the enhanced resume with ATS-optimized content
+    return {
+      personalInfo: {
+        ...structure.personalInfo,
+        summary: "" // Set empty summary as we've removed it from the preview
+      },
+      workExperience: enhancedWorkExperience,
+      education: enhancedEducation,
+      skills: enhancedSkills,
+      projects: enhancedProjects
+    };
+  } catch (error) {
+    console.error('Resume enhancement failed:', error);
+    throw new Error('Failed to enhance resume for ATS optimization. Please try again.');
+  }
+}
+
+async function enhanceResumeSection(sectionType: string, content: string, totalItems?: number): Promise<string> {
+  if (!content || content.trim().length === 0) {
+    return '';
+  }
+
+  // Define section-specific word limits to prevent overflow
+  const sectionWordLimits = {
+    summary: 50,                 // ~2 sentences (keeping this for backwards compatibility)
+    experience: 100,             // ~4-5 bullet points of 20 words each
+    project: 60,                 // Short concise paragraph
+    education: 60,               // Degree info + 2-3 short bullet points
+    skills: 16,                  // Just counting number of skills
+    default: 100                 // Default fallback
+  };
+
+  // Dynamically adjust experience bullet points based on total experiences
+  let maxBulletPoints = 4; // Default
+  let maxWordsPerBullet = 20; // Default
+
+  if (sectionType === 'experience' && totalItems) {
+    // Adjust max bullet points based on total work experiences
+    if (totalItems >= 5) {
+      maxBulletPoints = 2; // Fewer bullets for many experiences
+      maxWordsPerBullet = 15;
+    } else if (totalItems >= 3) {
+      maxBulletPoints = 3; // Medium number of bullets for average experiences
+      maxWordsPerBullet = 18;
+    } else {
+      maxBulletPoints = 4; // More bullets for fewer experiences
+      maxWordsPerBullet = 20;
+    }
+
+    // Cap the total words proportionally
+    sectionWordLimits.experience = maxBulletPoints * maxWordsPerBullet;
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+    // Create section-specific prompts with layout guidance
+    let prompt;
+
+    if (sectionType === 'skills') {
+      prompt = `Extract and enhance professional technical skills from the following resume content for maximum ATS compatibility.
+      
+Return ONLY a comma-separated list of high-value, ATS-optimized technical skills.
+
+Guidelines:
+- PRESERVE ALL TECHNICAL SKILLS mentioned in the original content
+- Extract precise technical skills that directly match common job description requirements
+- Prioritize in-demand, current industry skills that ATS systems frequently scan for
+- Use standard technical capitalization (e.g., JavaScript, TypeScript, React, REST API, MongoDB)
+- For multi-word skills, use proper technical formatting (e.g., "React Native" or "React.js")
+- Include both specific technologies AND broader competency areas
+- Balance programming languages, frameworks, tools, platforms, and methodologies
+- Include both technical and domain-specific skills when present
+- Do NOT include soft skills, traits, or general terms
+- Skills should be separated by commas ONLY
+- STRICT LIMIT: Return only up to 16 skills maximum
+- Ensure skills appear in industry-standard terminology that an ATS will recognize
+
+For example, high-value skills include: React, JavaScript, TypeScript, Java, Python, AWS, Docker, Kubernetes, MongoDB, PostgreSQL, REST API, GraphQL, MySQL, React Native, Node.js, DevOps, CI/CD, System Design.
+
+Example good output: "JavaScript, React, TypeScript, Python, AWS, Docker, REST API, MongoDB"
+Example bad output: "coding, development, programming, etc."
+
+Original content to optimize for ATS:
+${content}
+
+Respond with ONLY the comma-separated list of skills - no additional text, bullets, or descriptions.`;
+    }
+    else if (sectionType === 'experience') {
+      prompt = `Enhance the following experience section from a resume to maximize ATS compatibility while preserving the original meaning and key details.
+
+Format requirements:
+- Use bullet points starting with "•" (NOT dashes, asterisks, or numbers)
+- Each bullet point must start on a new line
+- Each bullet point should be a single accomplishment or responsibility (not paragraphs)
+- STRICT WORD LIMIT: Maximum ${sectionWordLimits.experience} words total across all bullet points
+- ${maxBulletPoints} bullet points total maximum (fewer if needed to stay under word limit)
+- Each bullet point should ideally be ${maxWordsPerBullet} words or less
+- START EACH BULLET WITH A POWERFUL ACTION VERB in past tense (e.g., "Spearheaded", "Implemented", "Orchestrated")
+- PRESERVE the factual information and key achievements from the original content
+- MAINTAIN all company names, technologies, and numeric metrics from the original
+- Include SPECIFIC QUANTIFIABLE METRICS (numbers, percentages, timeframes, dollar amounts, team sizes)
+- Use INDUSTRY-SPECIFIC KEYWORDS and technical terms that ATS systems scan for
+- Incorporate relevant HARD SKILLS and TECHNICAL COMPETENCIES
+- Avoid first-person pronouns (I, me, my)
+- No line breaks within individual bullet points
+- Use present tense only for current positions
+- Prioritize the most impressive and relevant accomplishments first
+- Focus on ACHIEVEMENTS and RESULTS rather than just responsibilities
+- Include CONTEXT, ACTION, and RESULT in each bullet point when possible
+- Use ATS-friendly language that clearly matches job description keywords
+- DO NOT INVENT achievements or metrics not mentioned in the original
+
+Example format:
+• Spearheaded development of customer portal increasing user engagement by 45% and reducing bounce rate by 30% through UI/UX improvements.
+• Implemented CI/CD pipeline with Jenkins and Docker, reducing deployment time from 2 hours to 15 minutes and increasing release frequency.
+• Orchestrated migration of legacy systems to cloud infrastructure, resulting in 40% cost reduction and 99.9% uptime.
+
+Original content to optimize for ATS:
+${content}
+
+Respond with ONLY the enhanced bullet points - no additional text.`;
+    }
+    else if (sectionType === 'project') {
+      prompt = `Enhance the following project description for a resume to maximize ATS compatibility and keyword relevance while preserving the original content.
+
+Format requirements:
+- Create a SINGLE CONCISE PARAGRAPH (NOT bullet points)
+- STRICT WORD LIMIT: Maximum 60 words total
+- No line breaks within the paragraph
+- PRESERVE ALL key details, technologies, and achievements from the original content
+- Focus on being technical, achievement-oriented, and keyword-rich
+- Begin with a STRONG ACTION VERB (e.g., "Developed", "Engineered", "Architected")
+- Include ONLY technologies and tools that are actually mentioned in the original
+- MAINTAIN all project names, concepts, and metrics from the original
+- Emphasize PROBLEM-SOLUTION-RESULT structure when possible
+- Highlight technical challenges overcome and engineering decisions
+- Include MEASURABLE OUTCOMES or IMPACT only if they appear in the original text
+- Use industry-standard technical terminology that ATS systems scan for
+- Focus on technical implementation details rather than general descriptions
+- DO NOT add any technologies, metrics, or details that aren't present in the original
+
+Example format:
+"Developed responsive e-commerce platform using React and Node.js, implementing secure payment processing with Stripe API and optimizing database schema for improved query response times. Engineered Redis caching solution for frequently accessed data, reducing page load time by 40%."
+
+Original content to optimize for ATS:
+${content}
+
+IMPORTANT: DO NOT invent details. Only enhance what is already present.
+Respond with ONLY the enhanced project paragraph - no additional text or bullet points.`;
+    }
+    else {
+      prompt = `Enhance the following ${sectionType} from a resume for optimal ATS compatibility while preserving all original information. 
+    
+Format requirements:
+- Maintain all factual information
+- STRICT WORD LIMIT: Maximum ${sectionWordLimits.default} words total
+- Incorporate relevant industry keywords and terms that ATS systems scan for
+- Improve grammar and sentence structure
+- Use strong action verbs
+- Add quantifiable metrics where possible (only if clearly implied)
+- Keep a professional, concise tone
+- For bullet points, use "•" character and ensure each starts on a new line
+- No line breaks within paragraphs or individual bullet points
+- DO NOT add information that isn't in the original content
+
+Original content to optimize for ATS:
+${content}
+
+Respond with ONLY the enhanced content, no explanations or commentary.`;
+    }
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let enhancedText = response.text().trim();
+
+    // Ensure bullet points are properly formatted for experience and education sections
+    if (sectionType === 'experience' || sectionType === 'education') {
+      // Replace any non-standard bullet points with standard ones
+      enhancedText = enhancedText.replace(/^[-*]\s+/gm, '• ');
+
+      // Ensure there's no extra line breaks within bullet points
+      const bulletPoints = enhancedText.split(/\n+/).map(point => point.trim()).filter(point => point);
+      enhancedText = bulletPoints.map(point => {
+        // Ensure each point starts with a bullet
+        if (!point.startsWith('•')) {
+          point = '• ' + point;
+        }
+        return point;
+      }).join('\n');
+    }
+
+    // For project, ensure it's a single paragraph with no bullets
+    if (sectionType === 'project') {
+      // Remove any bullet points
+      enhancedText = enhancedText.replace(/^[\s•\-*]+|^\d+[\.\)]\s*/gm, '');
+      // Remove line breaks
+      enhancedText = enhancedText.replace(/\n+/g, ' ');
+    }
+
+    // Apply word count limits to prevent overflow
+    const wordLimit = sectionWordLimits[sectionType as keyof typeof sectionWordLimits] || sectionWordLimits.default;
+
+    if (sectionType !== 'skills') { // Skills are already limited by count, not words
+      const words = enhancedText.split(/\s+/);
+      if (words.length > wordLimit) {
+        console.log(`Truncating ${sectionType} from ${words.length} to ${wordLimit} words`);
+
+        if (sectionType === 'project') {
+          // For project, just truncate to word limit and add a period if needed
+          enhancedText = words.slice(0, wordLimit).join(' ');
+          if (!enhancedText.endsWith('.')) {
+            enhancedText += '.';
+          }
+        } else {
+          // For bullet points, try to keep complete bullets up to the word limit
+          const bullets = enhancedText.split('\n');
+          let currentWords = 0;
+          const keptBullets = [];
+
+          for (const bullet of bullets) {
+            const bulletWords = bullet.split(/\s+/).length;
+            if (currentWords + bulletWords <= wordLimit) {
+              keptBullets.push(bullet);
+              currentWords += bulletWords;
+            } else {
+              // If we can't fit another full bullet, we're done
+              break;
+            }
+          }
+
+          enhancedText = keptBullets.join('\n');
+        }
+      }
+    }
+
+    return enhancedText;
+  } catch (error) {
+    console.error(`Error enhancing ${sectionType} section for ATS:`, error);
+    return content; // Return original content on error
+  }
+}
+
+async function extractResumeStructure(resumeText: string): Promise<EnhancedResumeData> {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+    const prompt = `Extract structured information from this resume text, optimizing for ATS compatibility.
+    
+Format the response as a valid JSON object with the following structure:
+{
+  "personalInfo": {
+    "name": "extracted name",
+    "title": "job title (use standardized industry title)",
+    "email": "email address",
+    "phone": "phone number",
+    "location": "country name only",
+    "summary": "professional summary"
+  },
+  "workExperience": [
+    {
+      "id": "1",
+      "title": "job title (use standardized industry title)",
+      "company": "company name",
+      "location": "country name only",
+      "startDate": "start date (e.g., 'Jan 2020')",
+      "endDate": "end date or 'Present'",
+      "current": true/false,
+      "description": "job description with bullet points"
+    }
+  ],
+  "education": [
+    {
+      "id": "1",
+      "degree": "degree name (use standard format like 'Bachelor of Science')",
+      "institution": "school name",
+      "location": "country name only",
+      "startDate": "start date",
+      "endDate": "end date",
+      "description": "additional details"
+    }
+  ],
+  "skills": ["skill1", "skill2", "skill3", ...],
+  "projects": [
+    {
+      "id": "1",
+      "name": "project name",
+      "description": "project description",
+      "technologies": "technologies used (comma-separated technical skills)",
+      "link": "project link (if available, otherwise empty string)"
+    }
+  ]
+}
+
+Important ATS optimization notes:
+- Extract job titles using standardized industry terminology that ATS systems recognize
+- For skills, prioritize hard technical skills and industry-specific competencies
+- Use proper capitalization for technical terms (e.g., JavaScript not javascript)
+- For missing information, use empty strings, don't make up information
+- Extract exactly what's in the resume
+- All locations should be country names only (e.g., "United States", "Canada", "Germany") - do not include cities or states
+- If a location is mentioned with city/state (e.g., "San Francisco, CA"), extract only the country (e.g., "United States")
+- If sections are missing entirely, include them as empty arrays
+- Preserve formatting in descriptions (especially bullet points)
+- For job titles, use standardized formats likely to be recognized by ATS (e.g., "Software Engineer" not "Code Ninja")
+- Ensure education degrees use standard formats (e.g., "Bachelor of Science in Computer Science")
+
+Resume text:
+${resumeText}`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    try {
+      // Try to parse the response as JSON
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      const jsonText = jsonMatch ? jsonMatch[0] : text;
+      const resumeData = JSON.parse(jsonText);
+
+      // Ensure all required fields are present
+      return {
+        personalInfo: {
+          name: resumeData.personalInfo?.name || '',
+          title: resumeData.personalInfo?.title || '',
+          email: resumeData.personalInfo?.email || '',
+          phone: resumeData.personalInfo?.phone || '',
+          location: resumeData.personalInfo?.location || '',
+          summary: resumeData.personalInfo?.summary || ''
+        },
+        workExperience: Array.isArray(resumeData.workExperience)
+          ? resumeData.workExperience.map((exp, index) => ({
+            id: exp.id || String(index + 1),
+            title: exp.title || '',
+            company: exp.company || '',
+            location: exp.location || '',
+            startDate: exp.startDate || '',
+            endDate: exp.endDate || '',
+            current: exp.current || false,
+            description: exp.description || ''
+          }))
+          : [],
+        education: Array.isArray(resumeData.education)
+          ? resumeData.education.map((edu, index) => ({
+            id: edu.id || String(index + 1),
+            degree: edu.degree || '',
+            institution: edu.institution || '',
+            location: edu.location || '',
+            startDate: edu.startDate || '',
+            endDate: edu.endDate || '',
+            description: edu.description || ''
+          }))
+          : [],
+        skills: Array.isArray(resumeData.skills) ? resumeData.skills : [],
+        projects: Array.isArray(resumeData.projects)
+          ? resumeData.projects.map((proj, index) => ({
+            id: proj.id || String(index + 1),
+            name: proj.name || '',
+            description: proj.description || '',
+            technologies: proj.technologies || '',
+            link: proj.link || ''
+          }))
+          : []
+      };
+    } catch (error) {
+      console.error('Failed to parse resume structure:', error);
+
+      // Return default structure on error
+      return {
+        personalInfo: {
+          name: '',
+          title: '',
+          email: '',
+          phone: '',
+          location: '',
+          summary: resumeText.substring(0, 300)
+        },
+        workExperience: [],
+        education: [],
+        skills: [],
+        projects: []
+      };
+    }
+  } catch (error) {
+    console.error('Resume structure extraction failed:', error);
+    throw new Error('Failed to extract resume structure');
+  }
 }
