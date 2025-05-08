@@ -1,9 +1,6 @@
 <div align="center">
-  <svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
-    <text x="0" y="28" font-family="Arial, sans-serif" font-size="28" font-weight="bold">
-      <tspan fill="#2B63F9">WhatThe</tspan><tspan fill="#1A1E26">CV</tspan>
-    </text>
-  </svg>
+  <img src="public/assets/banner.svg" alt="WhatTheCV" width="800"/>
+
   <p>AI-powered resume builder and ATS optimization platform</p>
 
   <a href="https://opensource.org/licenses/MIT">
