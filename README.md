@@ -1,11 +1,22 @@
 <div align="center">
-  <img src="public/assets/banner.png" alt="WhatTheCV" width="800"/>
+  <svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+    <text x="0" y="28" font-family="Arial, sans-serif" font-size="28" font-weight="bold">
+      <tspan fill="#2B63F9">WhatThe</tspan><tspan fill="#1A1E26">CV</tspan>
+    </text>
+  </svg>
   <p>AI-powered resume builder and ATS optimization platform</p>
-  
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-  [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow.svg)](https://buymeacoffee.com/gauravsinha)
+
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" />
+  </a>
+  <a href="CONTRIBUTING.md">
+    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
+  </a>
+  <a href="https://buymeacoffee.com/gauravsinha">
+    <img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow.svg" alt="Buy Me A Coffee" />
+  </a>
 </div>
+
 
 ## Overview
 
