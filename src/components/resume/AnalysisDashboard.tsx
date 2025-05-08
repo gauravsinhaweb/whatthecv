@@ -132,18 +132,6 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
         return 'text-red-600';
     };
 
-    const getScoreBgColor = (score: number) => {
-        if (score >= 80) return 'bg-emerald-100';
-        if (score >= 60) return 'bg-amber-100';
-        return 'bg-red-100';
-    };
-
-    const getScoreGradient = (score: number) => {
-        if (score >= 80) return 'from-emerald-500 to-emerald-600';
-        if (score >= 60) return 'from-amber-500 to-amber-600';
-        return 'from-red-500 to-red-600';
-    };
-
     const getOverallScore = () => {
         const validScores = Object.values(analysisData)
             .map(item => item.score)
@@ -151,26 +139,8 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
 
         if (validScores.length === 0) return analysisResult.score;
 
-        const weights: Record<AnalysisCategory, number> = {
-            format: 0.3,
-            content: 0.3,
-            tailoring: 0.25,
-            sections: 0.15
-        };
+         return analysisResult.score;
 
-        let weightedSum = 0;
-        let totalWeight = 0;
-
-        Object.entries(analysisData).forEach(([category, data]) => {
-            if (data.score !== null) {
-                weightedSum += data.score * weights[category as AnalysisCategory];
-                totalWeight += weights[category as AnalysisCategory];
-            }
-        });
-
-        if (totalWeight === 0) return analysisResult.score;
-
-        return Math.round(weightedSum / totalWeight);
     };
 
     const toggleSuggestion = (section: string) => {
