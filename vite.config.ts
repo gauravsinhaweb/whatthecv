@@ -31,7 +31,6 @@ export default defineConfig({
           ],
           recruiter: ['./src/screens/Recruiter/RecruiterPortal.tsx'],
           landing: ['./src/screens/Landing/LandingPage.tsx'],
-          pdfjs: ['pdfjs-dist']
         }
       }
     }
