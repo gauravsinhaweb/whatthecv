@@ -7,7 +7,7 @@ import Button from '../../../components/ui/Button';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { exportResumeToPDF } from '../../../utils/resumeExport';
 import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../../../utils/resumeUI';
-import { EnhancedResumeData } from '../../../utils/ai';
+import type { EnhancedResumeData } from '../../../utils/types';
 import { ResumeData } from '../../../types/resume';
 import { useResumeStore } from '../../../store/resumeStore';
 

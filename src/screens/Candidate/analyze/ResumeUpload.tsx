@@ -5,7 +5,8 @@ import ErrorState from '../../../components/resume/ErrorState';
 import HowItWorks from '../../../components/resume/HowItWorks';
 import ProgressStatus from '../../../components/resume/ProgressStatus';
 import Button from '../../../components/ui/Button';
-import { analyzeResume, extractResumeText } from '../../../utils/ai';
+import { analyzeResume, processResume, checkFileIsResume } from '../../../utils/resumeService';
+import type { AIAnalysisResult, ResumeCheckResult } from '../../../utils/types';
 import './styles.css';
 
 export interface AnalysisResult {
@@ -48,6 +49,8 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [jobDescription, setJobDescription] = useState<string>(externalJobDescription || '');
   const [hasJobDescription, setHasJobDescription] = useState<boolean>(!!externalJobDescription);
+  const [resumeCheckResult, setResumeCheckResult] = useState<ResumeCheckResult | null>(null);
+  const [isCheckingResume, setIsCheckingResume] = useState<boolean>(false);
 
   useEffect(() => {
     if (externalJobDescription) {
@@ -76,26 +79,34 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     }
   }, []);
 
-  const processResume = async (selectedFile: File) => {
+  const processResumeFile = async (selectedFile: File) => {
     setIsUploading(true);
+    setIsAnalyzing(false);
+    setIsCheckingResume(true);
 
     try {
-      const resumeText = await extractResumeText(selectedFile);
+      // First, check if the file is actually a resume
+      const checkResult = await checkFileIsResume(selectedFile, false);
+      setResumeCheckResult(checkResult);
 
-      console.log('Extracted upload:', resumeText);
-
-      if (!resumeText || resumeText.trim().length < 50) {
-        throw new Error('Could not extract sufficient text from the resume. Please try a different file.');
+      if (!checkResult.is_resume) {
+        throw new Error('The uploaded document does not appear to be a resume. Please upload a resume document.');
       }
 
-      setExtractedText(resumeText);
+      setIsCheckingResume(false);
       setIsUploading(false);
       setIsAnalyzing(true);
 
-      const analysis = await analyzeResume(resumeText, jobDescription || undefined);
+      // Process the file using the backend endpoint
+      const analysis = await processResume(selectedFile, jobDescription || undefined);
 
       if (!analysis) {
         throw new Error('Failed to analyze the resume. Please try again.');
+      }
+
+      // Set extracted text if available in the response
+      if (analysis.extracted_text) {
+        setExtractedText(analysis.extracted_text);
       }
 
       setAnalysisResult(analysis);
@@ -107,6 +118,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     } finally {
       setIsUploading(false);
       setIsAnalyzing(false);
+      setIsCheckingResume(false);
     }
   };
 
@@ -132,7 +144,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     setAnalysisResult(null);
     setExtractedText('');
 
-    processResume(selectedFile);
+    processResumeFile(selectedFile);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,7 +168,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
   const tryAgain = () => {
     setUploadStatus('idle');
     if (file) {
-      processResume(file);
+      processResumeFile(file);
     }
   };
 
@@ -270,11 +282,12 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
         )}
 
         {/* Processing State */}
-        {(isUploading || isAnalyzing) && (
+        {(isUploading || isAnalyzing || isCheckingResume) && (
           <div className="bg-white rounded-xl p-8 shadow-xl border border-slate-200 transition-all duration-300">
             <ProgressStatus
               isUploading={isUploading}
               isAnalyzing={isAnalyzing}
+              isCheckingResume={isCheckingResume}
               file={file}
             />
           </div>
@@ -288,6 +301,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
               clearFile={clearFile}
               tryAgain={tryAgain}
               hasFile={!!file}
+              resumeCheckResult={resumeCheckResult}
             />
           </div>
         )}
