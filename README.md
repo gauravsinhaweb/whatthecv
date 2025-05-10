@@ -108,12 +108,6 @@ whatthecv/
 2. **AI Analysis** - Our AI analyzes your resume for ATS compatibility and suggests improvements
 3. **Optimize & Export** - Implement the suggestions, choose your privacy settings, and export your optimized resume
 
-## Performance Metrics
-
-- 94% Higher interview rate for users
-- 75% Faster hiring process
-- 10K+ Successful matches between candidates and recruiters
-
 ## Contributing
 
 We welcome contributions from the community! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
