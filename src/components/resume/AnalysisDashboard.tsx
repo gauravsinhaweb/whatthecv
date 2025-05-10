@@ -512,66 +512,6 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                     </div>
                 </div>
             )}
-
-            {/* Resume Strengths and Improvements */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Resume Strengths */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                    <div className="flex justify-between items-center mb-4">
-                        <Badge variant="success" className="bg-emerald-50 text-emerald-700">
-                            Good Points
-                        </Badge>
-                    </div>
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                        {goodPoints.length > 0 ? (
-                            goodPoints.slice(0, 10).map((point, i) => (
-                                <div key={i} className="flex items-start p-3 rounded-lg border border-emerald-200 bg-emerald-50">
-                                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                                        <Check className="h-3.5 w-3.5 text-emerald-600" />
-                                    </div>
-                                    <span className="text-sm text-slate-700">{point}</span>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-6 text-center">
-                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-                                    <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
-                                </div>
-                                <p className="text-sm text-slate-500">Analyzing your resume strengths...</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Improvement Areas */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                    <div className="flex justify-between items-center mb-4">
-                        <Badge variant="warning" className="bg-amber-50 text-amber-700">
-                            Action Points
-                        </Badge>
-                    </div>
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                        {improvementPoints.length > 0 ? (
-                            improvementPoints.slice(0, 10).map((point, i) => (
-                                <div key={i} className="flex items-start p-3 rounded-lg border border-amber-200 bg-amber-50">
-                                    <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                                        <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
-                                    </div>
-                                    <span className="text-sm text-slate-700">{point}</span>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-6 text-center">
-                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-                                    <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
-                                </div>
-                                <p className="text-sm text-slate-500">Identifying improvement areas...</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
             {/* Missing Keywords */}
             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
