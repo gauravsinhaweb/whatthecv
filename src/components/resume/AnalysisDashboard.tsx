@@ -1,9 +1,9 @@
-import { AlertCircle, Award, BarChart2, Check, Clock, Download, FileText, KeyRound, Layers, Loader2, Plus, Target, Wand2 } from 'lucide-react';
+import { AlertCircle, Award, BarChart2, Check, Clock, FileText, KeyRound, Layers, Loader2, Plus, Target, Wand2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnalysisCategory, performDetailedAnalysis } from '../../services/analysisService';
 import { useResumeStore } from '../../store/resumeStore';
-import { enhanceResume } from '../../utils/ai';
+import { enhanceResumeFromFile } from '../../utils/resumeService';
 import { Badge } from '../ui/Badge';
 import Button from '../ui/Button';
 import { Progress } from '../ui/Progress';
@@ -139,7 +139,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
 
         if (validScores.length === 0) return analysisResult.score;
 
-         return analysisResult.score;
+        return analysisResult.score;
 
     };
 
@@ -195,7 +195,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     };
 
     const handleEnhanceResume = async () => {
-        if (!extractedText || isEnhancing) return;
+        if (!file || isEnhancing) return;
 
         setIsEnhancing(true);
         setEnhancementStage('extracting');
@@ -203,13 +203,28 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
         try {
             // Add a small delay to show the different stages for better UX
             setTimeout(() => setEnhancementStage('enhancing'), 1000);
-            console.log('Extracted Analysis', extractedText);
 
-            const result = await enhanceResume(extractedText);
+            // Use the file directly instead of the extracted text
+            const result = await enhanceResumeFromFile(file);
+
+            console.log('Enhanced resume data:', result);
+
+            // Log potential issues with the enhanced data
+            if (!result.personalInfo || !result.personalInfo.name) {
+                console.warn('Missing personal info or name in enhanced resume data');
+            }
+
+            if (!result.workExperience || result.workExperience.length === 0) {
+                console.warn('No work experience in enhanced resume data');
+            }
+
+            if (!result.skills || result.skills.length === 0) {
+                console.warn('No skills in enhanced resume data');
+            }
 
             setEnhancementStage('finalizing');
 
-            // Save enhanced resume data to Zustand store instead of localStorage
+            // Save enhanced resume data to Zustand store
             setEnhancedResumeData(result);
 
             setTimeout(() => {
@@ -221,6 +236,9 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
             console.error('Error enhancing resume:', error);
             setIsEnhancing(false);
             setEnhancedResumeData(null);
+
+            // Simple error notification
+            alert('Error enhancing resume. Please try again.');
         }
     };
 
@@ -279,6 +297,109 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                 {/* Category scores */}
                 <div className="col-span-1 md:col-span-2 bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                     <div className="space-y-4">
+                        {/* Enhanced scores */}
+                        {analysisResult.ats_score !== undefined && (
+                            <div className="group">
+                                <div className="flex justify-between items-center mb-1">
+                                    <div className="flex items-center">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-2 ${analysisResult.ats_score >= 80 ? 'bg-emerald-100 text-emerald-600' :
+                                            analysisResult.ats_score >= 60 ? 'bg-amber-100 text-amber-600' :
+                                                'bg-red-100 text-red-600'
+                                            }`}>
+                                            <FileText className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-700">ATS Compatibility</p>
+                                            <p className="text-xs text-slate-500">Resume formatting and structure for ATS systems</p>
+                                        </div>
+                                    </div>
+                                    <Badge variant={analysisResult.ats_score >= 80 ? "success" : analysisResult.ats_score >= 60 ? "warning" : "destructive"}>
+                                        {analysisResult.ats_score}%
+                                    </Badge>
+                                </div>
+                                <Progress
+                                    value={analysisResult.ats_score}
+                                    className={`h-2 ${analysisResult.ats_score >= 80 ? 'bg-emerald-100' :
+                                        analysisResult.ats_score >= 60 ? 'bg-amber-100' :
+                                            'bg-red-100'
+                                        }`}
+                                    indicatorClassName={
+                                        analysisResult.ats_score >= 80 ? 'bg-emerald-500' :
+                                            analysisResult.ats_score >= 60 ? 'bg-amber-500' :
+                                                'bg-red-500'
+                                    }
+                                />
+                            </div>
+                        )}
+
+                        {analysisResult.content_score !== undefined && (
+                            <div className="group">
+                                <div className="flex justify-between items-center mb-1">
+                                    <div className="flex items-center">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-2 ${analysisResult.content_score >= 80 ? 'bg-emerald-100 text-emerald-600' :
+                                            analysisResult.content_score >= 60 ? 'bg-amber-100 text-amber-600' :
+                                                'bg-red-100 text-red-600'
+                                            }`}>
+                                            <BarChart2 className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-700">Content Quality</p>
+                                            <p className="text-xs text-slate-500">Effectiveness and impact of resume content</p>
+                                        </div>
+                                    </div>
+                                    <Badge variant={analysisResult.content_score >= 80 ? "success" : analysisResult.content_score >= 60 ? "warning" : "destructive"}>
+                                        {analysisResult.content_score}%
+                                    </Badge>
+                                </div>
+                                <Progress
+                                    value={analysisResult.content_score}
+                                    className={`h-2 ${analysisResult.content_score >= 80 ? 'bg-emerald-100' :
+                                        analysisResult.content_score >= 60 ? 'bg-amber-100' :
+                                            'bg-red-100'
+                                        }`}
+                                    indicatorClassName={
+                                        analysisResult.content_score >= 80 ? 'bg-emerald-500' :
+                                            analysisResult.content_score >= 60 ? 'bg-amber-500' :
+                                                'bg-red-500'
+                                    }
+                                />
+                            </div>
+                        )}
+
+                        {analysisResult.format_score !== undefined && (
+                            <div className="group">
+                                <div className="flex justify-between items-center mb-1">
+                                    <div className="flex items-center">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-2 ${analysisResult.format_score >= 80 ? 'bg-emerald-100 text-emerald-600' :
+                                            analysisResult.format_score >= 60 ? 'bg-amber-100 text-amber-600' :
+                                                'bg-red-100 text-red-600'
+                                            }`}>
+                                            <Layers className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-700">Format & Structure</p>
+                                            <p className="text-xs text-slate-500">Layout and organization of resume sections</p>
+                                        </div>
+                                    </div>
+                                    <Badge variant={analysisResult.format_score >= 80 ? "success" : analysisResult.format_score >= 60 ? "warning" : "destructive"}>
+                                        {analysisResult.format_score}%
+                                    </Badge>
+                                </div>
+                                <Progress
+                                    value={analysisResult.format_score}
+                                    className={`h-2 ${analysisResult.format_score >= 80 ? 'bg-emerald-100' :
+                                        analysisResult.format_score >= 60 ? 'bg-amber-100' :
+                                            'bg-red-100'
+                                        }`}
+                                    indicatorClassName={
+                                        analysisResult.format_score >= 80 ? 'bg-emerald-500' :
+                                            analysisResult.format_score >= 60 ? 'bg-amber-500' :
+                                                'bg-red-500'
+                                    }
+                                />
+                            </div>
+                        )}
+
                         {[
                             { category: 'format', label: 'ATS Format', icon: FileText, description: 'Resume formatting and structure' },
                             { category: 'content', label: 'Content Quality', icon: BarChart2, description: 'Effectiveness of content' },
@@ -345,6 +466,52 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                     </div>
                 </div>
             </div>
+
+            {/* Section Analysis (if available) */}
+            {analysisResult.sections_analysis && analysisResult.sections_analysis.length > 0 && (
+                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-slate-800">Section Analysis</h3>
+                    </div>
+                    <div className="space-y-4">
+                        {analysisResult.sections_analysis.map((section, index) => (
+                            <div key={index} className="p-4 bg-slate-50 border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
+                                <div className="flex justify-between mb-2">
+                                    <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{section.name}</span>
+                                </div>
+
+                                {section.strengths.length > 0 && (
+                                    <div className="mt-2 mb-3">
+                                        <p className="text-xs font-medium text-emerald-700 mb-1">Strengths:</p>
+                                        <div className="space-y-1">
+                                            {section.strengths.map((strength, i) => (
+                                                <div key={i} className="flex items-start">
+                                                    <Check className="h-3.5 w-3.5 text-emerald-500 mr-1.5 mt-0.5 flex-shrink-0" />
+                                                    <span className="text-xs text-slate-600">{strength}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {section.weaknesses.length > 0 && (
+                                    <div>
+                                        <p className="text-xs font-medium text-amber-700 mb-1">Areas for Improvement:</p>
+                                        <div className="space-y-1">
+                                            {section.weaknesses.map((weakness, i) => (
+                                                <div key={i} className="flex items-start">
+                                                    <AlertCircle className="h-3.5 w-3.5 text-amber-500 mr-1.5 mt-0.5 flex-shrink-0" />
+                                                    <span className="text-xs text-slate-600">{weakness}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Resume Strengths and Improvements */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

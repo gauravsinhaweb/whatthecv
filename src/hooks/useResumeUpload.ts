@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { analyzeResume, extractResumeText, ResumeTextResult } from '../utils/ai';
+import { analyzeResume, processResume } from '../utils/resumeService';
+import type { ResumeTextResult } from '../utils/types';
 
 export interface AnalysisResult {
     score: number;
@@ -51,27 +52,25 @@ export function useResumeUpload(jobDescription: string) {
         setUploadState(prevState => ({ ...prevState, ...newState }));
     };
 
-    const processResume = async (selectedFile: File) => {
-        updateUploadState({ isUploading: true });
+    const processResumeFile = async (selectedFile: File) => {
+        updateUploadState({ isUploading: true, isAnalyzing: true });
 
         try {
-            const resumeResult = await extractResumeText(selectedFile);
-
-            console.log('Extracted upload:', resumeResult);
-            console.log('Extracted links:', resumeResult.links);
-
-            if (!resumeResult.text || resumeResult.text.trim().length < 50) {
-                throw new Error('Could not extract sufficient text from the resume. Please try a different file.');
-            }
-
-            setExtractedText(resumeResult.text);
-            setExtractedLinks(resumeResult.links);
-            updateUploadState({ isUploading: false, isAnalyzing: true });
-
-            const analysis = await analyzeResume(resumeResult.text, jobDescription || undefined);
+            // Process the file directly through the backend
+            const analysis = await processResume(selectedFile, jobDescription || undefined);
 
             if (!analysis) {
                 throw new Error('Failed to analyze the resume. Please try again.');
+            }
+
+            // Set extracted text from the analysis response if available
+            if (analysis.extracted_text) {
+                setExtractedText(analysis.extracted_text);
+            }
+
+            // Set links if available
+            if (analysis.links) {
+                setExtractedLinks(analysis.links);
             }
 
             setAnalysisResult(analysis);
@@ -116,7 +115,7 @@ export function useResumeUpload(jobDescription: string) {
         setExtractedText('');
         setExtractedLinks([]);
 
-        processResume(selectedFile);
+        processResumeFile(selectedFile);
     };
 
     const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -157,7 +156,7 @@ export function useResumeUpload(jobDescription: string) {
     const tryAgain = () => {
         updateUploadState({ uploadStatus: 'idle' });
         if (file) {
-            processResume(file);
+            processResumeFile(file);
         }
     };
 

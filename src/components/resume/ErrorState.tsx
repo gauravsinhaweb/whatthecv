@@ -1,75 +1,70 @@
+import { AlertTriangle, UploadCloud, RefreshCw } from 'lucide-react';
 import React from 'react';
-import { AlertCircle, RefreshCw, Upload } from 'lucide-react';
 import Button from '../ui/Button';
+import { ResumeCheckResult } from '../../utils/types';
 
 interface ErrorStateProps {
     errorMessage: string;
     clearFile: () => void;
     tryAgain: () => void;
     hasFile: boolean;
+    resumeCheckResult?: ResumeCheckResult;
 }
 
 const ErrorState: React.FC<ErrorStateProps> = ({
     errorMessage,
     clearFile,
     tryAgain,
-    hasFile
+    hasFile,
+    resumeCheckResult
 }) => {
+    const isNotResumeError = errorMessage.includes("not a resume") ||
+        (resumeCheckResult && !resumeCheckResult.is_resume);
+
     return (
-        <div className="py-6">
-            <div className="flex flex-col items-center space-y-4 mb-6">
-                <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
-                    <AlertCircle className="h-10 w-10 text-red-600" />
+        <div className="text-center py-8">
+            <div className="bg-red-50 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="h-10 w-10 text-red-500" />
+            </div>
+            <h3 className="text-xl font-bold text-red-600 mb-2">Upload Error</h3>
+            <p className="text-slate-700 mb-6 max-w-md mx-auto">{errorMessage}</p>
+
+            {isNotResumeError && resumeCheckResult && (
+                <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 text-left max-w-md mx-auto">
+                    <h4 className="font-medium text-amber-800 mb-2">Document Analysis Results:</h4>
+                    <p className="text-sm text-slate-700 mb-2">
+                        <span className="font-medium">Confidence:</span> {(resumeCheckResult.confidence * 100).toFixed(0)}%
+                    </p>
+                    {resumeCheckResult.detected_sections.length > 0 ? (
+                        <div className="mb-2">
+                            <p className="text-sm text-slate-700 font-medium">Detected sections:</p>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                                {resumeCheckResult.detected_sections.map(section => (
+                                    <span key={section} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
+                                        {section}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-slate-700 mb-2">No resume sections detected.</p>
+                    )}
+                    <p className="text-sm text-slate-700">{resumeCheckResult.reasoning}</p>
                 </div>
-                <h3 className="text-xl font-bold text-red-800">Analysis Failed</h3>
-            </div>
+            )}
 
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <div className="flex items-start">
-                    <AlertCircle className="h-5 w-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                        <h4 className="font-medium text-red-800 mb-1">Error Details</h4>
-                        <p className="text-sm text-red-700">{errorMessage}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6">
-                <h4 className="font-medium text-slate-800 mb-3">Troubleshooting Tips</h4>
-                <ul className="space-y-2">
-                    <li className="text-sm text-slate-700 flex items-start">
-                        <span className="inline-block w-4 h-4 rounded-full bg-slate-200 text-center text-xs font-bold mr-2 mt-0.5">•</span>
-                        Check if your file is in a supported format (PDF, DOC, DOCX, TXT)
-                    </li>
-                    <li className="text-sm text-slate-700 flex items-start">
-                        <span className="inline-block w-4 h-4 rounded-full bg-slate-200 text-center text-xs font-bold mr-2 mt-0.5">•</span>
-                        Ensure your file isn't password protected or encrypted
-                    </li>
-                    <li className="text-sm text-slate-700 flex items-start">
-                        <span className="inline-block w-4 h-4 rounded-full bg-slate-200 text-center text-xs font-bold mr-2 mt-0.5">•</span>
-                        Verify that the file size is under 5MB
-                    </li>
-                    <li className="text-sm text-slate-700 flex items-start">
-                        <span className="inline-block w-4 h-4 rounded-full bg-slate-200 text-center text-xs font-bold mr-2 mt-0.5">•</span>
-                        Try uploading a different version of your resume
-                    </li>
-                </ul>
-            </div>
-
-            <div className="flex flex-col md:flex-row md:items-center md:justify-center space-y-3 md:space-y-0 md:space-x-4">
+            <div className="flex gap-4 justify-center">
                 <Button
                     variant="outline"
                     onClick={clearFile}
-                    leftIcon={<Upload className="h-4 w-4" />}
-                    className="w-full md:w-auto"
+                    leftIcon={<UploadCloud className="h-4 w-4" />}
                 >
-                    Upload Different File
+                    Upload New File
                 </Button>
                 {hasFile && (
                     <Button
                         onClick={tryAgain}
                         leftIcon={<RefreshCw className="h-4 w-4" />}
-                        className="w-full md:w-auto"
                     >
                         Try Again
                     </Button>

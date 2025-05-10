@@ -9,6 +9,11 @@ import React, { useMemo } from 'react';
 export const formatTextWithBullets = (text: string): string => {
     if (!text) return '';
 
+    // If the content already has HTML list elements, preserve them
+    if (text.includes('<ul>') || text.includes('<ol>') || text.includes('<li>')) {
+        return text;
+    }
+
     // Format bullet points to ensure they start on new lines
     let formatted = formatBulletPoints(text);
 
@@ -33,8 +38,8 @@ export const formatTextWithBullets = (text: string): string => {
 export const sanitizeHtml = (html: string): string => {
     if (!html) return '';
     return DOMPurify.sanitize(html, {
-        ALLOWED_TAGS: ['br', 'span', 'p', 'ul', 'ol', 'li', 'b', 'i', 'strong', 'em'],
-        ALLOWED_ATTR: ['style', 'class']
+        ALLOWED_TAGS: ['br', 'span', 'p', 'ul', 'ol', 'li', 'b', 'i', 'strong', 'em', 'a'],
+        ALLOWED_ATTR: ['style', 'class', 'href', 'target', 'rel']
     });
 };
 
@@ -64,7 +69,7 @@ export const SafeHTML: React.FC<{
 
     // Use the JSX syntax with the sanitized HTML
     return React.createElement('div', {
-        className,
+        className: `${className || ''} safe-html-content`,
         dangerouslySetInnerHTML: { __html: sanitizedHtml }
     });
 };

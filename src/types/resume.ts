@@ -1,7 +1,7 @@
 export interface ResumeData {
     personalInfo: {
         name: string;
-        title: string;
+        position: string;
         email: string;
         phone: string;
         location: string;
@@ -16,7 +16,7 @@ export interface ResumeData {
 
 export interface WorkExperience {
     id: string;
-    title: string;
+    position: string;
     company: string;
     location: string;
     startDate: string;
@@ -151,7 +151,7 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
 export const initialResumeData: ResumeData = {
     personalInfo: {
         name: 'Alex Johnson',
-        title: 'Senior Software Engineer',
+        position: 'Senior Software Engineer',
         email: 'alex.johnson@example.com',
         phone: '(555) 123-4567',
         location: 'San Francisco, CA',
@@ -161,7 +161,7 @@ export const initialResumeData: ResumeData = {
     workExperience: [
         {
             id: '1',
-            title: 'Senior Software Engineer',
+            position: 'Senior Software Engineer',
             company: 'TechCorp Inc.',
             location: 'San Francisco, CA',
             startDate: 'Jan 2020',
@@ -171,7 +171,7 @@ export const initialResumeData: ResumeData = {
         },
         {
             id: '2',
-            title: 'Software Engineer',
+            position: 'Software Engineer',
             company: 'WebSolutions LLC',
             location: 'Oakland, CA',
             startDate: 'Mar 2017',
@@ -181,7 +181,7 @@ export const initialResumeData: ResumeData = {
         },
         {
             id: '3',
-            title: 'Junior Developer',
+            position: 'Junior Developer',
             company: 'StartUp Vision',
             location: 'San Jose, CA',
             startDate: 'Jun 2015',

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { EnhancedResumeData } from '../utils/ai';
+import type { EnhancedResumeData } from '../utils/types';
 import { ResumeData, initialResumeData, ResumeCustomizationOptions, defaultCustomizationOptions } from '../types/resume';
 
 interface ResumeStore {

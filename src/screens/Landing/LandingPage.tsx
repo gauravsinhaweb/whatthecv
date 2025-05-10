@@ -9,7 +9,6 @@ import {
     Linkedin,
     Mail,
     Search,
-    StarIcon,
     Target,
     ThumbsUp,
     Twitter
@@ -17,9 +16,9 @@ import {
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import FaqSection from '../../components/landing/FaqSection';
-import './landing.css';
 import Button from '../../components/ui/Button';
 import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
+import './landing.css';
 import resumeBuilderImg from '/assets/create-resume.png';
 
 const LandingPage: React.FC = () => {
