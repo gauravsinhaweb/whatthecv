@@ -1,18 +1,20 @@
 import React, { useMemo } from 'react';
 import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
-import { MapPin, Mail, Phone } from 'lucide-react';
-import { SafeHTML } from '../../../../utils/html';
+import { MapPin, Mail, Phone, User } from 'lucide-react';
+import { createMarkup, SafeHTML } from '../../../../utils/html';
 
 interface ResumePreviewProps {
     resumeData: ResumeData;
     customizationOptions: ResumeCustomizationOptions;
     fullScreen?: boolean;
+    previewScale?: number;
 }
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({
     resumeData,
     customizationOptions,
     fullScreen = false,
+    previewScale = 100,
 }) => {
     const fontStack = 'Inter, Arial, Helvetica, "Noto Sans Devanagari", "Noto Sans CJK SC Thin", "Noto Sans SC", "Noto Sans Hebrew", "Noto Sans Bengali", sans-serif';
 
@@ -56,6 +58,36 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             && resumeData.personalInfo.summary;
     }, [resumeData.workExperience, resumeData.personalInfo.summary]);
 
+    // Format dates from YYYY-MM to Month YYYY
+    const formatDate = (dateStr: string): string => {
+        if (!dateStr) return '';
+
+        // If already in Month YYYY format or says "Present", return as is
+        if (dateStr.match(/^[A-Za-z]{3,}\s+\d{4}$/) || dateStr.toLowerCase() === 'present') {
+            return dateStr;
+        }
+
+        // Check if in YYYY-MM format
+        const match = dateStr.match(/^(\d{4})-(\d{2})$/);
+        if (match) {
+            const year = match[1];
+            const month = parseInt(match[2], 10);
+
+            // Convert month number to name
+            const monthNames = [
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+            ];
+
+            if (month >= 1 && month <= 12) {
+                return `${monthNames[month - 1]} ${year}`;
+            }
+        }
+
+        // Return original if not in expected format
+        return dateStr;
+    };
+
     const ensureBulletPoints = (content: string): string => {
         if (!content) return '';
 
@@ -70,6 +102,23 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
         // Format as bullet points
         return `<ul>${lines.map(line => `<li>${line.trim()}</li>`).join('')}</ul>`;
+    };
+
+    // Calculate appropriate line height for bullet points based on content
+    const getLineHeightClass = (content?: string): string => {
+        if (!content) return 'leading-[1.25]';
+
+        // Count the total number of bullet points by checking for <li> tags
+        const bulletPointsCount = (content.match(/<li>/g) || []).length;
+
+        // If it has many bullet points, use tighter line spacing
+        if (bulletPointsCount > 4) {
+            return 'leading-tight'; // 1.15
+        } else if (bulletPointsCount > 2) {
+            return 'leading-snug'; // 1.375
+        } else {
+            return 'leading-normal'; // 1.5
+        }
     };
 
     return (
@@ -88,7 +137,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             }}
         >
             <div
-                className="p-8 sm:p-12 print:p-12 hide-scrollbar [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1 [&_li]:leading-relaxed [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4"
+                className="p-8 sm:p-12 print:p-12 hide-scrollbar [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-0.5 [&_li>*]:leading-tight [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4"
                 data-id="resume-content"
                 style={{
                     height: '100%',
@@ -161,13 +210,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     ) : null}
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-8" data-id="resume-body">
+                <div className="flex flex-col md:flex-row gap-6" data-id="resume-body">
                     {/* Left Column - Main Content */}
                     <div className="flex-1" data-id="resume-main-column">
                         {/* Summary section - only show if it exists and work experience <= 2 */}
-                        {showSummary && (
-                            <div className="mb-8">
-                                <h2 className="text-lg font-bold uppercase mb-2 pb-1 border-b border-gray-900">
+                        {showSummary && resumeData.workExperience?.length <= 2 && (
+                            <div className="mb-6">
+                                <h2 className="text-lg font-bold uppercase mb-1.5 pb-1 border-b border-gray-900">
                                     SUMMARY
                                 </h2>
                                 <div className="text-sm">
@@ -178,26 +227,34 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                         {/* Work Experience */}
                         {resumeData.workExperience.some(exp => exp.position || exp.company || exp.description) && (
-                            <div className="mb-8">
-                                <h2 className="text-lg font-bold uppercase mb-2 pb-1 border-b border-gray-900">
+                            <div className="mb-6">
+                                <h2 className="text-lg font-bold uppercase mb-1.5 pb-1 border-b border-gray-900">
                                     EXPERIENCE
                                 </h2>
-                                <div className="space-y-5">
+                                <div className="space-y-4">
                                     {resumeData.workExperience
                                         .filter(exp => exp.position || exp.company || exp.description)
                                         .map((exp, index) => (
-                                            <div key={exp.id || index} className="mb-5">
+                                            <div key={exp.id || index} className="mb-4">
                                                 <div className="flex flex-col">
-                                                    <h3 className="font-bold text-base">
-                                                        {exp.position || 'Position'} {exp.company && `- ${exp.company}`}
-                                                    </h3>
+                                                    <div className="flex flex-wrap items-baseline">
+                                                        <h3 className="font-bold text-base">
+                                                            {exp.position || 'Position'}
+                                                        </h3>
+                                                        {exp.company && (
+                                                            <span className="text-base ml-1.5 text-gray-700">
+                                                                at {exp.company}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     {(exp.startDate || exp.endDate || exp.location) && (
-                                                        <div className="flex items-center text-sm opacity-80 mb-2">
+                                                        <div className="flex items-center text-sm opacity-80 mb-1">
                                                             {exp.startDate && (
-                                                                <span className="mr-2">
-                                                                    {exp.startDate} - {exp.endDate || 'Present'}
+                                                                <span>
+                                                                    {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
                                                                 </span>
                                                             )}
+                                                            {exp.location && <span className='px-1'>{"|"}</span>}
                                                             {exp.location && (
                                                                 <span>{exp.location}</span>
                                                             )}
@@ -206,7 +263,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                     {exp.description && (
                                                         <SafeHTML
                                                             html={ensureBulletPoints(exp.description)}
-                                                            className="text-sm mt-1"
+                                                            className={`text-sm ${getLineHeightClass(exp.description)}`}
                                                         />
                                                     )}
                                                 </div>
@@ -217,59 +274,63 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                         )}
 
                         {/* Education */}
-                        {resumeData.education.some(edu => edu.degree || edu.institution) && (
-                            <div className="mb-8">
-                                <h2 className="text-lg font-bold uppercase mb-2 pb-1 border-b border-gray-900">
-                                    EDUCATION
-                                </h2>
-                                <div className="space-y-5">
-                                    {resumeData.education
-                                        .filter(edu => edu.degree || edu.institution)
-                                        .map((edu, index) => (
-                                            <div key={edu.id || index} className="mb-5">
-                                                <div className="flex flex-col">
-                                                    <h3 className="font-bold text-base">
-                                                        {edu.degree || 'Degree'} {edu.institution && `| ${edu.institution}`}
-                                                    </h3>
-                                                    {(edu.startDate || edu.endDate || edu.location) && (
-                                                        <div className="flex items-center text-sm opacity-80 mb-2">
-                                                            {edu.startDate && (
-                                                                <span className="mr-2">
-                                                                    {edu.startDate} - {edu.endDate}
-                                                                </span>
-                                                            )}
-                                                            {edu.location && (
-                                                                <span>{edu.location}</span>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                    {edu.description && (
-                                                        <SafeHTML
-                                                            html={edu.description}
-                                                            className="text-sm mt-1"
-                                                        />
-                                                    )}
+                        {resumeData.education.some(
+                            (edu) => edu.degree || edu.institution
+                        ) && (
+                                <div className="mb-6">
+                                    <h2 className="text-lg font-bold uppercase mb-1.5 pb-1 border-b border-gray-900">
+                                        EDUCATION
+                                    </h2>
+                                    <div className="space-y-4">
+                                        {resumeData.education
+                                            .filter((edu) => edu.degree || edu.institution)
+                                            .map((edu, index) => (
+                                                <div key={index} className="mb-3">
+                                                    <div className="flex flex-col">
+                                                        <h3 className="font-bold text-base">
+                                                            {edu.degree || 'Degree'}
+                                                        </h3>
+                                                        {edu.institution && (
+                                                            <div className="text-base text-gray-700">
+                                                                {edu.institution}
+                                                            </div>
+                                                        )}
+                                                        {(edu.startDate || edu.endDate || edu.location) && (
+                                                            <div className="flex items-center text-sm opacity-80">
+                                                                {edu.startDate && edu.endDate && (
+                                                                    <span>
+                                                                        {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
+                                                                    </span>
+                                                                )}
+                                                                {(edu.startDate || edu.endDate) && edu.location && (
+                                                                    <span className='px-1'>{"|"}</span>
+                                                                )}
+                                                                {edu.location && (
+                                                                    <span>{edu.location}</span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
                     </div>
 
                     {/* Right Column - Skills & Projects */}
                     <div className="md:w-2/5" data-id="resume-side-column">
-                        {/* Skills - limited to top 16 */}
+                        {/* Skills */}
                         {topSkills.length > 0 && (
-                            <div className="mb-8">
-                                <h2 className="text-lg font-bold uppercase mb-2 pb-1 border-b border-gray-900">
+                            <div className="mb-6">
+                                <h2 className="text-lg font-bold uppercase mb-1.5 pb-1 border-b border-gray-900">
                                     SKILLS
                                 </h2>
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {topSkills.map((skill, index) => (
+                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                    {topSkills.map((skill) => (
                                         <span
-                                            key={`${skill}-${index}`}
-                                            className="px-3 py-1.5 border text-sm"
+                                            key={skill}
+                                            className="px-2.5 py-1 border text-sm"
                                         >
                                             {skill}
                                         </span>
@@ -279,46 +340,48 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                         )}
 
                         {/* Projects */}
-                        {resumeData.projects.some(project => project.name || project.description) && (
-                            <div className="mb-8">
-                                <h2 className="text-lg font-bold uppercase mb-2 pb-1 border-b border-gray-900">
-                                    PROJECTS
-                                </h2>
-                                <div className="space-y-5">
-                                    {resumeData.projects
-                                        .filter(project => project.name || project.description)
-                                        .map((project, index) => (
-                                            <div key={project.id || index} className="mb-5">
-                                                <h3 className="font-bold text-base">
-                                                    {project.name || 'Project Name'}
-                                                </h3>
-                                                {project.description && (
-                                                    <SafeHTML
-                                                        html={ensureBulletPoints(project.description)}
-                                                        className="text-sm mt-1"
-                                                    />
-                                                )}
-                                                {project.technologies && (
-                                                    <div className="text-sm mt-2 text-gray-600">
-                                                        {project.technologies}
-                                                    </div>
-                                                )}
-                                                {project.link && (
-                                                    <a
-                                                        href={project.link}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-sm inline-block mt-1 underline"
-                                                        style={{ color: getAccentColor(1) }}
-                                                    >
-                                                        {project.link}
-                                                    </a>
-                                                )}
-                                            </div>
-                                        ))}
+                        {resumeData.projects.some(
+                            (project) => project.name || project.description
+                        ) && (
+                                <div className="mb-6">
+                                    <h2 className="text-lg font-bold uppercase mb-1.5 pb-1 border-b border-gray-900">
+                                        PROJECTS
+                                    </h2>
+                                    <div className="space-y-4">
+                                        {resumeData.projects?.slice(0, 2)
+                                            .filter((project) => project.name || project.description)
+                                            .map((project, index) => (
+                                                <div key={index} className="mb-3">
+                                                    <h3 className="font-bold text-base">
+                                                        {project.name || 'Project Name'}
+                                                    </h3>
+                                                    {project.description && (
+                                                        <SafeHTML
+                                                            html={project.description}
+                                                            className="text-sm"
+                                                        />
+                                                    )}
+                                                    {project.technologies && (
+                                                        <div className="text-sm mt-1 text-gray-600">
+                                                            {project.technologies}
+                                                        </div>
+                                                    )}
+                                                    {/* {project.link && (
+                                                        <a
+                                                            href={project.link}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-sm inline-block mt-1 underline"
+                                                            style={{ color: getAccentColor(1) }}
+                                                        >
+                                                            {project.link}
+                                                        </a>
+                                                    )} */}
+                                                </div>
+                                            ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
                     </div>
                 </div>
 
@@ -334,12 +397,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 opacity: 0.7
                             }}
                         >
-                            {customizationOptions.footer.showName &&
-                                <span className="mr-3">{resumeData.personalInfo.name}</span>
-                            }
-                            {customizationOptions.footer.showEmail &&
-                                <span>{resumeData.personalInfo.email}</span>
-                            }
+
                         </div>
                     )}
             </div>
