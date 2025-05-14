@@ -3,16 +3,29 @@ import { ResumeData } from '../types/resume';
 /**
  * Ensures that bullet points are always on new lines in text
  * It converts any bullet point pattern that doesn't start on a new line to start on a new line
+ * and ensures proper spacing between bullet points
  */
 export const formatBulletPoints = (text: string): string => {
     if (!text) return '';
 
+    // First, normalize all line breaks to \n
+    let formattedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
     // Replace bullet points that don't start on a new line with properly formatted ones
     // This regex looks for bullet symbols (•, -, *, etc.) that don't have a preceding newline
-    const formattedText = text.replace(/([^\n])([•\-\*])/g, '$1\n$2');
+    formattedText = formattedText.replace(/([^\n])([•\-\*])/g, '$1\n$2');
 
-    // Also ensure that if the text starts with a bullet, it has proper spacing
-    return formattedText.replace(/^([•\-\*])/g, '$1');
+    // Ensure bullet points have proper spacing between them
+    // Find bullet points followed by text and then another bullet point without a line break
+    formattedText = formattedText.replace(/([•\-\*][^\n]*?)(\n[•\-\*])/g, '$1\n$2');
+
+    // If text starts with a bullet point, ensure it's properly positioned
+    formattedText = formattedText.replace(/^([•\-\*])/g, '$1');
+
+    // Ensure each bullet point is properly separated
+    formattedText = formattedText.replace(/\n([•\-\*])/g, '\n$1');
+
+    return formattedText;
 };
 
 /**

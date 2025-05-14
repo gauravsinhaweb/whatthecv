@@ -54,6 +54,18 @@ export const renderPreviewContainer = (
     previewScale: number,
     setIsFullScreenPreview: (isFullScreen: boolean) => void
 ) => {
+    // Create a more specific key for header-related options to ensure re-renders
+    const customizationKey = JSON.stringify({
+        ...customizationOptions,
+        // Explicitly include header options to ensure they trigger re-renders
+        header: {
+            nameSize: customizationOptions.header.nameSize,
+            nameBold: customizationOptions.header.nameBold,
+            jobTitleSize: customizationOptions.header.jobTitleSize,
+            showPhoto: customizationOptions.header.showPhoto
+        }
+    });
+
     return React.createElement(
         'div',
         {
@@ -68,6 +80,7 @@ export const renderPreviewContainer = (
             }
         },
         React.createElement(ResumePreview, {
+            key: customizationKey, // Force re-render when any customization option changes
             resumeData,
             customizationOptions,
             previewScale

@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { ResumeData } from '../../../../types/resume';
-import { ArrowDown, Award, BookOpen, Briefcase, ChevronDownIcon, Code, Plus, User } from 'lucide-react';
+import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
+import { ArrowDown, Award, BookOpen, Briefcase, ChevronDownIcon, Code, Edit, FileText, Plus, Trash2, User, Eye, EyeOff } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import RichTextEditor from '../../../../components/ui/RichTextEditor';
 import ProfilePictureUploader from '../../../../components/ui/ProfilePictureUploader';
+import DatePicker from '../../../../components/ui/DatePicker';
 
 const styles = `
 @keyframes fadeIn {
@@ -43,6 +44,8 @@ interface ResumeEditorProps {
         removeProject: (id: string) => void;
     };
     onSkillInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    customizationOptions?: ResumeCustomizationOptions;
+    onCustomizationChange?: (options: ResumeCustomizationOptions) => void;
 }
 
 const ResumeEditor: React.FC<ResumeEditorProps> = ({
@@ -59,6 +62,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     onAdd,
     onRemove,
     onSkillInputKeyDown,
+    customizationOptions,
+    onCustomizationChange,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showProfileUploader, setShowProfileUploader] = useState(false);
@@ -85,9 +90,32 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                     >
                         <div className="flex items-center">
                             <User className="w-5 h-5 mr-3 text-indigo-600" />
-                            <span className="font-medium text-indigo-900 text-base">Personal Info</span>
+                            <span className="font-medium text-indigo-900 text-base">
+                                {customizationOptions?.layout?.sectionTitles?.personalInfo || 'Personal Info'}
+                            </span>
                         </div>
                         <div className="flex items-center">
+                            <button
+                                className="mr-2 p-1 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-full transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newTitle = prompt('Edit section title:', customizationOptions?.layout?.sectionTitles?.personalInfo || 'Personal Info');
+                                    if (newTitle && onCustomizationChange && customizationOptions) {
+                                        onCustomizationChange({
+                                            ...customizationOptions,
+                                            layout: {
+                                                ...customizationOptions.layout,
+                                                sectionTitles: {
+                                                    ...customizationOptions.layout.sectionTitles,
+                                                    personalInfo: newTitle
+                                                }
+                                            }
+                                        });
+                                    }
+                                }}
+                            >
+                                <Edit className="w-4 h-4" />
+                            </button>
                             <span className="transform transition-transform duration-300" style={{
                                 transform: expandedSections.personalInfo ? 'rotate(180deg)' : 'rotate(0)'
                             }}>
@@ -125,6 +153,29 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                     </div>
                                 </div>
 
+                                <div className="flex items-center mt-2">
+                                    <input
+                                        type="checkbox"
+                                        id="showSummary"
+                                        checked={customizationOptions?.showSummary || false}
+                                        onChange={(e) => {
+                                            if (onCustomizationChange && customizationOptions) {
+                                                onCustomizationChange({
+                                                    ...customizationOptions,
+                                                    showSummary: (e.target as HTMLInputElement).checked
+                                                });
+                                            }
+                                        }}
+                                        className="mr-2 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                                    />
+                                    <label htmlFor="showSummary" className="text-sm font-medium text-indigo-700">
+                                        Include Professional Summary
+                                    </label>
+                                </div>
+                                <p className="text-xs text-slate-500 ml-6 mb-3">
+                                    Show your professional summary at the top of your resume
+                                </p>
+
                                 {(showProfileUploader || hasValidProfilePic) && (
                                     <div className="flex justify-center mb-6">
                                         <ProfilePictureUploader
@@ -149,12 +200,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-indigo-700 mb-1.5">Title</label>
+                                        <label className="block text-sm font-medium text-indigo-700 mb-1.5">Position</label>
                                         <input
                                             type="text"
                                             className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
-                                            value={resumeData.personalInfo.title}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onPersonalInfoChange('title', e.currentTarget.value)}
+                                            value={resumeData.personalInfo.position}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onPersonalInfoChange('position', e.currentTarget.value)}
                                             placeholder="Senior Software Engineer"
                                         />
                                     </div>
@@ -203,7 +254,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         value={resumeData.personalInfo.summary}
                                         onChange={(value) => onPersonalInfoChange('summary', value)}
                                         placeholder="A brief summary of your professional background and goals..."
-                                        rows={4}
+                                        rows={5}
                                     />
                                 </div>
                             </div>
@@ -222,9 +273,32 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                     >
                         <div className="flex items-center">
                             <Briefcase className="w-5 h-5 mr-3 text-indigo-600" />
-                            <span className="font-medium text-indigo-900 text-base">Work Experience</span>
+                            <span className="font-medium text-indigo-900 text-base">
+                                {customizationOptions?.layout?.sectionTitles?.workExperience || 'Work Experience'}
+                            </span>
                         </div>
                         <div className="flex items-center">
+                            <button
+                                className="mr-2 p-1 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-full transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newTitle = prompt('Edit section title:', customizationOptions?.layout?.sectionTitles?.workExperience || 'Work Experience');
+                                    if (newTitle && onCustomizationChange && customizationOptions) {
+                                        onCustomizationChange({
+                                            ...customizationOptions,
+                                            layout: {
+                                                ...customizationOptions.layout,
+                                                sectionTitles: {
+                                                    ...customizationOptions.layout.sectionTitles,
+                                                    workExperience: newTitle
+                                                }
+                                            }
+                                        });
+                                    }
+                                }}
+                            >
+                                <Edit className="w-4 h-4" />
+                            </button>
                             <span className="transform transition-transform duration-300" style={{
                                 transform: expandedSections.workExperience ? 'rotate(180deg)' : 'rotate(0)'
                             }}>
@@ -255,8 +329,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                     <input
                                                         type="text"
                                                         className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
-                                                        value={exp.title}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onWorkExperienceChange(exp.id, 'title', e.currentTarget.value)}
+                                                        value={exp.position}
+                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onWorkExperienceChange(exp.id, 'position', e.currentTarget.value)}
                                                         placeholder="Software Engineer"
                                                     />
                                                 </div>
@@ -284,24 +358,21 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                 <div>
                                                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">Start Date</label>
-                                                    <input
-                                                        type="text"
-                                                        className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                                    <DatePicker
                                                         value={exp.startDate}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onWorkExperienceChange(exp.id, 'startDate', e.currentTarget.value)}
-                                                        placeholder="Jun 2018"
+                                                        onChange={(value) => onWorkExperienceChange(exp.id, 'startDate', value)}
+                                                        placeholder="Select start date"
                                                     />
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">End Date</label>
                                                     <div className="flex items-center space-x-2">
-                                                        <input
-                                                            type="text"
-                                                            className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white disabled:bg-slate-100 disabled:text-slate-500"
+                                                        <DatePicker
                                                             value={exp.endDate}
-                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onWorkExperienceChange(exp.id, 'endDate', e.currentTarget.value)}
-                                                            placeholder="Present"
+                                                            onChange={(value) => onWorkExperienceChange(exp.id, 'endDate', value)}
+                                                            placeholder="Select end date"
                                                             disabled={exp.current}
+                                                            includePresent={true}
                                                         />
                                                         <div className="flex items-center whitespace-nowrap">
                                                             <input
@@ -326,13 +397,16 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             <div>
                                                 <label className="block text-sm font-medium text-indigo-700 mb-1.5">Description</label>
                                                 <div className="bg-indigo-50 border-l-4 border-indigo-500 p-2 mb-2 text-xs">
-                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line.
+                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line. Select text and use the link button to add hyperlinks to your projects or references.
                                                 </div>
                                                 <RichTextEditor
                                                     value={exp.description}
                                                     onChange={(value) => onWorkExperienceChange(exp.id, 'description', value)}
-                                                    placeholder="• Describe your responsibilities and achievements..."
-                                                    rows={4}
+                                                    placeholder="• Led a team of 5 developers to build a high-traffic platform
+• Redesigned authentication system, improving security by 40%
+• Implemented CI/CD pipeline using GitHub Actions
+• Mentored junior developers and conducted code reviews"
+                                                    rows={6}
                                                 />
                                             </div>
                                         </div>
@@ -364,9 +438,32 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                     >
                         <div className="flex items-center">
                             <BookOpen className="w-5 h-5 mr-3 text-emerald-600" />
-                            <span className="font-medium text-emerald-900 text-base">Education</span>
+                            <span className="font-medium text-emerald-900 text-base">
+                                {customizationOptions?.layout?.sectionTitles?.education || 'Education'}
+                            </span>
                         </div>
                         <div className="flex items-center">
+                            <button
+                                className="mr-2 p-1 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newTitle = prompt('Edit section title:', customizationOptions?.layout?.sectionTitles?.education || 'Education');
+                                    if (newTitle && onCustomizationChange && customizationOptions) {
+                                        onCustomizationChange({
+                                            ...customizationOptions,
+                                            layout: {
+                                                ...customizationOptions.layout,
+                                                sectionTitles: {
+                                                    ...customizationOptions.layout.sectionTitles,
+                                                    education: newTitle
+                                                }
+                                            }
+                                        });
+                                    }
+                                }}
+                            >
+                                <Edit className="w-4 h-4" />
+                            </button>
                             <span className="transform transition-transform duration-300" style={{
                                 transform: expandedSections.education ? 'rotate(180deg)' : 'rotate(0)'
                             }}>
@@ -426,35 +523,35 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                 <div>
                                                     <label className="block text-sm font-medium text-emerald-700 mb-1.5">Start Date</label>
-                                                    <input
-                                                        type="text"
-                                                        className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
+                                                    <DatePicker
                                                         value={edu.startDate}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onEducationChange(edu.id, 'startDate', e.currentTarget.value)}
-                                                        placeholder="Sep 2014"
+                                                        onChange={(value) => onEducationChange(edu.id, 'startDate', value)}
+                                                        placeholder="Select start date"
                                                     />
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-emerald-700 mb-1.5">End Date</label>
-                                                    <input
-                                                        type="text"
-                                                        className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
+                                                    <DatePicker
                                                         value={edu.endDate}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onEducationChange(edu.id, 'endDate', e.currentTarget.value)}
-                                                        placeholder="May 2018"
+                                                        onChange={(value) => onEducationChange(edu.id, 'endDate', value)}
+                                                        placeholder="Select end date"
+                                                        includePresent={true}
                                                     />
                                                 </div>
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-emerald-700 mb-1.5">Description</label>
                                                 <div className="bg-emerald-50 border-l-4 border-emerald-500 p-2 mb-2 text-xs">
-                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line.
+                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line. Select text and use the link button to add hyperlinks to your coursework or projects.
                                                 </div>
                                                 <RichTextEditor
                                                     value={edu.description}
                                                     onChange={(value) => onEducationChange(edu.id, 'description', value)}
-                                                    placeholder="• Relevant coursework, achievements, etc..."
-                                                    rows={3}
+                                                    placeholder="• Specialized in Human-Computer Interaction and ML
+• GPA: 3.85/4.0
+• Dean's List for 6 consecutive semesters
+• Member of Computer Science Student Association"
+                                                    rows={5}
                                                 />
                                             </div>
                                         </div>
@@ -486,9 +583,32 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                     >
                         <div className="flex items-center">
                             <Code className="w-5 h-5 mr-3 text-amber-600" />
-                            <span className="font-medium text-amber-900 text-base">Skills</span>
+                            <span className="font-medium text-amber-900 text-base">
+                                {customizationOptions?.layout?.sectionTitles?.skills || 'Skills'}
+                            </span>
                         </div>
                         <div className="flex items-center">
+                            <button
+                                className="mr-2 p-1 text-amber-500 hover:text-amber-700 hover:bg-amber-50 rounded-full transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newTitle = prompt('Edit section title:', customizationOptions?.layout?.sectionTitles?.skills || 'Skills');
+                                    if (newTitle && onCustomizationChange && customizationOptions) {
+                                        onCustomizationChange({
+                                            ...customizationOptions,
+                                            layout: {
+                                                ...customizationOptions.layout,
+                                                sectionTitles: {
+                                                    ...customizationOptions.layout.sectionTitles,
+                                                    skills: newTitle
+                                                }
+                                            }
+                                        });
+                                    }
+                                }}
+                            >
+                                <Edit className="w-4 h-4" />
+                            </button>
                             <span className="transform transition-transform duration-300" style={{
                                 transform: expandedSections.skills ? 'rotate(180deg)' : 'rotate(0)'
                             }}>
@@ -565,9 +685,32 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                     >
                         <div className="flex items-center">
                             <Award className="w-5 h-5 mr-3 text-purple-600" />
-                            <span className="font-medium text-purple-900 text-base">Projects</span>
+                            <span className="font-medium text-purple-900 text-base">
+                                {customizationOptions?.layout?.sectionTitles?.projects || 'Projects'}
+                            </span>
                         </div>
                         <div className="flex items-center">
+                            <button
+                                className="mr-2 p-1 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-full transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newTitle = prompt('Edit section title:', customizationOptions?.layout?.sectionTitles?.projects || 'Projects');
+                                    if (newTitle && onCustomizationChange && customizationOptions) {
+                                        onCustomizationChange({
+                                            ...customizationOptions,
+                                            layout: {
+                                                ...customizationOptions.layout,
+                                                sectionTitles: {
+                                                    ...customizationOptions.layout.sectionTitles,
+                                                    projects: newTitle
+                                                }
+                                            }
+                                        });
+                                    }
+                                }}
+                            >
+                                <Edit className="w-4 h-4" />
+                            </button>
                             <span className="transform transition-transform duration-300" style={{
                                 transform: expandedSections.projects ? 'rotate(180deg)' : 'rotate(0)'
                             }}>
@@ -605,13 +748,16 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             <div>
                                                 <label className="block text-sm font-medium text-purple-700 mb-1.5">Description</label>
                                                 <div className="bg-purple-50 border-l-4 border-purple-500 p-2 mb-2 text-xs">
-                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line.
+                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line. Select text and use the link button to add hyperlinks to your projects or references.
                                                 </div>
                                                 <RichTextEditor
                                                     value={project.description}
                                                     onChange={(value) => onProjectChange(project.id, 'description', value)}
-                                                    placeholder="• Brief description of the project..."
-                                                    rows={3}
+                                                    placeholder="• Developed a full-featured e-commerce platform
+• Implemented payment processing with Stripe
+• Created responsive UI with React and Material-UI
+• Added analytics dashboard to track customer behavior"
+                                                    rows={5}
                                                 />
                                             </div>
                                             <div>
@@ -623,6 +769,25 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => onProjectChange(project.id, 'technologies', e.currentTarget.value)}
                                                     placeholder="React, Node.js, MongoDB"
                                                 />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-purple-700 mb-1.5">Start Date</label>
+                                                    <DatePicker
+                                                        value={project.startDate || ''}
+                                                        onChange={(value) => onProjectChange(project.id, 'startDate', value)}
+                                                        placeholder="Select start date"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-purple-700 mb-1.5">End Date</label>
+                                                    <DatePicker
+                                                        value={project.endDate || ''}
+                                                        onChange={(value) => onProjectChange(project.id, 'endDate', value)}
+                                                        placeholder="Select end date"
+                                                        includePresent={true}
+                                                    />
+                                                </div>
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-purple-700 mb-1.5">Project Link</label>
@@ -650,6 +815,232 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                             </div>
                         </div>
                     )}
+                </div>
+
+                {/* Custom Sections */}
+                {customizationOptions?.customSections?.map((customSection, index) => {
+                    // Skip hidden sections in the editor
+                    if (customizationOptions.layout.visibleSections?.[customSection.id] === false) {
+                        return null;
+                    }
+
+                    return (
+                        <div key={customSection.id} className="border-b border-slate-200">
+                            <div
+                                className={`flex justify-between items-center p-4 cursor-pointer transition-all duration-200 ${expandedSections[customSection.id] && activeSection === customSection.id
+                                    ? 'bg-gradient-to-r from-blue-50 to-white shadow-sm rounded-t-md'
+                                    : 'hover:bg-slate-50/80'
+                                    }`}
+                                onClick={() => onSectionToggle(customSection.id)}
+                            >
+                                <div className="flex items-center">
+                                    <FileText className="w-5 h-5 mr-3 text-blue-600" />
+                                    <span className="font-medium text-blue-900 text-base">
+                                        {customSection.title}
+                                    </span>
+                                </div>
+                                <div className="flex items-center">
+                                    <button
+                                        className="mr-2 p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const newTitle = prompt('Edit section title:', customSection.title);
+                                            if (newTitle && onCustomizationChange && customizationOptions) {
+                                                const updatedSections = customizationOptions.customSections.map(section =>
+                                                    section.id === customSection.id
+                                                        ? { ...section, title: newTitle }
+                                                        : section
+                                                );
+                                                onCustomizationChange({
+                                                    ...customizationOptions,
+                                                    customSections: updatedSections
+                                                });
+                                            }
+                                        }}
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        className="mr-2 p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (onCustomizationChange && customizationOptions) {
+                                                const isCurrentlyVisible = customizationOptions.layout.visibleSections?.[customSection.id] !== false;
+                                                onCustomizationChange({
+                                                    ...customizationOptions,
+                                                    layout: {
+                                                        ...customizationOptions.layout,
+                                                        visibleSections: {
+                                                            ...customizationOptions.layout.visibleSections,
+                                                            [customSection.id]: !isCurrentlyVisible,
+                                                            // Ensure Personal Info remains visible
+                                                            personalInfo: true
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }}
+                                        title={customizationOptions.layout.visibleSections?.[customSection.id] !== false ? "Hide section" : "Show section"}
+                                    >
+                                        {customizationOptions.layout.visibleSections?.[customSection.id] !== false ?
+                                            <Eye className="w-4 h-4" /> :
+                                            <EyeOff className="w-4 h-4" />
+                                        }
+                                    </button>
+                                    <button
+                                        className="mr-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm('Are you sure you want to delete this section?') && onCustomizationChange && customizationOptions) {
+                                                const updatedSections = customizationOptions.customSections.filter(
+                                                    section => section.id !== customSection.id
+                                                );
+                                                onCustomizationChange({
+                                                    ...customizationOptions,
+                                                    customSections: updatedSections
+                                                });
+                                            }
+                                        }}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                    <span className="transform transition-transform duration-300" style={{
+                                        transform: expandedSections[customSection.id] ? 'rotate(180deg)' : 'rotate(0)'
+                                    }}>
+                                        <ChevronDownIcon className="text-blue-600 w-5 h-5" />
+                                    </span>
+                                </div>
+                            </div>
+                            {expandedSections[customSection.id] && activeSection === customSection.id && (
+                                <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
+                                    <div className="space-y-5">
+                                        <div>
+                                            <label className="block text-sm font-medium text-blue-700 mb-1.5">Content</label>
+                                            <RichTextEditor
+                                                value={customSection.content}
+                                                onChange={(value) => {
+                                                    if (onCustomizationChange && customizationOptions) {
+                                                        const updatedSections = customizationOptions.customSections.map(section =>
+                                                            section.id === customSection.id
+                                                                ? { ...section, content: value }
+                                                                : section
+                                                        );
+                                                        onCustomizationChange({
+                                                            ...customizationOptions,
+                                                            customSections: updatedSections
+                                                        });
+                                                    }
+                                                }}
+                                                placeholder="Add your custom content here..."
+                                                rows={6}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+
+                {/* Add Hidden Sections Dropdown */}
+                <div className="p-4">
+                    <div className="bg-slate-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-medium text-slate-800 mb-3 flex items-center gap-2">
+                            <EyeOff className="w-4 h-4 text-blue-600" />
+                            Hidden Sections
+                        </h3>
+                        {Object.entries(customizationOptions?.layout?.visibleSections || {})
+                            .filter(([key, isVisible]) => isVisible === false && key !== 'personalInfo')
+                            .map(([sectionId]) => {
+                                // Find section title
+                                let sectionTitle = '';
+                                if (sectionId in (customizationOptions?.layout?.sectionTitles || {})) {
+                                    sectionTitle = customizationOptions?.layout?.sectionTitles[sectionId];
+                                } else {
+                                    // Look in custom sections
+                                    const customSection = customizationOptions?.customSections?.find(s => s.id === sectionId);
+                                    if (customSection) {
+                                        sectionTitle = customSection.title;
+                                    } else {
+                                        sectionTitle = sectionId;
+                                    }
+                                }
+
+                                return (
+                                    <div key={sectionId} className="flex items-center justify-between p-2 bg-white rounded-md mb-2 border border-slate-200">
+                                        <span className="text-sm text-slate-600">{sectionTitle}</span>
+                                        <button
+                                            className="flex items-center gap-1 text-blue-500 hover:text-blue-700 p-1.5 rounded-md hover:bg-blue-50"
+                                            onClick={() => {
+                                                if (onCustomizationChange && customizationOptions) {
+                                                    onCustomizationChange({
+                                                        ...customizationOptions,
+                                                        layout: {
+                                                            ...customizationOptions.layout,
+                                                            visibleSections: {
+                                                                ...customizationOptions.layout.visibleSections,
+                                                                [sectionId]: true,
+                                                                // Ensure Personal Info remains visible
+                                                                personalInfo: true
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            }}
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            <span className="text-xs">Show</span>
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        {!Object.values(customizationOptions?.layout?.visibleSections || {}).includes(false) && (
+                            <p className="text-sm text-slate-500">No hidden sections.</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Add Custom Section Button */}
+                <div className="p-4 flex justify-center">
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            if (onCustomizationChange && customizationOptions) {
+                                const title = prompt('Enter section title:');
+                                if (title) {
+                                    const newSection = {
+                                        id: `custom_${Date.now()}`,
+                                        title,
+                                        content: ''
+                                    };
+
+                                    // Also add to visible sections
+                                    const updatedVisibleSections = {
+                                        ...customizationOptions.layout.visibleSections,
+                                        [newSection.id]: true
+                                    };
+
+                                    onCustomizationChange({
+                                        ...customizationOptions,
+                                        customSections: [...(customizationOptions.customSections || []), newSection],
+                                        layout: {
+                                            ...customizationOptions.layout,
+                                            visibleSections: updatedVisibleSections
+                                        }
+                                    });
+
+                                    // Add to expanded sections
+                                    if (onSectionToggle) {
+                                        onSectionToggle(newSection.id);
+                                    }
+                                }
+                            }
+                        }}
+                        className="hover:bg-blue-50 text-blue-700 border-blue-300"
+                        leftIcon={<Plus className="h-4 w-4" />}
+                    >
+                        Add Custom Section
+                    </Button>
                 </div>
             </div>
         </div>
