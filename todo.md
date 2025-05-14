@@ -84,3 +84,5 @@ Want me to help mock up a sample UI/UX layout or onboarding flow based on these 
 - 2 page resume support
 - wrap up design resume
 - separate BE - auth with role (candidate/ recruiter), analyze, template
+- custom section
+- embed links

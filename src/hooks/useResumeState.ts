@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useResumeStore } from '../store/resumeStore';
 import { saveResumeData, saveCompleteResumeData, saveResumeDraft } from '../utils/resumeSaveUtils';
 import { formatBulletPoints, formatAllDescriptions } from '../utils/resumeFormatUtils';
+import { ResumeCustomizationOptions } from '../types/resume';
 
 export const useResumeState = () => {
     const {
@@ -111,6 +112,12 @@ export const useResumeState = () => {
         alert('Resume saved as draft');
     }, [resumeData, customizationOptions]);
 
+    // Update customization options with a fresh object reference to trigger re-renders
+    const handleCustomizationChange = useCallback((newOptions: ResumeCustomizationOptions) => {
+        // Create a completely new object to ensure reference changes
+        setCustomizationOptions({ ...newOptions });
+    }, [setCustomizationOptions]);
+
     return {
         resumeData,
         skillInput,
@@ -123,7 +130,7 @@ export const useResumeState = () => {
             setSkillInput,
             setActiveSection,
             setExpandedSections,
-            setCustomizationOptions,
+            setCustomizationOptions: handleCustomizationChange,
             setPreviewScale,
             handleZoomIn,
             handleZoomOut,

@@ -41,21 +41,21 @@ export interface Project {
     description: string;
     technologies: string;
     link: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 export interface ResumeCustomizationOptions {
     layout: {
-        columns: 'one' | 'two' | 'mix';
+        columns: 'one' | 'two';
         sectionOrder: string[];
+        sectionTitles: Record<string, string>;
+        visibleSections: Record<string, boolean>;
     };
     colors: {
-        mode: 'basic' | 'advanced';
-        type: 'single' | 'multi' | 'image';
         accent: string;
-        headings: string;
         text: string;
-        background: string;
-        backgroundImage?: string;
+        headings: string;
     };
     spacing: {
         fontSize: number;
@@ -66,51 +66,62 @@ export interface ResumeCustomizationOptions {
             top: number;
             bottom: number;
         };
-        sectionSpacing: number;
     };
     font: {
         family: 'serif' | 'sans' | 'mono';
         specificFont: string;
-        headingStyle: {
-            capitalization: 'capitalize' | 'uppercase' | 'normal';
-            size: 's' | 'm' | 'l' | 'xl';
-            icons: 'none' | 'outline' | 'filled';
-        };
     };
     header: {
-        details: {
-            icon: 'bullet' | 'bar' | 'none';
-            shape: 'none' | 'rounded' | 'square' | 'circle';
-        };
-        nameSize: 'xs' | 's' | 'm' | 'l' | 'xl';
+        nameSize: 's' | 'm' | 'l' | 'xl';
         nameBold: boolean;
         jobTitleSize: 's' | 'm' | 'l';
-        jobTitlePosition: 'same-line' | 'below';
-        jobTitleStyle: 'normal' | 'italic';
         showPhoto: boolean;
+        headerFont: string;
     };
-    footer: {
-        showPageNumbers: boolean;
-        showEmail: boolean;
-        showName: boolean;
+    sectionTitles: {
+        size: 's' | 'm' | 'l' | 'xl';
+        style: 'uppercase' | 'lowercase' | 'capitalize' | 'normal';
+        bold: boolean;
+        underline: boolean;
     };
+    skills: {
+        format: 'pills' | 'comma' | 'bullets' | 'grid' | 'compact' | 'bubble' | 'pipe' | 'newline' | 'level';
+        columns: 1 | 2 | 3;
+    };
+    showSummary: boolean;
+    customSections: {
+        id: string;
+        title: string;
+        content: string;
+    }[];
 }
 
 export const defaultCustomizationOptions: ResumeCustomizationOptions = {
     layout: {
         columns: 'one',
         sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects'],
+        sectionTitles: {
+            personalInfo: 'Personal Info',
+            workExperience: 'Work Experience',
+            education: 'Education',
+            skills: 'Skills',
+            projects: 'Projects'
+        },
+        visibleSections: {
+            personalInfo: true,
+            workExperience: true,
+            education: true,
+            skills: true,
+            projects: true
+        }
     },
     colors: {
-        mode: 'basic',
-        type: 'single',
         accent: '#2563eb',
-        headings: '#1e3a8a',
         text: '#000000',
-        background: '#ffffff',
+        headings: '#000000',
     },
     spacing: {
-        fontSize: 9,
+        fontSize: 11.5,
         lineHeight: 1.2,
         margins: {
             left: 10,
@@ -118,34 +129,30 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
             top: 10,
             bottom: 10,
         },
-        sectionSpacing: 10,
     },
     font: {
         family: 'sans',
         specificFont: 'Source Sans Pro',
-        headingStyle: {
-            capitalization: 'capitalize',
-            size: 'm',
-            icons: 'none',
-        },
     },
     header: {
-        details: {
-            icon: 'bullet',
-            shape: 'none',
-        },
         nameSize: 'l',
         nameBold: true,
         jobTitleSize: 'm',
-        jobTitlePosition: 'same-line',
-        jobTitleStyle: 'normal',
         showPhoto: false,
+        headerFont: 'Source Sans Pro',
     },
-    footer: {
-        showPageNumbers: true,
-        showEmail: true,
-        showName: true,
+    sectionTitles: {
+        size: 'l',
+        style: 'uppercase',
+        bold: true,
+        underline: true,
     },
+    skills: {
+        format: 'compact',
+        columns: 2
+    },
+    showSummary: false,
+    customSections: []
 };
 
 export const initialResumeData: ResumeData = {
@@ -222,6 +229,8 @@ export const initialResumeData: ResumeData = {
             description: 'Developed a full-featured e-commerce platform with React, Node.js, and MongoDB. Implemented payment processing, inventory management, and analytics dashboard.',
             technologies: 'React, Redux, Node.js, Express, MongoDB, Stripe API',
             link: 'https://github.com/alexj/ecommerce-platform',
+            startDate: '2019-06',
+            endDate: '2019-12'
         },
         {
             id: '2',
@@ -229,6 +238,8 @@ export const initialResumeData: ResumeData = {
             description: 'Built a collaborative task management application with real-time updates and notifications. Features include Kanban boards, task assignments, and deadline tracking.',
             technologies: 'React, Firebase, Material-UI, Jest',
             link: 'https://github.com/alexj/task-master',
+            startDate: '2018-10',
+            endDate: '2019-03'
         },
     ],
 }; 

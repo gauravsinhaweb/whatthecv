@@ -37,10 +37,26 @@ export const formatTextWithBullets = (text: string): string => {
  */
 export const sanitizeHtml = (html: string): string => {
     if (!html) return '';
-    return DOMPurify.sanitize(html, {
+
+    // Add hook to ensure all hyperlinks open in a new tab with security attributes
+    DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+        if (node.tagName === 'A' && node.hasAttribute('href')) {
+            // Make all links open in a new tab
+            node.setAttribute('target', '_blank');
+            // Add security attributes to prevent potential security issues
+            node.setAttribute('rel', 'noopener noreferrer');
+        }
+    });
+
+    const sanitized = DOMPurify.sanitize(html, {
         ALLOWED_TAGS: ['br', 'span', 'p', 'ul', 'ol', 'li', 'b', 'i', 'strong', 'em', 'a'],
         ALLOWED_ATTR: ['style', 'class', 'href', 'target', 'rel']
     });
+
+    // Remove the hook after sanitizing
+    DOMPurify.removeHook('afterSanitizeAttributes');
+
+    return sanitized;
 };
 
 /**

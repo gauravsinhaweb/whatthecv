@@ -1,15 +1,14 @@
-import { Eye, EyeOff, FileDown, Layout, Maximize2, Palette } from 'lucide-react';
+import { Eye, EyeOff, FileDown, Layout, Palette } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
+import Button from '../../../components/ui/Button';
+import { useResumeState } from '../../../hooks/useResumeState';
+import { useResumeStore } from '../../../store/resumeStore';
+import { ResumeData } from '../../../types/resume';
+import { exportResumeToPDF } from '../../../utils/resumeExport';
+import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../../../utils/resumeUI';
 import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
 import ResumeEditor from './components/ResumeEditor';
 import ResumeFullScreenModal from './components/ResumeFullScreenModal';
-import Button from '../../../components/ui/Button';
-import { useResumeState } from '../../../hooks/useResumeState';
-import { exportResumeToPDF } from '../../../utils/resumeExport';
-import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../../../utils/resumeUI';
-import type { EnhancedResumeData } from '../../../utils/types';
-import { ResumeData } from '../../../types/resume';
-import { useResumeStore } from '../../../store/resumeStore';
 
 const CreateResume: React.FC = () => {
     const {
@@ -31,31 +30,29 @@ const CreateResume: React.FC = () => {
 
     useEffect(() => {
         // Check for enhanced resume data in the store
-        if (enhancedResumeData) {
-            try {
-                console.log('Found enhanced resume data:', enhancedResumeData);
+        if (!enhancedResumeData) return;
 
-                // Convert EnhancedResumeData to ResumeData format
-                const convertedData: ResumeData = {
-                    personalInfo: {
-                        ...enhancedResumeData.personalInfo,
-                        // Move summary from top level to personalInfo if it exists
-                        summary: enhancedResumeData.personalInfo.summary || ''
-                    },
-                    workExperience: enhancedResumeData.workExperience,
-                    education: enhancedResumeData.education,
-                    skills: enhancedResumeData.skills,
-                    projects: enhancedResumeData.projects,
-                };
+        try {
+            // Convert EnhancedResumeData to ResumeData format
+            const convertedData: ResumeData = {
+                personalInfo: {
+                    ...enhancedResumeData.personalInfo,
+                    // Move summary from top level to personalInfo if it exists
+                    summary: enhancedResumeData.personalInfo.summary || ''
+                },
+                workExperience: enhancedResumeData.workExperience,
+                education: enhancedResumeData.education,
+                skills: enhancedResumeData.skills,
+                projects: enhancedResumeData.projects,
+            };
 
-                // Update resume data with the enhanced content
-                setResumeData(convertedData);
+            // Update resume data with the enhanced content
+            setResumeData(convertedData);
 
-                // Clear enhanced data from store
-                setEnhancedResumeData(null);
-            } catch (error) {
-                console.error('Error loading enhanced resume data:', error);
-            }
+            // Clear enhanced data from store
+            setEnhancedResumeData(null);
+        } catch (error) {
+            console.error('Error loading enhanced resume data:', error);
         }
     }, [enhancedResumeData, setResumeData, setEnhancedResumeData]);
 
@@ -167,7 +164,11 @@ const CreateResume: React.FC = () => {
                     {activeTab === 'content' && (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
                             <div className={`${isMobilePreviewVisible ? 'hidden' : 'block'} sm:block`}>
-                                <ResumeEditor {...editorProps} />
+                                <ResumeEditor
+                                    {...editorProps}
+                                    customizationOptions={customizationOptions}
+                                    onCustomizationChange={handlers.setCustomizationOptions}
+                                />
                             </div>
                             <div className={`${isMobilePreviewVisible ? 'block' : 'hidden'} sm:block`}>
                                 <div className="lg:sticky top-24 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
@@ -196,19 +197,6 @@ const CreateResume: React.FC = () => {
                             </div>
                             <div>
                                 <div className="lg:sticky top-24 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
-                                    <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                                        <h2 className="text-lg font-bold text-slate-800">Preview</h2>
-                                        <div className="flex space-x-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setIsFullScreenPreview(true)}
-                                                leftIcon={<Maximize2 className="w-4 h-4" />}
-                                            >
-                                                Full Screen
-                                            </Button>
-                                        </div>
-                                    </div>
                                     <div className="flex justify-center items-center">
                                         {renderPreviewContainer(
                                             resumeData,
