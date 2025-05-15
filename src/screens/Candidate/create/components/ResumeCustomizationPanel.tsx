@@ -61,6 +61,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
     const [draggedSection, setDraggedSection] = useState<string | null>(null);
     const [dragOverSection, setDragOverSection] = useState<string | null>(null);
     const [activeSection, setActiveSection] = useState('layout');
+    const [previewFont, setPreviewFont] = useState<string | null>(null);
 
     // Create intersection observer for scroll spy
     useEffect(() => {
@@ -95,6 +96,38 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
         field: keyof ResumeCustomizationOptions[T],
         value: any
     ) => {
+        // Special case for columns layout change - adjust font size and line height
+        if (section === 'layout' && field === 'columns') {
+            const newOptions = {
+                ...options,
+                [section]: {
+                    ...(options[section] as object),
+                    [field]: value,
+                },
+            };
+
+            // Adjust font size and line height based on selected layout
+            if (value === 'two') {
+                // Two-column layout - increase font size and line height
+                newOptions.spacing = {
+                    ...options.spacing,
+                    fontSize: 11.5,
+                    lineHeight: 1.5
+                };
+            } else {
+                // One-column layout - use default font size and line height
+                newOptions.spacing = {
+                    ...options.spacing,
+                    fontSize: 10.5,
+                    lineHeight: 1.2
+                };
+            }
+
+            onChange(newOptions);
+            return;
+        }
+
+        // Default behavior for other changes
         onChange({
             ...options,
             [section]: {
@@ -102,6 +135,11 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                 [field]: value,
             },
         });
+    };
+
+    const handleFontPreview = (fontName: string | null) => {
+        // Only update the preview state, don't change the actual selection
+        setPreviewFont(fontName);
     };
 
     const handleNestedChange = <
@@ -757,95 +795,290 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                             </h3>
 
                             {options.font.family === 'sans' && (
-                                <div className="grid grid-cols-3 gap-2 mt-3">
-                                    {[
-                                        { value: 'Source Sans Pro', label: 'Source Sans Pro' },
-                                        { value: 'Karla', label: 'Karla' },
-                                        { value: 'Mulish', label: 'Mulish' },
-                                        { value: 'Lato', label: 'Lato' },
-                                        { value: 'Titillium Web', label: 'Titillium Web' },
-                                        { value: 'Work Sans', label: 'Work Sans' },
-                                        { value: 'Barlow', label: 'Barlow' },
-                                        { value: 'Jost', label: 'Jost' },
-                                        { value: 'Fira Sans', label: 'Fira Sans' },
-                                        { value: 'Roboto', label: 'Roboto' },
-                                        { value: 'Rubik', label: 'Rubik' },
-                                        { value: 'Asap', label: 'Asap' },
-                                        { value: 'Nunito', label: 'Nunito' },
-                                        { value: 'Open Sans', label: 'Open Sans' },
-                                    ].map((font) => (
-                                        <button
-                                            key={font.value}
-                                            className={`p-3 border rounded-md transition-all text-center ${options.font.specificFont === font.value
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
-                                                }`}
-                                            onClick={() => handleChange('font', 'specificFont', font.value)}
-                                            style={{ fontFamily: font.value }}
-                                        >
-                                            <div className="text-2xl mb-1">Aa</div>
-                                            <div className="text-xs text-slate-500 truncate">{font.label}</div>
-                                        </button>
-                                    ))}
-                                </div>
+                                <>
+                                    <div className="text-sm text-slate-500 mb-2 mt-3">Select a font that best suits your professional style:</div>
+                                    <div className="mb-4">
+                                        <div className="text-xs font-medium text-slate-600 mb-2 uppercase tracking-wider">Modern & Clean</div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { value: 'Inter', label: 'Inter' },
+                                                { value: 'Poppins', label: 'Poppins' },
+                                                { value: 'Montserrat', label: 'Montserrat' },
+                                                { value: 'Raleway', label: 'Raleway' },
+                                                { value: 'Work Sans', label: 'Work Sans' },
+                                                { value: 'Nunito', label: 'Nunito' },
+                                            ].map((font) => (
+                                                <button
+                                                    key={font.value}
+                                                    className={`p-3 border rounded-md transition-all text-center group relative ${options.font.specificFont === font.value
+                                                        ? 'border-blue-500 bg-blue-50'
+                                                        : previewFont === font.value
+                                                            ? 'border-blue-300 bg-blue-50/70'
+                                                            : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                                                        }`}
+                                                    onClick={() => {
+                                                        handleChange('font', 'specificFont', font.value);
+                                                        setPreviewFont(null);
+                                                    }}
+                                                    onMouseEnter={() => handleFontPreview(font.value)}
+                                                    onMouseLeave={() => handleFontPreview(null)}
+                                                    style={{ fontFamily: font.value }}
+                                                >
+                                                    <div className="text-2xl mb-1 transition-all group-hover:scale-110 group-hover:text-blue-600">Aa</div>
+                                                    <div className="text-xs text-slate-500 truncate">{font.label}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <div className="text-xs font-medium text-slate-600 mb-2 uppercase tracking-wider">Professional</div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { value: 'Source Sans Pro', label: 'Source Sans' },
+                                                { value: 'Roboto', label: 'Roboto' },
+                                                { value: 'Open Sans', label: 'Open Sans' },
+                                                { value: 'Noto Sans', label: 'Noto Sans' },
+                                                { value: 'Barlow', label: 'Barlow' },
+                                                { value: 'Karla', label: 'Karla' },
+                                            ].map((font) => (
+                                                <button
+                                                    key={font.value}
+                                                    className={`p-3 border rounded-md transition-all text-center group relative ${options.font.specificFont === font.value
+                                                        ? 'border-blue-500 bg-blue-50'
+                                                        : previewFont === font.value
+                                                            ? 'border-blue-300 bg-blue-50/70'
+                                                            : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                                                        }`}
+                                                    onClick={() => {
+                                                        handleChange('font', 'specificFont', font.value);
+                                                        setPreviewFont(null);
+                                                    }}
+                                                    onMouseEnter={() => handleFontPreview(font.value)}
+                                                    onMouseLeave={() => handleFontPreview(null)}
+                                                    style={{ fontFamily: font.value }}
+                                                >
+                                                    <div className="text-2xl mb-1 transition-all group-hover:scale-110 group-hover:text-blue-600">Aa</div>
+                                                    <div className="text-xs text-slate-500 truncate">{font.label}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-600 mb-2 uppercase tracking-wider">Versatile</div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { value: 'Lato', label: 'Lato' },
+                                                { value: 'Mulish', label: 'Mulish' },
+                                                { value: 'Titillium Web', label: 'Titillium' },
+                                                { value: 'Fira Sans', label: 'Fira Sans' },
+                                                { value: 'Rubik', label: 'Rubik' },
+                                                { value: 'Jost', label: 'Jost' },
+                                                { value: 'Asap', label: 'Asap' },
+                                                { value: 'Cabin', label: 'Cabin' },
+                                            ].map((font) => (
+                                                <button
+                                                    key={font.value}
+                                                    className={`p-3 border rounded-md transition-all text-center group relative ${options.font.specificFont === font.value
+                                                        ? 'border-blue-500 bg-blue-50'
+                                                        : previewFont === font.value
+                                                            ? 'border-blue-300 bg-blue-50/70'
+                                                            : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                                                        }`}
+                                                    onClick={() => {
+                                                        handleChange('font', 'specificFont', font.value);
+                                                        setPreviewFont(null);
+                                                    }}
+                                                    onMouseEnter={() => handleFontPreview(font.value)}
+                                                    onMouseLeave={() => handleFontPreview(null)}
+                                                    style={{ fontFamily: font.value }}
+                                                >
+                                                    <div className="text-2xl mb-1 transition-all group-hover:scale-110 group-hover:text-blue-600">Aa</div>
+                                                    <div className="text-xs text-slate-500 truncate">{font.label}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
                             )}
 
                             {options.font.family === 'serif' && (
-                                <div className="grid grid-cols-3 gap-2 mt-3">
-                                    {[
-                                        { value: 'Amiri', label: 'Amiri' },
-                                        { value: 'Vollkorn', label: 'Vollkorn' },
-                                        { value: 'Lora', label: 'Lora' },
-                                        { value: 'PT Serif', label: 'PT Serif' },
-                                        { value: 'Alegreya', label: 'Alegreya' },
-                                        { value: 'Aleo', label: 'Aleo' },
-                                        { value: 'Crimson Pro', label: 'Crimson Pro' },
-                                        { value: 'EB Garamond', label: 'EB Garamond' },
-                                        { value: 'Zilla Slab', label: 'Zilla Slab' },
-                                        { value: 'Cormorant Garamond', label: 'Cormorant Garamond' },
-                                        { value: 'Crimson Text', label: 'Crimson Text' },
-                                        { value: 'Source Serif Pro', label: 'Source Serif Pro' },
-                                    ].map((font) => (
-                                        <button
-                                            key={font.value}
-                                            className={`p-3 border rounded-md transition-all text-center ${options.font.specificFont === font.value
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
-                                                }`}
-                                            onClick={() => handleChange('font', 'specificFont', font.value)}
-                                            style={{ fontFamily: font.value }}
-                                        >
-                                            <div className="text-2xl mb-1">Aa</div>
-                                            <div className="text-xs text-slate-500 truncate">{font.label}</div>
-                                        </button>
-                                    ))}
-                                </div>
+                                <>
+                                    <div className="text-sm text-slate-500 mb-2 mt-3">Select a serif font for a traditional, sophisticated look:</div>
+                                    <div className="mb-4">
+                                        <div className="text-xs font-medium text-slate-600 mb-2 uppercase tracking-wider">Classic</div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { value: 'Merriweather', label: 'Merriweather' },
+                                                { value: 'EB Garamond', label: 'EB Garamond' },
+                                                { value: 'Libre Baskerville', label: 'Baskerville' },
+                                                { value: 'PT Serif', label: 'PT Serif' },
+                                                { value: 'Lora', label: 'Lora' },
+                                                { value: 'Crimson Text', label: 'Crimson' },
+                                            ].map((font) => (
+                                                <button
+                                                    key={font.value}
+                                                    className={`p-3 border rounded-md transition-all text-center group relative ${options.font.specificFont === font.value
+                                                        ? 'border-blue-500 bg-blue-50'
+                                                        : previewFont === font.value
+                                                            ? 'border-blue-300 bg-blue-50/70'
+                                                            : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                                                        }`}
+                                                    onClick={() => {
+                                                        handleChange('font', 'specificFont', font.value);
+                                                        setPreviewFont(null);
+                                                    }}
+                                                    onMouseEnter={() => handleFontPreview(font.value)}
+                                                    onMouseLeave={() => handleFontPreview(null)}
+                                                    style={{ fontFamily: font.value }}
+                                                >
+                                                    <div className="text-2xl mb-1 transition-all group-hover:scale-110 group-hover:text-blue-600">Aa</div>
+                                                    <div className="text-xs text-slate-500 truncate">{font.label}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <div className="text-xs font-medium text-slate-600 mb-2 uppercase tracking-wider">Modern Serif</div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { value: 'Playfair Display', label: 'Playfair' },
+                                                { value: 'Source Serif Pro', label: 'Source Serif' },
+                                                { value: 'Noto Serif', label: 'Noto Serif' },
+                                                { value: 'Vollkorn', label: 'Vollkorn' },
+                                                { value: 'Bitter', label: 'Bitter' },
+                                                { value: 'Arvo', label: 'Arvo' },
+                                            ].map((font) => (
+                                                <button
+                                                    key={font.value}
+                                                    className={`p-3 border rounded-md transition-all text-center group relative ${options.font.specificFont === font.value
+                                                        ? 'border-blue-500 bg-blue-50'
+                                                        : previewFont === font.value
+                                                            ? 'border-blue-300 bg-blue-50/70'
+                                                            : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                                                        }`}
+                                                    onClick={() => {
+                                                        handleChange('font', 'specificFont', font.value);
+                                                        setPreviewFont(null);
+                                                    }}
+                                                    onMouseEnter={() => handleFontPreview(font.value)}
+                                                    onMouseLeave={() => handleFontPreview(null)}
+                                                    style={{ fontFamily: font.value }}
+                                                >
+                                                    <div className="text-2xl mb-1 transition-all group-hover:scale-110 group-hover:text-blue-600">Aa</div>
+                                                    <div className="text-xs text-slate-500 truncate">{font.label}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-600 mb-2 uppercase tracking-wider">Decorative</div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { value: 'Alegreya', label: 'Alegreya' },
+                                                { value: 'Amiri', label: 'Amiri' },
+                                                { value: 'Crimson Pro', label: 'Crimson Pro' },
+                                                { value: 'Zilla Slab', label: 'Zilla Slab' },
+                                                { value: 'Aleo', label: 'Aleo' },
+                                                { value: 'Cormorant Garamond', label: 'Cormorant' },
+                                            ].map((font) => (
+                                                <button
+                                                    key={font.value}
+                                                    className={`p-3 border rounded-md transition-all text-center group relative ${options.font.specificFont === font.value
+                                                        ? 'border-blue-500 bg-blue-50'
+                                                        : previewFont === font.value
+                                                            ? 'border-blue-300 bg-blue-50/70'
+                                                            : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                                                        }`}
+                                                    onClick={() => {
+                                                        handleChange('font', 'specificFont', font.value);
+                                                        setPreviewFont(null);
+                                                    }}
+                                                    onMouseEnter={() => handleFontPreview(font.value)}
+                                                    onMouseLeave={() => handleFontPreview(null)}
+                                                    style={{ fontFamily: font.value }}
+                                                >
+                                                    <div className="text-2xl mb-1 transition-all group-hover:scale-110 group-hover:text-blue-600">Aa</div>
+                                                    <div className="text-xs text-slate-500 truncate">{font.label}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
                             )}
 
                             {options.font.family === 'mono' && (
-                                <div className="grid grid-cols-3 gap-2 mt-3">
-                                    {[
-                                        { value: 'Inconsolata', label: 'Inconsolata' },
-                                        { value: 'Source Code Pro', label: 'Source Code Pro' },
-                                        { value: 'IBM Plex Mono', label: 'IBM Plex Mono' },
-                                        { value: 'Overpass Mono', label: 'Overpass Mono' },
-                                        { value: 'Space Mono', label: 'Space Mono' },
-                                        { value: 'Courier Prime', label: 'Courier Prime' },
-                                    ].map((font) => (
-                                        <button
-                                            key={font.value}
-                                            className={`p-3 border rounded-md transition-all text-center ${options.font.specificFont === font.value
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
-                                                }`}
-                                            onClick={() => handleChange('font', 'specificFont', font.value)}
-                                            style={{ fontFamily: font.value }}
-                                        >
-                                            <div className="text-2xl mb-1">Aa</div>
-                                            <div className="text-xs text-slate-500 truncate">{font.label}</div>
-                                        </button>
-                                    ))}
-                                </div>
+                                <>
+                                    <div className="text-sm text-slate-500 mb-2 mt-3">Select a monospace font for a technical, precise appearance:</div>
+                                    <div className="mb-4">
+                                        <div className="text-xs font-medium text-slate-600 mb-2 uppercase tracking-wider">Modern Monospace</div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { value: 'JetBrains Mono', label: 'JetBrains' },
+                                                { value: 'Fira Mono', label: 'Fira Mono' },
+                                                { value: 'IBM Plex Mono', label: 'IBM Plex' },
+                                                { value: 'Roboto Mono', label: 'Roboto Mono' },
+                                                { value: 'Source Code Pro', label: 'Source Code' },
+                                                { value: 'Ubuntu Mono', label: 'Ubuntu' },
+                                            ].map((font) => (
+                                                <button
+                                                    key={font.value}
+                                                    className={`p-3 border rounded-md transition-all text-center group relative ${options.font.specificFont === font.value
+                                                        ? 'border-blue-500 bg-blue-50'
+                                                        : previewFont === font.value
+                                                            ? 'border-blue-300 bg-blue-50/70'
+                                                            : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                                                        }`}
+                                                    onClick={() => {
+                                                        handleChange('font', 'specificFont', font.value);
+                                                        setPreviewFont(null);
+                                                    }}
+                                                    onMouseEnter={() => handleFontPreview(font.value)}
+                                                    onMouseLeave={() => handleFontPreview(null)}
+                                                    style={{ fontFamily: font.value }}
+                                                >
+                                                    <div className="text-2xl mb-1 transition-all group-hover:scale-110 group-hover:text-blue-600">Aa</div>
+                                                    <div className="text-xs text-slate-500 truncate">{font.label}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-600 mb-2 uppercase tracking-wider">Classic Monospace</div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { value: 'Inconsolata', label: 'Inconsolata' },
+                                                { value: 'Overpass Mono', label: 'Overpass' },
+                                                { value: 'Space Mono', label: 'Space Mono' },
+                                                { value: 'Courier Prime', label: 'Courier' },
+                                            ].map((font) => (
+                                                <button
+                                                    key={font.value}
+                                                    className={`p-3 border rounded-md transition-all text-center group relative ${options.font.specificFont === font.value
+                                                        ? 'border-blue-500 bg-blue-50'
+                                                        : previewFont === font.value
+                                                            ? 'border-blue-300 bg-blue-50/70'
+                                                            : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                                                        }`}
+                                                    onClick={() => {
+                                                        handleChange('font', 'specificFont', font.value);
+                                                        setPreviewFont(null);
+                                                    }}
+                                                    onMouseEnter={() => handleFontPreview(font.value)}
+                                                    onMouseLeave={() => handleFontPreview(null)}
+                                                    style={{ fontFamily: font.value }}
+                                                >
+                                                    <div className="text-2xl mb-1 transition-all group-hover:scale-110 group-hover:text-blue-600">Aa</div>
+                                                    <div className="text-xs text-slate-500 truncate">{font.label}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
                             )}
 
                             <p className="mt-3 text-xs text-slate-500 flex items-center gap-1">

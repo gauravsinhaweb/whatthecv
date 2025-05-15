@@ -182,7 +182,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         // Create a link element for Google Fonts
         const linkElement = document.createElement('link');
         linkElement.rel = 'stylesheet';
-        linkElement.href = 'https://fonts.googleapis.com/css2?family=Amiri&family=Vollkorn&family=Lora&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Inconsolata&family=Source+Code+Pro&family=IBM+Plex+Mono&family=Overpass+Mono&family=Space+Mono&family=Courier+Prime&display=swap';
+        linkElement.href = 'https://fonts.googleapis.com/css2?family=Amiri&family=Vollkorn&family=Lora&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Merriweather&family=Playfair+Display&family=Libre+Baskerville&family=Noto+Serif&family=Bitter&family=Arvo&family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&family=Inconsolata&family=Source+Code+Pro&family=IBM+Plex+Mono&family=Overpass+Mono&family=Space+Mono&family=Courier+Prime&family=Roboto+Mono&family=JetBrains+Mono&family=Fira+Mono&family=Ubuntu+Mono&display=swap';
 
         // Add to the document head
         document.head.appendChild(linkElement);
@@ -211,9 +211,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         >
             {/* Load Google Fonts */}
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Amiri&family=Vollkorn&family=Lora&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&display=swap');
-                @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&display=swap');
-                @import url('https://fonts.googleapis.com/css2?family=Inconsolata&family=Source+Code+Pro&family=IBM+Plex+Mono&family=Overpass+Mono&family=Space+Mono&family=Courier+Prime&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Amiri&family=Vollkorn&family=Lora&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Merriweather&family=Playfair+Display&family=Libre+Baskerville&family=Noto+Serif&family=Bitter&family=Arvo&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Inconsolata&family=Source+Code+Pro&family=IBM+Plex+Mono&family=Overpass+Mono&family=Space+Mono&family=Courier+Prime&family=Roboto+Mono&family=JetBrains+Mono&family=Fira+Mono&family=Ubuntu+Mono&display=swap');
             `}</style>
 
             {/* Inject a style tag with important rules to override any conflicting styles */}
