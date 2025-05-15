@@ -25,7 +25,6 @@
     "framer-motion": "^12.9.2",
     "install": "^0.13.0",
     "lucide-react": "^0.503.0",
-    "pnpm": "^10.10.0",
     "preact": "^10.26.4",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.2",

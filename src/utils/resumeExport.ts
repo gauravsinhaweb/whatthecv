@@ -1,4 +1,8 @@
-import { ResumeData, ResumeCustomizationOptions } from '../types/resume';
+import { ResumeData } from '../types/resume';
+
+// Import the function to ensure bullet points are properly formatted
+import DOMPurify from 'dompurify';
+import { formatTextWithBullets } from '../utils/html';
 
 export const exportResumeToPDF = (resumeData: ResumeData) => {
     const printFrame = document.createElement('iframe');
@@ -33,7 +37,7 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Resume_${resumeData.personalInfo.name || 'Export'}_${Date.now()}</title>
+                <title> WhatTheCV -  Resume_${resumeData.personalInfo.name || 'Export'}_${Date.now()}</title>
                 <meta charset="utf-8">
                 <style>
                     @page {
@@ -83,7 +87,7 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                     .resume-content {
                         font-size: 0.95em !important;
                     }
-                    p, li, div {
+                    p, div {
                         text-overflow: ellipsis !important;
                         overflow: hidden !important;
                     }
@@ -108,6 +112,34 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                     .mb-5 {
                         margin-bottom: 1.25rem !important;
                     }
+                    
+                    /* Ensure bullet points display properly */
+                    ul {
+                        list-style-type: disc !important;
+                        list-style-position: outside !important;
+                        padding-left: 1.5em !important;
+                        display: block !important;
+                    }
+                    
+                    ol {
+                        list-style-type: decimal !important;
+                        list-style-position: outside !important;
+                        padding-left: 1.5em !important;
+                        display: block !important;
+                    }
+                    
+                    li {
+                        display: list-item !important;
+                    }
+                    
+                    /* Target the safely content-rendered HTML */
+                    .safe-html-content ul, 
+                    .safe-html-content ol,
+                    .safe-html-content li {
+                        list-style-position: outside !important;
+                        overflow: visible !important;
+                    }
+                    
                     @media (min-width: 768px) {
                         .md\\:flex-row {
                             flex-direction: row !important;
@@ -121,7 +153,7 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                     }
                     .work-description, .education-description, .project-description {
                         max-height: none !important;
-                        overflow: hidden !important;
+                        overflow: visible !important;
                         line-height: 1.4 !important;
                     }
                     .skills-list, .project-list {
@@ -192,6 +224,50 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
         printContent.style.overflow = 'hidden';
         printContent.style.pageBreakInside = 'avoid';
         printContent.style.breakInside = 'avoid';
+
+        // Fix bullet points styling
+        const ulElements = printContent.querySelectorAll('ul');
+        ulElements.forEach(ul => {
+            (ul as HTMLElement).style.listStyleType = 'disc';
+            (ul as HTMLElement).style.listStylePosition = 'outside';
+            (ul as HTMLElement).style.paddingLeft = '1.5em';
+            (ul as HTMLElement).style.display = 'block';
+        });
+
+        const olElements = printContent.querySelectorAll('ol');
+        olElements.forEach(ol => {
+            (ol as HTMLElement).style.listStyleType = 'decimal';
+            (ol as HTMLElement).style.listStylePosition = 'outside';
+            (ol as HTMLElement).style.paddingLeft = '1.5em';
+            (ol as HTMLElement).style.display = 'block';
+        });
+
+        const liElements = printContent.querySelectorAll('li');
+        liElements.forEach(li => {
+            (li as HTMLElement).style.display = 'list-item';
+            (li as HTMLElement).style.marginBottom = '0.25em';
+        });
+
+        // Process description elements to ensure bullet points are properly formatted
+        const descriptionDivs = printContent.querySelectorAll('.safe-html-content');
+        descriptionDivs.forEach(descDiv => {
+            // Get the parent element to check if this is part of work experience, education, or projects
+            const parentElement = descDiv.parentElement;
+            if (!parentElement) return;
+
+            // Check if the current HTML content doesn't already have bullet points formatting
+            const currentHtml = (descDiv as HTMLElement).innerHTML;
+            if (!currentHtml.includes('<ul>') && !currentHtml.includes('<ol>')) {
+                // If the content doesn't have list tags but has text that should be bulleted,
+                // apply the bullet point formatting
+                if (currentHtml.includes('•') || currentHtml.includes('-') ||
+                    currentHtml.includes('*') || /\n/.test(currentHtml)) {
+                    const formattedHtml = formatTextWithBullets(currentHtml);
+                    const sanitizedHtml = DOMPurify.sanitize(formattedHtml);
+                    (descDiv as HTMLElement).innerHTML = sanitizedHtml;
+                }
+            }
+        });
 
         const nameTitle = printContent.querySelector('h1');
         if (nameTitle) {

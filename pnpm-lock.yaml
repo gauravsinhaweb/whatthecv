@@ -32,9 +32,6 @@ importers:
       lucide-react:
         specifier: ^0.503.0
         version: 0.503.0
-      pnpm:
-        specifier: ^10.10.0
-        version: 10.10.0
       preact:
         specifier: ^10.26.4
         version: 10.26.5
@@ -1242,11 +1239,6 @@ packages:
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
-
-  pnpm@10.10.0:
-    resolution: {integrity: sha512-1hXbJG/nDyXc/qbY1z3ueCziPiJF48T2+Igkn7VoFJMYY33Kc8LFyO8qTKDVZX+5VnGIv6tH9WbR7mzph4FcOQ==}
-    engines: {node: '>=18.12'}
-    hasBin: true
 
   postcss-import@15.1.0:
     resolution: {integrity: sha512-hpr+J05B2FVYUAXHeK1YyI267J/dDDhMU6B6civm8hSY1jYJnBXxzKDKDswzJmtLHryrjhnDjqqp/49t8FALew==}
@@ -2682,8 +2674,6 @@ snapshots:
   pify@2.3.0: {}
 
   pirates@4.0.7: {}
-
-  pnpm@10.10.0: {}
 
   postcss-import@15.1.0(postcss@8.5.3):
     dependencies:
