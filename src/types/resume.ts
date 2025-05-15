@@ -121,7 +121,7 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
         headings: '#000000',
     },
     spacing: {
-        fontSize: 11.5,
+        fontSize: 10.5,
         lineHeight: 1.2,
         margins: {
             left: 10,
@@ -131,8 +131,8 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
         },
     },
     font: {
-        family: 'sans',
-        specificFont: 'Source Sans Pro',
+        family: 'serif',
+        specificFont: 'Source Serif Pro',
     },
     header: {
         nameSize: 'l',
