@@ -140,6 +140,20 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                         overflow: visible !important;
                     }
                     
+                    /* Style for rich text formatting */
+                    b, strong {
+                        font-weight: 800 !important;
+                        letter-spacing: -0.01em;
+                    }
+                    
+                    i, em {
+                        font-style: italic !important;
+                    }
+                    
+                    u {
+                        text-decoration: underline !important;
+                    }
+                    
                     @media (min-width: 768px) {
                         .md\\:flex-row {
                             flex-direction: row !important;
