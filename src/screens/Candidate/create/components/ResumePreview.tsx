@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect } from 'react';
 import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
-import { MapPin, Mail, Phone, User } from 'lucide-react';
+import { MapPin, Mail, Phone, User, ExternalLink, ArrowUpRight, Link as ChainLink, Linkedin, Github, Twitter, FileCode, BookOpen, MessageSquare } from 'lucide-react';
 import { createMarkup, SafeHTML } from '../../../../utils/html';
 
 interface ResumePreviewProps {
@@ -177,6 +177,28 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         };
     };
 
+    // Get the appropriate link icon based on customization options
+    const renderLinkIcon = () => {
+        if (customizationOptions.links.icon === 'none') return null;
+
+        const size = {
+            'small': 'w-3 h-3',
+            'medium': 'w-3.5 h-3.5',
+            'large': 'w-4 h-4'
+        }[customizationOptions.links.size];
+
+        const Icon = (() => {
+            switch (customizationOptions.links.icon) {
+                case 'arrow': return ArrowUpRight;
+                case 'chain': return ChainLink;
+                case 'external':
+                default: return ExternalLink;
+            }
+        })();
+
+        return <Icon className={`${size} ml-1`} />;
+    };
+
     // Add Google Fonts
     useEffect(() => {
         // Create a link element for Google Fonts
@@ -324,6 +346,56 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     <span>{resumeData.personalInfo.location}</span>
                                 </div>
                             )}
+                            {resumeData.personalInfo.socialLinks && resumeData.personalInfo.socialLinks.map((link, index) => {
+                                if (!link.url || !link.url.startsWith('http')) return null;
+
+                                let icon;
+                                let label = '';
+
+                                switch (link.platform) {
+                                    case 'linkedin':
+                                        icon = <Linkedin className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        label = link.label || 'LinkedIn';
+                                        break;
+                                    case 'github':
+                                        icon = <Github className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        label = link.label || 'GitHub';
+                                        break;
+                                    case 'twitter':
+                                        icon = <Twitter className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        label = link.label || 'Twitter';
+                                        break;
+                                    case 'leetcode':
+                                        icon = <FileCode className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        label = link.label || 'LeetCode';
+                                        break;
+                                    case 'medium':
+                                        icon = <BookOpen className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        label = link.label || 'Medium';
+                                        break;
+                                    case 'stackoverflow':
+                                        icon = <MessageSquare className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        label = link.label || 'Stack Overflow';
+                                        break;
+                                    default:
+                                        icon = <ExternalLink className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        label = link.label || 'Website';
+                                }
+
+                                return (
+                                    <a
+                                        key={index}
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center transition-colors"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        {icon}
+                                        <span>{label}</span>
+                                    </a>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -398,6 +470,18 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                             at {exp.company}
                                                                         </span>
                                                                     )}
+                                                                    {exp.experienceLink && exp.experienceLink.startsWith('http') && (
+                                                                        <a
+                                                                            href={exp.experienceLink}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
                                                                 </div>
 
                                                                 {customizationOptions.layout.columns !== 'one' && (exp.startDate || exp.endDate || exp.location) && (
@@ -458,13 +542,25 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                             <div className="flex-1">
                                                                 <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
                                                                     {edu.degree || 'Degree'}
+                                                                    {(edu.institutionLink || edu.degreeLink) &&
+                                                                        (edu.institutionLink?.startsWith('http') || edu.degreeLink?.startsWith('http')) && (
+                                                                            <a
+                                                                                href={edu.institutionLink || edu.degreeLink}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="inline-flex items-center ml-2"
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                aria-label="View education details"
+                                                                            >
+                                                                                {renderLinkIcon()}
+                                                                            </a>
+                                                                        )}
                                                                 </h3>
                                                                 {edu.institution && (
                                                                     <div className="text-base text-gray-700">
                                                                         {edu.institution}
                                                                     </div>
                                                                 )}
-
                                                                 {customizationOptions.layout.columns !== 'one' && (edu.startDate || edu.endDate || edu.location) && (
                                                                     <div className="flex items-center text-sm opacity-80">
                                                                         {edu.startDate && edu.endDate && (
@@ -657,11 +753,22 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                         </h2>
                                         <div className="space-y-4">
                                             {resumeData.projects?.slice(0, 3)
-                                                .filter((project) => project.name || project.description)
                                                 .map((project, index) => (
                                                     <div key={index} className="mb-3">
                                                         <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
                                                             {project.name || 'Project Name'}
+                                                            {project.link && project.link.startsWith('http') && (
+                                                                <a
+                                                                    href={project.link}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                    style={{ color: getAccentColor(0.9) }}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    {renderLinkIcon()}
+                                                                </a>
+                                                            )}
                                                         </h3>
                                                         {(project.startDate || project.endDate) && (
                                                             <div className="text-sm opacity-80 mb-1">
@@ -671,11 +778,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                 {project.startDate && !project.endDate && (
                                                                     <span>{formatDate(project.startDate)}</span>
                                                                 )}
-                                                                {!project.startDate && project.endDate && (
-                                                                    <span>{formatDate(project.endDate)}</span>
-                                                                )}
                                                             </div>
                                                         )}
+
                                                         {project.description && (
                                                             <SafeHTML
                                                                 html={project.description}
@@ -875,6 +980,18 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                     <div key={index} className="mb-3">
                                                         <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
                                                             {project.name || 'Project Name'}
+                                                            {project.link && project.link.startsWith('http') && (
+                                                                <a
+                                                                    href={project.link}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                    style={{ color: getAccentColor(0.9) }}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    {renderLinkIcon()}
+                                                                </a>
+                                                            )}
                                                         </h3>
                                                         {(project.startDate || project.endDate) && (
                                                             <div className="text-sm opacity-80 mb-1">

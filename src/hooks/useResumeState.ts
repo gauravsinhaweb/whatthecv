@@ -59,7 +59,17 @@ export const useResumeState = () => {
     }, [addSkill, skillInput]);
 
     const handlePersonalInfoChange = useCallback((field: string, value: string) => {
-        updatePersonalInfo(field, value);
+        // Handle socialLinks as a special case since it comes as a JSON string
+        if (field === 'socialLinks') {
+            try {
+                const parsedLinks = JSON.parse(value);
+                updatePersonalInfo(field, parsedLinks);
+            } catch (error) {
+                console.error('Error parsing social links:', error);
+            }
+        } else {
+            updatePersonalInfo(field, value);
+        }
     }, [updatePersonalInfo]);
 
     const handleWorkExperienceChange = useCallback((id: string, field: string, value: string | boolean) => {

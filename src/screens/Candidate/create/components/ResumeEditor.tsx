@@ -1,10 +1,10 @@
+import { Award, BookOpen, Briefcase, ChevronDownIcon, Code, Edit, Eye, EyeOff, FileText, Plus, Trash2, User, Link2, Linkedin, Github, Twitter, Globe, ExternalLink } from 'lucide-react';
 import React, { useRef, useState } from 'react';
-import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
-import { ArrowDown, Award, BookOpen, Briefcase, ChevronDownIcon, Code, Edit, FileText, Plus, Trash2, User, Eye, EyeOff } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
-import RichTextEditor from '../../../../components/ui/RichTextEditor';
-import ProfilePictureUploader from '../../../../components/ui/ProfilePictureUploader';
 import DatePicker from '../../../../components/ui/DatePicker';
+import ProfilePictureUploader from '../../../../components/ui/ProfilePictureUploader';
+import RichTextEditor from '../../../../components/ui/RichTextEditor';
+import { ResumeCustomizationOptions, ResumeData } from '../../../../types/resume';
 
 const styles = `
 @keyframes fadeIn {
@@ -75,7 +75,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         <div className="bg-white rounded-lg shadow-md border border-slate-200">
             <style>{styles}</style>
             <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
-                <h2 className="text-xl font-bold text-blue-800">Resume Content</h2>
+                <h2 className="text-xl font-bold text-blue-800">Content</h2>
             </div>
 
             <div className="divide-y divide-slate-200">
@@ -244,8 +244,93 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         placeholder="Country (e.g., United States)"
                                     />
                                 </div>
-
                                 <div>
+                                    <label className="block text-sm font-medium text-indigo-700 mb-1.5">Social Links</label>
+                                    <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3 text-sm">
+                                        <span className="font-semibold">Tip:</span> Add your professional social profiles to enhance your resume. Links will appear in the header.
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="inline-flex items-center px-3 py-2 border border-indigo-300 shadow-sm text-sm font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50"
+                                        onClick={() => {
+                                            const newLinks = [...(resumeData.personalInfo.socialLinks || []), {
+                                                platform: 'linkedin' as const,
+                                                url: '',
+                                                label: ''
+                                            }];
+                                            onPersonalInfoChange('socialLinks', JSON.stringify(newLinks));
+                                        }}
+                                    >
+                                        <Plus className="w-4 h-4 mr-2" /> Add Social Link
+                                    </button>
+
+                                    {(resumeData.personalInfo.socialLinks && resumeData.personalInfo.socialLinks.length > 0) && (
+                                        <div className="space-y-3 mt-4">
+                                            {resumeData.personalInfo.socialLinks.map((link, index) => (
+                                                <div key={index} className="flex items-center space-x-2">
+                                                    <select
+                                                        className="p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                                        value={link.platform}
+                                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                                            const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
+                                                            newLinks[index] = { ...newLinks[index], platform: e.currentTarget.value as any };
+                                                            onPersonalInfoChange('socialLinks', JSON.stringify(newLinks));
+                                                        }}
+                                                    >
+                                                        <option value="linkedin">LinkedIn</option>
+                                                        <option value="github">GitHub</option>
+                                                        <option value="twitter">Twitter/X</option>
+                                                        <option value="leetcode">LeetCode</option>
+                                                        <option value="medium">Medium</option>
+                                                        <option value="stackoverflow">Stack Overflow</option>
+                                                        <option value="other">Other</option>
+                                                    </select>
+
+                                                    <input
+                                                        type="url"
+                                                        className="flex-1 p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                                        value={link.url}
+                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                            const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
+                                                            newLinks[index] = { ...newLinks[index], url: e.currentTarget.value };
+                                                            onPersonalInfoChange('socialLinks', JSON.stringify(newLinks));
+                                                        }}
+                                                        placeholder="https://yourprofile.com"
+                                                    />
+
+                                                    {link.platform === 'other' && (
+                                                        <input
+                                                            type="text"
+                                                            className="w-24 p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                                            value={link.label || ''}
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                                const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
+                                                                newLinks[index] = { ...newLinks[index], label: e.currentTarget.value };
+                                                                onPersonalInfoChange('socialLinks', JSON.stringify(newLinks));
+                                                            }}
+                                                            placeholder="Label"
+                                                        />
+                                                    )}
+
+                                                    <button
+                                                        type="button"
+                                                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                                                        onClick={() => {
+                                                            const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
+                                                            newLinks.splice(index, 1);
+                                                            onPersonalInfoChange('socialLinks', JSON.stringify(newLinks));
+                                                        }}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {customizationOptions?.showSummary && <div>
                                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">Professional Summary</label>
                                     <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3 text-sm">
                                         <span className="font-semibold">Pro tip:</span> A concise, impactful summary is essential. Keep it to 2-3 sentences highlighting your expertise and career focus.
@@ -256,7 +341,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         placeholder="A brief summary of your professional background and goals..."
                                         rows={5}
                                     />
-                                </div>
+                                </div>}
                             </div>
                         </div>
                     )}
@@ -344,6 +429,16 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                         placeholder="Company Name"
                                                     />
                                                 </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-indigo-700 mb-1.5">Experience Link (optional)</label>
+                                                <input
+                                                    type="url"
+                                                    className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                                    value={exp.experienceLink || ''}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onWorkExperienceChange(exp.id, 'experienceLink', e.currentTarget.value)}
+                                                    placeholder="https://company-website.com or https://example.com/job-position"
+                                                />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-indigo-700 mb-1.5">Location</label>
@@ -506,9 +601,22 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                         className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
                                                         value={edu.institution}
                                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => onEducationChange(edu.id, 'institution', e.currentTarget.value)}
-                                                        placeholder="University Name"
+                                                        placeholder="Stanford University"
                                                     />
                                                 </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-emerald-700 mb-1.5">Education Link (optional)</label>
+                                                <input
+                                                    type="url"
+                                                    className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
+                                                    value={edu.institutionLink || edu.degreeLink || ''}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                        onEducationChange(edu.id, 'institutionLink', e.currentTarget.value);
+                                                        onEducationChange(edu.id, 'degreeLink', '');
+                                                    }}
+                                                    placeholder="https://university.edu"
+                                                />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-emerald-700 mb-1.5">Location</label>
@@ -538,21 +646,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                         includePresent={true}
                                                     />
                                                 </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-emerald-700 mb-1.5">Description</label>
-                                                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-2 mb-2 text-xs">
-                                                    <span className="font-semibold">Tip:</span> Use bullet points (•) for achievements. Each bullet point will appear on its own line. Select text and use the link button to add hyperlinks to your coursework or projects.
-                                                </div>
-                                                <RichTextEditor
-                                                    value={edu.description}
-                                                    onChange={(value) => onEducationChange(edu.id, 'description', value)}
-                                                    placeholder="• Specialized in Human-Computer Interaction and ML
-• GPA: 3.85/4.0
-• Dean's List for 6 consecutive semesters
-• Member of Computer Science Student Association"
-                                                    rows={5}
-                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -941,64 +1034,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                         </div>
                     );
                 })}
-
-                {/* Add Hidden Sections Dropdown */}
-                <div className="p-4">
-                    <div className="bg-slate-50 p-4 rounded-lg">
-                        <h3 className="text-lg font-medium text-slate-800 mb-3 flex items-center gap-2">
-                            <EyeOff className="w-4 h-4 text-blue-600" />
-                            Hidden Sections
-                        </h3>
-                        {Object.entries(customizationOptions?.layout?.visibleSections || {})
-                            .filter(([key, isVisible]) => isVisible === false && key !== 'personalInfo')
-                            .map(([sectionId]) => {
-                                // Find section title
-                                let sectionTitle = '';
-                                if (sectionId in (customizationOptions?.layout?.sectionTitles || {})) {
-                                    sectionTitle = customizationOptions?.layout?.sectionTitles[sectionId];
-                                } else {
-                                    // Look in custom sections
-                                    const customSection = customizationOptions?.customSections?.find(s => s.id === sectionId);
-                                    if (customSection) {
-                                        sectionTitle = customSection.title;
-                                    } else {
-                                        sectionTitle = sectionId;
-                                    }
-                                }
-
-                                return (
-                                    <div key={sectionId} className="flex items-center justify-between p-2 bg-white rounded-md mb-2 border border-slate-200">
-                                        <span className="text-sm text-slate-600">{sectionTitle}</span>
-                                        <button
-                                            className="flex items-center gap-1 text-blue-500 hover:text-blue-700 p-1.5 rounded-md hover:bg-blue-50"
-                                            onClick={() => {
-                                                if (onCustomizationChange && customizationOptions) {
-                                                    onCustomizationChange({
-                                                        ...customizationOptions,
-                                                        layout: {
-                                                            ...customizationOptions.layout,
-                                                            visibleSections: {
-                                                                ...customizationOptions.layout.visibleSections,
-                                                                [sectionId]: true,
-                                                                // Ensure Personal Info remains visible
-                                                                personalInfo: true
-                                                            }
-                                                        }
-                                                    });
-                                                }
-                                            }}
-                                        >
-                                            <Eye className="w-4 h-4" />
-                                            <span className="text-xs">Show</span>
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        {!Object.values(customizationOptions?.layout?.visibleSections || {}).includes(false) && (
-                            <p className="text-sm text-slate-500">No hidden sections.</p>
-                        )}
-                    </div>
-                </div>
 
                 {/* Add Custom Section Button */}
                 <div className="p-4 flex justify-center">

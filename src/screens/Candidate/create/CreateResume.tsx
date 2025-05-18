@@ -110,15 +110,6 @@ const CreateResume: React.FC = () => {
                 onZoomOut={handlers.handleZoomOut}
             />
 
-            <div className="md:hidden flex mb-6 space-x-2">
-                <Button variant="outline" onClick={handlers.saveAsDraft} fullWidth>
-                    Save as Draft
-                </Button>
-                <Button variant="primary" onClick={handlers.saveResumeWithOptions} fullWidth>
-                    Save Resume
-                </Button>
-            </div>
-
             <div className="flex">
                 {/* Vertical tab navigation */}
                 <div className="bg-white rounded-l-lg shadow-md border border-slate-200 mr-6 flex-shrink-0 self-start sticky top-6">
