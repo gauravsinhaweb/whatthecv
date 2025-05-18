@@ -162,7 +162,7 @@ const CreateResume: React.FC = () => {
                                 />
                             </div>
                             <div className={`${isMobilePreviewVisible ? 'block' : 'hidden'} sm:block`}>
-                                <div className="lg:sticky top-24 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
+                                <div className="lg:sticky top-20 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
                                     <div className="flex justify-center items-center">
                                         {renderPreviewContainer(
                                             resumeData,
@@ -211,10 +211,6 @@ const CreateResume: React.FC = () => {
                         >
                             {isMobilePreviewVisible ? 'Edit Content' : 'Show Preview'}
                         </Button>
-                    </div>
-
-                    <div className="flex justify-center mt-6 text-sm text-slate-500">
-                        <p>Need help? Check out our <a href="#" className="text-blue-600 hover:underline">resume writing guide</a> or <a href="#" className="text-blue-600 hover:underline">contact support</a>.</p>
                     </div>
                 </div>
             </div>

@@ -85,6 +85,9 @@ export interface ResumeCustomizationOptions {
         jobTitleSize: 's' | 'm' | 'l';
         showPhoto: boolean;
         headerFont: string;
+        photoSize?: 'small' | 'medium' | 'large';
+        photoBorder?: 'none' | 'thin' | 'medium' | 'thick';
+        photoStyle?: 'accent' | 'headings' | 'border' | 'none';
     };
     sectionTitles: {
         size: 's' | 'm' | 'l' | 'xl';
@@ -99,6 +102,12 @@ export interface ResumeCustomizationOptions {
     links: {
         icon: 'external' | 'arrow' | 'chain' | 'none';
         size: 'small' | 'medium' | 'large';
+    };
+    socialIcons: {
+        style: 'outline' | 'filled';
+        size: 'small' | 'medium' | 'large';
+        color: 'accent' | 'headings' | 'text' | 'custom';
+        customColor?: string;
     };
     showSummary: boolean;
     customSections: {
@@ -152,6 +161,9 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
         jobTitleSize: 'm',
         showPhoto: false,
         headerFont: 'Source Sans Pro',
+        photoSize: 'medium',
+        photoBorder: 'thin',
+        photoStyle: 'accent',
     },
     sectionTitles: {
         size: 'l',
@@ -166,6 +178,11 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
     links: {
         icon: 'external',
         size: 'medium',
+    },
+    socialIcons: {
+        style: 'outline',
+        size: 'medium',
+        color: 'accent',
     },
     showSummary: false,
     customSections: []

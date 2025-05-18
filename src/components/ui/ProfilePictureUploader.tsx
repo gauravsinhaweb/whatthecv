@@ -97,13 +97,6 @@ const ProfilePictureUploader = forwardRef<HTMLInputElement, ProfilePictureUpload
           >
             <X className="w-4 h-4" />
           </button>
-          <button
-            onClick={triggerFileInput}
-            className="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full p-1.5 shadow-md hover:bg-indigo-700 transition-colors"
-            title="Change photo"
-          >
-            <Camera className="w-4 h-4" />
-          </button>
         </div>
       ) : (
         <div
