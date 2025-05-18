@@ -7,6 +7,11 @@ export interface ResumeData {
         location: string;
         summary: string;
         profilePicture?: string;
+        socialLinks?: {
+            platform: 'linkedin' | 'github' | 'twitter' | 'leetcode' | 'medium' | 'stackoverflow' | 'other';
+            url: string;
+            label?: string;
+        }[];
     };
     workExperience: WorkExperience[];
     education: Education[];
@@ -23,6 +28,7 @@ export interface WorkExperience {
     endDate: string;
     current: boolean;
     description: string;
+    experienceLink?: string;
 }
 
 export interface Education {
@@ -33,6 +39,8 @@ export interface Education {
     startDate: string;
     endDate: string;
     description: string;
+    degreeLink?: string;
+    institutionLink?: string;
 }
 
 export interface Project {
@@ -87,6 +95,10 @@ export interface ResumeCustomizationOptions {
     skills: {
         format: 'pills' | 'comma' | 'bullets' | 'grid' | 'compact' | 'bubble' | 'pipe' | 'newline' | 'level';
         columns: 1 | 2 | 3;
+    };
+    links: {
+        icon: 'external' | 'arrow' | 'chain' | 'none';
+        size: 'small' | 'medium' | 'large';
     };
     showSummary: boolean;
     customSections: {
@@ -151,6 +163,10 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
         format: 'compact',
         columns: 2
     },
+    links: {
+        icon: 'external',
+        size: 'medium',
+    },
     showSummary: false,
     customSections: []
 };
@@ -164,6 +180,7 @@ export const initialResumeData: ResumeData = {
         location: 'San Francisco, CA',
         summary: 'Experienced software engineer with over 8 years of expertise in full-stack web development, specializing in React, Node.js, and cloud infrastructure. Passionate about creating scalable, user-friendly applications and mentoring junior developers.',
         profilePicture: '',
+        socialLinks: []
     },
     workExperience: [
         {
@@ -175,6 +192,7 @@ export const initialResumeData: ResumeData = {
             endDate: 'Present',
             current: true,
             description: '• Led a team of 5 developers to build and maintain a high-traffic SaaS platform\n• Redesigned authentication system, improving security and reducing login time by 40%\n• Implemented CI/CD pipeline using GitHub Actions, reducing deployment time by 60%\n• Mentored junior developers and conducted code reviews',
+            experienceLink: 'https://techcorp-example.com',
         },
         {
             id: '2',
@@ -185,6 +203,7 @@ export const initialResumeData: ResumeData = {
             endDate: 'Dec 2019',
             current: false,
             description: '• Developed and maintained multiple client-facing web applications using React and Node.js\n• Optimized database queries, improving application performance by 35%\n• Collaborated with UX designers to implement responsive and accessible interfaces\n• Participated in agile development processes and daily scrums',
+            experienceLink: 'https://websolutions-example.com',
         },
         {
             id: '3',

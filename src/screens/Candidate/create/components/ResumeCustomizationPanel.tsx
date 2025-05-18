@@ -24,7 +24,10 @@ import {
     SquareDot,
     Text,
     TextCursorInput,
-    Type
+    Type,
+    ExternalLink,
+    ArrowUpRight,
+    Link as ChainLink
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import RadioGroup from '../../../../components/ui/RadioGroup';
@@ -327,6 +330,20 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                     >
                         <Award className="w-4 h-4 text-blue-600" />
                         <span className="hidden xs:inline">Skills</span>
+                    </a>
+                    <a
+                        href="#links"
+                        className={`px-2 py-2 sm:px-3 sm:py-2 rounded-md flex items-center gap-1 text-xs sm:text-sm font-medium 
+                        ${activeSection === 'links' ? 'bg-white text-blue-700 shadow-sm' : 'hover:bg-white hover:text-blue-700'} 
+                        transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            document.getElementById('links')?.scrollIntoView({ behavior: 'smooth' });
+                            window.history.pushState(null, '', '#links');
+                        }}
+                    >
+                        <ExternalLink className="w-4 h-4 text-blue-600" />
+                        <span className="hidden xs:inline">Links</span>
                     </a>
                 </div>
             </div>
@@ -1301,10 +1318,9 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                         <div className="bg-slate-50 p-4 rounded-lg">
                             <h3 className="text-lg font-medium text-slate-800 mb-3 flex items-center gap-2">
                                 <Award className="w-4 h-4 text-blue-600" />
-                                Skills Display
+                                Skills Layout
                             </h3>
-
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-4">
                                         Format Style
@@ -1450,6 +1466,53 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                             <span className="text-xs font-medium">3 Columns</span>
                                         </button>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="links" className="scroll-mt-16">
+                    <div className="space-y-6">
+                        <div className="bg-slate-50 p-4 rounded-lg">
+                            <h3 className="text-lg font-medium text-slate-800 mb-3 flex items-center gap-2">
+                                <ExternalLink className="w-4 h-4 text-blue-600" />
+                                Link Settings
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                                        Icon Style
+                                    </label>
+                                    <RadioGroup
+                                        name="linkIcon"
+                                        options={[
+                                            { value: 'external', label: 'External', icon: <ExternalLink className="w-4 h-4" /> },
+                                            { value: 'arrow', label: 'Arrow', icon: <ArrowUpRight className="w-4 h-4" /> },
+                                            { value: 'chain', label: 'Chain', icon: <ChainLink className="w-4 h-4" /> },
+                                            { value: 'none', label: 'None', icon: <EyeOff className="w-4 h-4" /> },
+                                        ]}
+                                        value={options.links.icon}
+                                        onChange={(value) => handleChange('links', 'icon', value)}
+                                        orientation="horizontal"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                                        Icon Size
+                                    </label>
+                                    <RadioGroup
+                                        name="linkSize"
+                                        options={[
+                                            { value: 'small', label: 'Small' },
+                                            { value: 'medium', label: 'Medium' },
+                                            { value: 'large', label: 'Large' },
+                                        ]}
+                                        value={options.links.size}
+                                        onChange={(value) => handleChange('links', 'size', value)}
+                                        orientation="horizontal"
+                                    />
                                 </div>
                             </div>
                         </div>

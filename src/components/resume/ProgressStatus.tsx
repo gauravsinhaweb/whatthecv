@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Check, FileText, Loader, Loader2, ScanSearch, Text } from 'lucide-react';
+import { Check, FileText, Loader, ScanSearch } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface ProgressStatusProps {
     isUploading: boolean;
@@ -40,20 +40,6 @@ const ProgressStatus: React.FC<ProgressStatusProps> = ({
             clearInterval(interval);
         };
     }, [isUploading, isAnalyzing, isCheckingResume]);
-
-    const getStatusText = () => {
-        if (isCheckingResume) return 'Checking if document is a resume...';
-        if (isUploading) return 'Extracting text from resume...';
-        if (isAnalyzing) return 'Analyzing resume content...';
-        return 'Processing...';
-    };
-
-    const getStatusIcon = () => {
-        if (isCheckingResume) return <ScanSearch className="h-6 w-6 text-white animate-pulse" />;
-        if (isUploading) return <Text className="h-6 w-6 text-white animate-pulse" />;
-        if (isAnalyzing) return <FileText className="h-6 w-6 text-white animate-pulse" />;
-        return <Loader2 className="h-6 w-6 text-white animate-spin" />;
-    };
 
     return (
         <div className="w-full space-y-8">
