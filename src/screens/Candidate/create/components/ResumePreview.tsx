@@ -204,7 +204,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         // Create a link element for Google Fonts
         const linkElement = document.createElement('link');
         linkElement.rel = 'stylesheet';
-        linkElement.href = 'https://fonts.googleapis.com/css2?family=Amiri&family=Vollkorn&family=Lora&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Merriweather&family=Playfair+Display&family=Libre+Baskerville&family=Noto+Serif&family=Bitter&family=Arvo&family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&family=Inconsolata&family=Source+Code+Pro&family=IBM+Plex+Mono&family=Overpass+Mono&family=Space+Mono&family=Courier+Prime&family=Roboto+Mono&family=JetBrains+Mono&family=Fira+Mono&family=Ubuntu+Mono&display=swap';
+        linkElement.href = 'https://fonts.googleapis.com/css2?family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Playfair+Display&family=Noto+Serif&family=Bitter&family=Arvo&family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&family=Inconsolata&family=Source+Code+Pro&family=IBM+Plex+Mono&family=Overpass+Mono&family=Space+Mono&family=Courier+Prime&family=Roboto+Mono&family=JetBrains+Mono&family=Fira+Mono&family=Ubuntu+Mono&display=swap';
 
         // Add to the document head
         document.head.appendChild(linkElement);
@@ -233,68 +233,90 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         >
             {/* Load Google Fonts */}
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Amiri&family=Vollkorn&family=Lora&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Merriweather&family=Playfair+Display&family=Libre+Baskerville&family=Noto+Serif&family=Bitter&family=Arvo&display=swap');
-                @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&display=swap');
-                @import url('https://fonts.googleapis.com/css2?family=Inconsolata&family=Source+Code+Pro&family=IBM+Plex+Mono&family=Overpass+Mono&family=Space+Mono&family=Courier+Prime&family=Roboto+Mono&family=JetBrains+Mono&family=Fira+Mono&family=Ubuntu+Mono&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Playfair+Display&family=Noto+Serif&family=Bitter&family=Arvo&family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&family=Inconsolata&family=Source+Code+Pro&family=IBM+Plex+Mono&family=Overpass+Mono&family=Space+Mono&family=Courier+Prime&family=Roboto+Mono&family=JetBrains+Mono&family=Fira+Mono&family=Ubuntu+Mono&display=swap');
             `}</style>
 
             {/* Inject a style tag with important rules to override any conflicting styles */}
             <style>{`
-                [data-id="resume-content"] {
-                    font-size: ${customizationOptions.spacing.fontSize}pt !important;
-                    line-height: ${customizationOptions.spacing.lineHeight} !important;
-                }
-                [data-id="resume-content"] * {
-                    font-size: inherit;
-                    line-height: inherit;
-                }
-                
-                /* Header-specific styling */
-                [data-id="resume-header"] h1 {
-                    font-weight: ${customizationOptions.header.nameBold ? '700' : '500'} !important;
-                }
-                
-                /* Header name size */
-                [data-id="resume-header"] h1.text-2xl { font-size: 1.25rem !important; }
-                [data-id="resume-header"] h1.text-3xl { font-size: 1.75rem !important; }
-                [data-id="resume-header"] h1.text-4xl { font-size: 2.25rem !important; }
-                [data-id="resume-header"] h1.text-5xl { font-size: 2.75rem !important; }
-                
-                /* Job title size */
-                [data-id="resume-header"] h2.text-base { font-size: 1rem !important; }
-                [data-id="resume-header"] h2.text-lg { font-size: 1.125rem !important; }
-                [data-id="resume-header"] h2.text-xl { font-size: 1.25rem !important; }
-                
-                /* Section title styling */
-                .section-title {
-                    transition: all 0.2s ease-in-out;
-                    font-weight: ${customizationOptions.sectionTitles.bold ? '700' : '400'} !important;
-                    text-transform: ${customizationOptions.sectionTitles.style} !important;
-                }
-                .section-title.text-sm { font-size: 0.875rem !important; }
-                .section-title.text-base { font-size: 1rem !important; }
-                .section-title.text-lg { font-size: 1.125rem !important; }
-                .section-title.text-xl { font-size: 1.25rem !important; }
-                
-                /* Hyperlink styling for rich text content - excluding personal info */
-                [data-id="resume-body"] a {
-                    color: ${getAccentColor(1)} !important;
-                    text-decoration: none !important;
-                    transition: all 0.2s ease-in-out !important;
-                }
-                
-                [data-id="resume-body"] a:hover {
-                    color: ${getAccentColor(0.8)} !important;
-                }
-                
-                /* Print-friendly link styling */
-                @media print {
+                    [data-id="resume-content"] {
+                        font-size: ${customizationOptions.spacing.fontSize}pt !important;
+                        line-height: ${customizationOptions.spacing.lineHeight} !important;
+                    }
+                    [data-id="resume-content"] * {
+                        font-size: inherit;
+                        line-height: inherit;
+                    }
+                    
+                    /* Header-specific styling */
+                    [data-id="resume-header"] h1 {
+                        font-weight: ${customizationOptions.header.nameBold ? '700' : '500'} !important;
+                    }
+                    
+                    /* Header name size */
+                    [data-id="resume-header"] h1.text-2xl { font-size: 1.25rem !important; }
+                    [data-id="resume-header"] h1.text-3xl { font-size: 1.75rem !important; }
+                    [data-id="resume-header"] h1.text-4xl { font-size: 2.25rem !important; }
+                    [data-id="resume-header"] h1.text-5xl { font-size: 2.75rem !important; }
+                    
+                    /* Job title size */
+                    [data-id="resume-header"] h2.text-base { font-size: 1rem !important; }
+                    [data-id="resume-header"] h2.text-lg { font-size: 1.125rem !important; }
+                    [data-id="resume-header"] h2.text-xl { font-size: 1.25rem !important; }
+                    
+                    /* Section title styling */
+                    .section-title {
+                        transition: all 0.2s ease-in-out;
+                        font-weight: ${customizationOptions.sectionTitles.bold ? '700' : '400'} !important;
+                        text-transform: ${customizationOptions.sectionTitles.style} !important;
+                    }
+                    .section-title.text-sm { font-size: 0.875rem !important; }
+                    .section-title.text-base { font-size: 1rem !important; }
+                    .section-title.text-lg { font-size: 1.125rem !important; }
+                    .section-title.text-xl { font-size: 1.25rem !important; }
+                    
+                    /* Hyperlink styling for rich text content - excluding personal info */
                     [data-id="resume-body"] a {
                         color: ${getAccentColor(1)} !important;
                         text-decoration: none !important;
+                        transition: all 0.2s ease-in-out !important;
                     }
-                }
-            `}</style>
+                    
+                    [data-id="resume-body"] a:hover {
+                        color: ${getAccentColor(0.8)} !important;
+                    }
+                    
+                    /* Lucide icon filled style */
+                    .lucide-icon-filled {
+                        fill: currentColor;
+                        stroke-width: 1.5;
+                    }
+                    
+                    /* Better approach for filled icons */
+                    [data-filled-icon="true"] {
+                        fill-opacity: 0.2;
+                    }
+                    
+                    /* Target specific icon paths to fill, not the entire box */
+                    [data-filled-icon="true"] path {
+                        fill: currentColor;
+                        fill-opacity: 0.15;
+                    }
+                    
+                    /* Special handling for icon types that need specific styling */
+                    [data-filled-icon="true"].phone-icon path,
+                    [data-filled-icon="true"].mail-icon path,
+                    [data-filled-icon="true"].map-pin-icon path {
+                        fill-opacity: 0.12;
+                    }
+                    
+                    /* Print-friendly link styling */
+                    @media print {
+                        [data-id="resume-body"] a {
+                            color: ${getAccentColor(1)} !important;
+                            text-decoration: none !important;
+                        }
+                    }
+                `}</style>
 
             <div
                 className="p-8 sm:p-12 print:p-12 hide-scrollbar [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-0.5 [&_li>*]:leading-tight [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4"
@@ -327,7 +349,29 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     href={`tel:${resumeData.personalInfo.phone}`}
                                     className="flex items-center transition-colors"
                                 >
-                                    <Phone className="w-4 h-4 mr-1.5" strokeWidth={1.75} />
+                                    <Phone
+                                        className={`${customizationOptions.socialIcons?.style === 'filled' ? 'lucide-icon-filled' : ''} ${(() => {
+                                            switch (customizationOptions.socialIcons?.size || 'medium') {
+                                                case 'small': return 'w-3.5 h-3.5 mr-1';
+                                                case 'large': return 'w-5 h-5 mr-2';
+                                                case 'medium':
+                                                default: return 'w-4 h-4 mr-1.5';
+                                            }
+                                        })()}`}
+                                        strokeWidth={customizationOptions.socialIcons?.style === 'filled' ? 1.5 : 1.75}
+                                        style={{
+                                            color: (() => {
+                                                switch (customizationOptions.socialIcons?.color || 'accent') {
+                                                    case 'headings': return getHeadingColor();
+                                                    case 'text': return customizationOptions.colors.text;
+                                                    case 'custom': return customizationOptions.socialIcons?.customColor || getAccentColor(1);
+                                                    case 'accent':
+                                                    default: return getAccentColor(1);
+                                                }
+                                            })()
+                                        }}
+                                        data-filled-icon={customizationOptions.socialIcons?.style === 'filled' ? 'true' : 'false'}
+                                    />
                                     <span>{resumeData.personalInfo.phone}</span>
                                 </a>
                             )}
@@ -336,13 +380,57 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     href={`mailto:${resumeData.personalInfo.email}`}
                                     className="flex items-center transition-colors"
                                 >
-                                    <Mail className="w-4 h-4 mr-1.5" strokeWidth={1.75} />
+                                    <Mail
+                                        className={`${customizationOptions.socialIcons?.style === 'filled' ? 'lucide-icon-filled' : ''} ${(() => {
+                                            switch (customizationOptions.socialIcons?.size || 'medium') {
+                                                case 'small': return 'w-3.5 h-3.5 mr-1';
+                                                case 'large': return 'w-5 h-5 mr-2';
+                                                case 'medium':
+                                                default: return 'w-4 h-4 mr-1.5';
+                                            }
+                                        })()}`}
+                                        strokeWidth={customizationOptions.socialIcons?.style === 'filled' ? 1.5 : 1.75}
+                                        style={{
+                                            color: (() => {
+                                                switch (customizationOptions.socialIcons?.color || 'accent') {
+                                                    case 'headings': return getHeadingColor();
+                                                    case 'text': return customizationOptions.colors.text;
+                                                    case 'custom': return customizationOptions.socialIcons?.customColor || getAccentColor(1);
+                                                    case 'accent':
+                                                    default: return getAccentColor(1);
+                                                }
+                                            })()
+                                        }}
+                                        data-filled-icon={customizationOptions.socialIcons?.style === 'filled' ? 'true' : 'false'}
+                                    />
                                     <span>{resumeData.personalInfo.email}</span>
                                 </a>
                             )}
                             {resumeData.personalInfo.location && (
                                 <div className="flex items-center">
-                                    <MapPin className="w-4 h-4 mr-1.5" strokeWidth={1.75} />
+                                    <MapPin
+                                        className={`${customizationOptions.socialIcons?.style === 'filled' ? 'lucide-icon-filled' : ''} ${(() => {
+                                            switch (customizationOptions.socialIcons?.size || 'medium') {
+                                                case 'small': return 'w-3.5 h-3.5 mr-1';
+                                                case 'large': return 'w-5 h-5 mr-2';
+                                                case 'medium':
+                                                default: return 'w-4 h-4 mr-1.5';
+                                            }
+                                        })()}`}
+                                        strokeWidth={customizationOptions.socialIcons?.style === 'filled' ? 1.5 : 1.75}
+                                        style={{
+                                            color: (() => {
+                                                switch (customizationOptions.socialIcons?.color || 'accent') {
+                                                    case 'headings': return getHeadingColor();
+                                                    case 'text': return customizationOptions.colors.text;
+                                                    case 'custom': return customizationOptions.socialIcons?.customColor || getAccentColor(1);
+                                                    case 'accent':
+                                                    default: return getAccentColor(1);
+                                                }
+                                            })()
+                                        }}
+                                        data-filled-icon={customizationOptions.socialIcons?.style === 'filled' ? 'true' : 'false'}
+                                    />
                                     <span>{resumeData.personalInfo.location}</span>
                                 </div>
                             )}
@@ -352,33 +440,65 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 let icon;
                                 let label = '';
 
+                                // Calculate icon size based on socialIcons.size setting
+                                const iconSize = (() => {
+                                    switch (customizationOptions.socialIcons?.size || 'medium') {
+                                        case 'small': return 'w-3.5 h-3.5 mr-1';
+                                        case 'large': return 'w-5 h-5 mr-2';
+                                        case 'medium':
+                                        default: return 'w-4 h-4 mr-1.5';
+                                    }
+                                })();
+
+                                // For filled style we use stroke width 1.5, for outline 1.75
+                                const strokeWidth = customizationOptions.socialIcons?.style === 'filled' ? 1.5 : 1.75;
+
+                                // Get icon color based on settings
+                                const iconColor = (() => {
+                                    switch (customizationOptions.socialIcons?.color || 'accent') {
+                                        case 'headings': return getHeadingColor();
+                                        case 'text': return customizationOptions.colors.text;
+                                        case 'custom': return customizationOptions.socialIcons?.customColor || getAccentColor(1);
+                                        case 'accent':
+                                        default: return getAccentColor(1);
+                                    }
+                                })();
+
+                                // We use data attributes for filled style and style for color
+                                const iconProps = {
+                                    className: iconSize,
+                                    strokeWidth,
+                                    style: { color: iconColor },
+                                    'data-filled-icon': customizationOptions.socialIcons?.style === 'filled' ? 'true' : 'false'
+                                };
+
                                 switch (link.platform) {
                                     case 'linkedin':
-                                        icon = <Linkedin className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        icon = <Linkedin {...iconProps} />;
                                         label = link.label || 'LinkedIn';
                                         break;
                                     case 'github':
-                                        icon = <Github className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        icon = <Github {...iconProps} />;
                                         label = link.label || 'GitHub';
                                         break;
                                     case 'twitter':
-                                        icon = <Twitter className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        icon = <Twitter {...iconProps} />;
                                         label = link.label || 'Twitter';
                                         break;
                                     case 'leetcode':
-                                        icon = <FileCode className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        icon = <FileCode {...iconProps} />;
                                         label = link.label || 'LeetCode';
                                         break;
                                     case 'medium':
-                                        icon = <BookOpen className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        icon = <BookOpen {...iconProps} />;
                                         label = link.label || 'Medium';
                                         break;
                                     case 'stackoverflow':
-                                        icon = <MessageSquare className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        icon = <MessageSquare {...iconProps} />;
                                         label = link.label || 'Stack Overflow';
                                         break;
                                     default:
-                                        icon = <ExternalLink className="w-4 h-4 mr-1.5" strokeWidth={1.75} />;
+                                        icon = <ExternalLink {...iconProps} />;
                                         label = link.label || 'Website';
                                 }
 
@@ -402,7 +522,21 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     {/* Profile picture or initials - only show if enabled in customization */}
                     {customizationOptions.header.showPhoto ? (
                         resumeData.personalInfo.profilePicture && resumeData.personalInfo.profilePicture.startsWith('data:image') ? (
-                            <div className="w-24 h-24 rounded-full overflow-hidden mt-4 md:mt-0 border-2 shadow-md" style={{ borderColor: getAccentColor(0.3) }}>
+                            <div
+                                className={`overflow-hidden mt-4 md:mt-0 ${customizationOptions.header.photoSize === 'small' ? 'w-16 h-16' :
+                                    customizationOptions.header.photoSize === 'large' ? 'w-32 h-32' :
+                                        'w-24 h-24'
+                                    } rounded-full ${customizationOptions.header.photoBorder === 'none' ? '' : 'shadow-md border'
+                                    } ${customizationOptions.header.photoBorder === 'thin' ? 'border-2' :
+                                        customizationOptions.header.photoBorder === 'medium' ? 'border-4' :
+                                            customizationOptions.header.photoBorder === 'thick' ? 'border-6' : ''
+                                    }`}
+                                style={{
+                                    borderColor: customizationOptions.header.photoStyle === 'accent' ? getAccentColor(0.3) :
+                                        customizationOptions.header.photoStyle === 'headings' ? getHeadingColor() :
+                                            customizationOptions.header.photoStyle === 'border' ? '#e2e8f0' : 'transparent',
+                                }}
+                            >
                                 <img
                                     src={resumeData.personalInfo.profilePicture}
                                     alt={resumeData.personalInfo.name || 'Profile'}
@@ -411,9 +545,19 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             </div>
                         ) : (
                             <div
-                                className="w-24 h-24 rounded-full flex items-center justify-center mt-4 md:mt-0 text-white text-3xl font-bold"
+                                className={`flex items-center justify-center mt-4 md:mt-0 text-white font-bold ${customizationOptions.header.photoSize === 'small' ? 'w-16 h-16 text-xl' :
+                                    customizationOptions.header.photoSize === 'large' ? 'w-32 h-32 text-4xl' :
+                                        'w-24 h-24 text-3xl'
+                                    } rounded-full ${customizationOptions.header.photoBorder === 'none' ? '' : 'shadow-md border'
+                                    } ${customizationOptions.header.photoBorder === 'thin' ? 'border-2' :
+                                        customizationOptions.header.photoBorder === 'medium' ? 'border-4' :
+                                            customizationOptions.header.photoBorder === 'thick' ? 'border-6' : ''
+                                    }`}
                                 style={{
                                     backgroundColor: getAccentColor(1),
+                                    borderColor: customizationOptions.header.photoStyle === 'accent' ? getAccentColor(0.3) :
+                                        customizationOptions.header.photoStyle === 'headings' ? getHeadingColor() :
+                                            customizationOptions.header.photoStyle === 'border' ? '#e2e8f0' : 'transparent',
                                     flexShrink: 0
                                 }}
                             >
@@ -438,7 +582,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 return (
                                     <div key={sectionKey} className="mb-6">
                                         <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'SUMMARY'}
+                                            {'SUMMARY'}
                                         </h2>
                                         <div className="text-sm">
                                             <SafeHTML html={resumeData.personalInfo.summary} />

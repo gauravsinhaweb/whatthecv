@@ -1,5 +1,5 @@
 import { Award, BookOpen, Briefcase, ChevronDownIcon, Code, Edit, Eye, EyeOff, FileText, Plus, Trash2, User, Link2, Linkedin, Github, Twitter, Globe, ExternalLink } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Button from '../../../../components/ui/Button';
 import DatePicker from '../../../../components/ui/DatePicker';
 import ProfilePictureUploader from '../../../../components/ui/ProfilePictureUploader';
@@ -70,6 +70,18 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
     const hasValidProfilePic = resumeData.personalInfo.profilePicture &&
         resumeData.personalInfo.profilePicture.startsWith('data:image');
+
+    // Update showProfileUploader when customization options change
+    useEffect(() => {
+        if (customizationOptions?.header.showPhoto && !showProfileUploader && !hasValidProfilePic) {
+            setShowProfileUploader(true);
+            setTimeout(() => {
+                if (fileInputRef.current) {
+                    fileInputRef.current.click();
+                }
+            }, 100);
+        }
+    }, [customizationOptions?.header.showPhoto, showProfileUploader, hasValidProfilePic]);
 
     return (
         <div className="bg-white rounded-lg shadow-md border border-slate-200">
@@ -183,6 +195,17 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             onChange={(value) => {
                                                 onPersonalInfoChange('profilePicture', value);
                                                 setShowProfileUploader(!!value);
+
+                                                // Automatically enable profile photo display in customization options when an image is uploaded
+                                                if (value && onCustomizationChange && customizationOptions && !customizationOptions.header.showPhoto) {
+                                                    onCustomizationChange({
+                                                        ...customizationOptions,
+                                                        header: {
+                                                            ...customizationOptions.header,
+                                                            showPhoto: true
+                                                        }
+                                                    });
+                                                }
                                             }}
                                             ref={fileInputRef}
                                         />
