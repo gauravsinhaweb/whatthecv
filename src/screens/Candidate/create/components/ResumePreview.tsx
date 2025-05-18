@@ -309,6 +309,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                         fill-opacity: 0.12;
                     }
                     
+                    /* Enhanced bold styling for all fonts */
+                    [data-id="resume-content"] b,
+                    [data-id="resume-content"] strong {
+                        font-weight: 800 !important;
+                        letter-spacing: -0.01em;
+                    }
+                    
                     /* Print-friendly link styling */
                     @media print {
                         [data-id="resume-body"] a {
@@ -319,7 +326,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 `}</style>
 
             <div
-                className="p-8 sm:p-12 print:p-12 hide-scrollbar [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-0.5 [&_li>*]:leading-tight [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4"
+                className="p-8 sm:p-12 print:p-12 hide-scrollbar [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-0.5 [&_li>*]:leading-tight [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_b]:font-extrabold [&_strong]:font-extrabold [&_i]:italic [&_em]:italic [&_u]:underline"
                 data-id="resume-content"
                 style={{
                     height: '100%',

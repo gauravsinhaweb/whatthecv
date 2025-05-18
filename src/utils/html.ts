@@ -9,8 +9,11 @@ import React, { useMemo } from 'react';
 export const formatTextWithBullets = (text: string): string => {
     if (!text) return '';
 
-    // If the content already has HTML list elements, preserve them
-    if (text.includes('<ul>') || text.includes('<ol>') || text.includes('<li>')) {
+    // Check if content contains any HTML tags
+    const hasHtmlTags = /<[a-z][\s\S]*>/i.test(text);
+
+    // If the content already has HTML elements, preserve them
+    if (hasHtmlTags) {
         return text;
     }
 
@@ -49,8 +52,8 @@ export const sanitizeHtml = (html: string): string => {
     });
 
     const sanitized = DOMPurify.sanitize(html, {
-        ALLOWED_TAGS: ['br', 'span', 'p', 'ul', 'ol', 'li', 'b', 'i', 'strong', 'em', 'a'],
-        ALLOWED_ATTR: ['style', 'class', 'href', 'target', 'rel']
+        ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'u', 'ul', 'ol', 'li', 'a', 'span', 'img'],
+        ALLOWED_ATTR: ['style', 'class', 'href', 'target', 'rel', 'src', 'alt', 'loading']
     });
 
     // Remove the hook after sanitizing
