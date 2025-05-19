@@ -7,25 +7,31 @@ Absolutely! Your platform **WhatTheCV** has a solid core and strong appeal for b
 ### 💼 For Job Seekers
 
 #### ✅ **Add: Real-time Resume Scoring While Editing**
+
 - Let users see ATS score changes as they tweak their resume.
 - Use visual indicators (color bars or score meters) to show what’s helping or hurting the score.
 
 #### 🧠 **Add: AI-Powered Cover Letter Generator**
+
 - Based on resume + job description.
 - Option to choose tone: formal, confident, creative, etc.
 
 #### 🛠️ **Add: Resume Version Control**
+
 - Track changes and create multiple versions of a resume for different industries or job roles.
 
 #### 🔍 **Add: Job Match Engine**
+
 - Scrape/aggregate listings (via LinkedIn, Indeed, etc.) and show a “Match Score” based on resume.
 - Let users apply directly through the platform.
 
 #### 📈 **Add: Career Insights Dashboard**
+
 - Benchmark resume against peers in the same industry or title.
 - Display skill gaps and hot skills trending in your industry.
 
 #### 🔐 **Refine: Privacy Modes**
+
 - Add temporary “Stealth Mode” where a user can be visible only to select verified recruiters.
 
 ---
@@ -33,13 +39,16 @@ Absolutely! Your platform **WhatTheCV** has a solid core and strong appeal for b
 ### 👥 For Recruiters
 
 #### 🤖 **Add: AI Shortlisting Assistant**
+
 - Let recruiters paste a job description, and the AI pre-ranks top candidates.
 - Explain why a candidate matches in simple bullet points.
 
 #### 🎯 **Add: Talent Pool Alerts**
+
 - Get notified when someone uploads or updates a resume that matches a saved job spec.
 
 #### 🧩 **Add: Interview Readiness Score**
+
 - Let recruiters see a candidate’s readiness (based on resume completeness, relevance, and possible skill match).
 
 ---
@@ -82,10 +91,11 @@ Want me to help mock up a sample UI/UX layout or onboarding flow based on these 
 - improved resume after analysis and view full analysis - breakdown prompts
 
 ---
+
 v1 goal
+
 - only date only year
 - font fam ui (bug)
-- over simplified result (work exp desc.)
 - [akash arora963@gmail.com](mailto:akash arora963@gmail.com). don’t manipulate personal info (space in email)
 - modal edit
-- ensure detailed analysis
+- verify details b4 export

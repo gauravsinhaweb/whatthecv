@@ -6,6 +6,10 @@ const TemplateGallery = lazy(() => import('./screens/Candidate/gallery/TemplateG
 const ResumeUpload = lazy(() => import('./screens/Candidate/analyze/ResumeUpload.tsx'));
 const RecruiterComingSoon = lazy(() => import('./screens/Recruiter/RecruiterComingSoon.tsx'));
 const CreateResume = lazy(() => import('./screens/Candidate/create/CreateResume.tsx'));
+const Login = lazy(() => import('./screens/Auth/Login.tsx'));
+const Signup = lazy(() => import('./screens/Auth/Signup.tsx'));
+const GoogleCallback = lazy(() => import('./screens/Auth/GoogleCallback.tsx'));
+const LoginFailure = lazy(() => import('./screens/Auth/LoginFailure.tsx'));
 
 export const routes: RouteObject[] = [
     {
@@ -29,6 +33,22 @@ export const routes: RouteObject[] = [
         element: <CreateResume />,
     },
     {
+        path: '/login',
+        element: <Login />,
+    },
+    {
+        path: '/signup',
+        element: <Signup />,
+    },
+    {
+        path: '/auth/login/success',
+        element: <GoogleCallback />,
+    },
+    {
+        path: '/auth/login/failure',
+        element: <LoginFailure />,
+    },
+    {
         path: '*',
         element: <LandingPage />,
     },
@@ -40,5 +60,9 @@ export const getPageFromPath = (path: string): string => {
     if (path === '/analyze') return 'upload';
     if (path === '/recruiter-coming-soon') return 'recruiter-coming-soon';
     if (path === '/create-resume') return 'create-resume';
+    if (path === '/login') return 'login';
+    if (path === '/signup') return 'signup';
+    if (path.startsWith('/auth/login/success')) return 'auth-callback';
+    if (path.startsWith('/auth/login/failure')) return 'auth-failure';
     return 'landing';
 }; 
