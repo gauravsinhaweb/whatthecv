@@ -317,8 +317,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
             />
           </div>
         )}
-
-        <HowItWorks />
       </div>
     </div>
   );
