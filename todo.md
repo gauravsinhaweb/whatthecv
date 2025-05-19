@@ -80,17 +80,10 @@ Want me to help mock up a sample UI/UX layout or onboarding flow based on these 
 - maintain versions
 - app in-purchase
 - improved resume after analysis and view full analysis - breakdown prompts
-- 1 more template support
-- 2 page resume support
-- wrap up design resume
-- separate BE - auth with role (candidate/ recruiter), analyze, template
-- custom section
-- embed links
 
 ---
 v1 goal
 - only date only year
-- links
 - font fam ui (bug)
 - over simplified result (work exp desc.)
 - [akash arora963@gmail.com](mailto:akash arora963@gmail.com). don’t manipulate personal info (space in email)
