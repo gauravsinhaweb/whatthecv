@@ -9,11 +9,16 @@
   <a href="CONTRIBUTING.md">
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
   </a>
+  <a href="https://github.com/gauravsinhaweb/whatthecv/issues">
+    <img src="https://img.shields.io/github/issues/gauravsinhaweb/whatthecv" alt="GitHub Issues" />
+  </a>
+  <a href="https://github.com/gauravsinhaweb/whatthecv/stargazers">
+    <img src="https://img.shields.io/github/stars/gauravsinhaweb/whatthecv" alt="GitHub Stars" />
+  </a>
   <a href="https://buymeacoffee.com/gauravsinha">
     <img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow.svg" alt="Buy Me A Coffee" />
   </a>
 </div>
-
 
 ## Overview
 
@@ -40,37 +45,45 @@ WhatTheCV helps job seekers create professionally designed resumes that are opti
 
 ### Prerequisites
 
-- Node.js (v14 or later)
-- npm or yarn
+- Node.js (v16 or later)
+- npm or pnpm (pnpm recommended)
 
 ### Installation
 
 1. Clone the repository:
+
    ```
-   git clone https://github.com/yourusername/whatthecv.git
+   git clone https://github.com/gauravsinhaweb/whatthecv.git
    ```
 
 2. Navigate to the project directory:
+
    ```
    cd whatthecv
    ```
 
 3. Install dependencies:
+
+   ```
+   pnpm install
+   ```
+
+   or
+
    ```
    npm install
    ```
-   or
-   ```
-   yarn install
-   ```
 
 4. Start the development server:
+
+   ```
+   pnpm dev
+   ```
+
+   or
+
    ```
    npm run dev
-   ```
-   or
-   ```
-   yarn dev
    ```
 
 5. Open your browser and navigate to `http://localhost:3000`
@@ -110,17 +123,35 @@ whatthecv/
 
 ## Contributing
 
-We welcome contributions from the community! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
+We welcome contributions from the community! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+### Quick Start for Contributors
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/whatthecv.git`
+3. Create your feature branch: `git checkout -b feature/amazing-feature`
+4. Make your changes
+5. Commit your changes: `git commit -m 'Add some amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
+
+### Areas We Need Help With
+
+- UI/UX improvements
+- ATS scoring algorithm refinement
+- Template designs
+- Accessibility enhancements
+- Test coverage
+- Documentation
 
 ## Support the Project
 
-If you find WhatTheCV useful, consider buying me a coffee to support ongoing development:
+If you find WhatTheCV useful, consider:
+
+- ⭐ Star the repository on GitHub
+- 🐛 Report bugs or suggest features through [GitHub Issues](https://github.com/gauravsinhaweb/whatthecv/issues)
+- 💻 Submit pull requests to improve the codebase
+- ☕ Support the development by [buying me a coffee](https://buymeacoffee.com/gauravsinha)
 
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/gauravsinha)
 
@@ -130,11 +161,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-Project Link: [https://github.com/yourusername/whatthecv](https://github.com/yourusername/whatthecv)
+- **Project Maintainer**: [Gaurav Sinha](https://github.com/gauravsinhaweb)
+- **Project Link**: [https://github.com/gauravsinhaweb/whatthecv](https://github.com/gauravsinhaweb/whatthecv)
+- **Issues**: [https://github.com/gauravsinhaweb/whatthecv/issues](https://github.com/gauravsinhaweb/whatthecv/issues)
 
 ## Acknowledgements
 
 - [React](https://reactjs.org/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
-- [Lucide Icons](https://lucide.dev/) 
+- [Lucide Icons](https://lucide.dev/)
+- All our [contributors](https://github.com/gauravsinhaweb/whatthecv/graphs/contributors)
