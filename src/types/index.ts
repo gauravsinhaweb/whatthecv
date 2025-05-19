@@ -30,6 +30,14 @@ export interface PersonalInfo {
   github?: string;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  picture?: string;
+  isVerified: boolean;
+}
+
 export interface Experience {
   id: string;
   company: string;
