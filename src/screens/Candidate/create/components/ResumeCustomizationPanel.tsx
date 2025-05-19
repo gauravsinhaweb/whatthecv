@@ -783,7 +783,6 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                     options={[
                                         { value: 'serif', label: 'Serif', icon: <Type className="w-4 h-4" /> },
                                         { value: 'sans', label: 'Sans-serif', icon: <Type className="w-4 h-4" /> },
-                                        { value: 'mono', label: 'Monospace', icon: <Type className="w-4 h-4" /> },
                                     ]}
                                     value={options.font.family}
                                     onChange={(value) => handleChange('font', 'family', value)}
@@ -798,34 +797,41 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                         let fontOptions = [];
                                         if (options.font.family === 'serif') {
                                             fontOptions = [
-                                                'Times New Roman', 'Garamond', 'Cambria', 'Playfair Display', 'Source Serif Pro',
-                                                'PT Serif', 'Crimson Text', 'Noto Serif',
-                                            ];
-                                        } else if (options.font.family === 'sans') {
-                                            fontOptions = [
-                                                'Arial', 'Helvetica', 'Calibri', 'Verdana', 'Trebuchet MS',
-                                                'Inter', 'Montserrat', 'Nunito', 'Open Sans', 'Poppins', 'Raleway',
-                                                'Roboto', 'Source Sans Pro', 'Lato', 'Noto Sans',
+                                                'Tinos', 'Volkhov', 'Gelasio', 'Bitter',
+                                                'Times New Roman', 'Georgia', 'Merriweather',
+                                                'Baskerville', 'Libre Baskerville', 'Playfair Display',
+                                                'Source Serif Pro', 'Crimson Text', 'Noto Serif'
                                             ];
                                         } else {
                                             fontOptions = [
-                                                'JetBrains Mono', 'Roboto Mono', 'Source Code Pro', 'IBM Plex Mono',
-                                                'Fira Mono', 'Inconsolata', 'Space Mono', 'Ubuntu Mono', 'Courier Prime'
+                                                'Rubik', 'Arimo', 'Lato', 'Raleway',
+                                                'Exo 2', 'Chivo', 'Montserrat', 'Oswald',
+                                                'Open Sans', 'Roboto', 'Poppins', 'Nunito',
+                                                'Work Sans', 'Inter', 'Calibri', 'Helvetica',
+                                                'Source Sans Pro', 'Noto Sans'
                                             ];
                                         }
 
-                                        return fontOptions.map((font) => (
-                                            <button
-                                                key={font}
-                                                className={`p-2 text-sm rounded-md border ${previewFont === font ? 'bg-blue-50 text-blue-700 border-blue-200' : options.font.specificFont === font ? 'bg-white text-slate-800 border-blue-400' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}
-                                                style={{ fontFamily: font }}
-                                                onClick={() => handleChange('font', 'specificFont', font)}
-                                                onMouseEnter={() => handleFontPreview(font)}
-                                                onMouseLeave={() => handleFontPreview(null)}
-                                            >
-                                                {font}
-                                            </button>
-                                        ));
+                                        return fontOptions.map((font) => {
+                                            const description =
+                                                font === 'Arimo' ? 'Arial-like font' :
+                                                    font === 'Tinos' ? 'Times New Roman-like font' :
+                                                        font === 'Gelasio' ? 'Georgia-like font' : '';
+
+                                            return (
+                                                <button
+                                                    key={font}
+                                                    className={`p-2 text-sm rounded-md border ${previewFont === font ? 'bg-blue-50 text-blue-700 border-blue-200' : options.font.specificFont === font ? 'bg-white text-slate-800 border-blue-400' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}
+                                                    style={{ fontFamily: font }}
+                                                    onClick={() => handleChange('font', 'specificFont', font)}
+                                                    onMouseEnter={() => handleFontPreview(font)}
+                                                    onMouseLeave={() => handleFontPreview(null)}
+                                                >
+                                                    <div>{font}</div>
+                                                    {description && <div className="text-xs text-slate-500">{description}</div>}
+                                                </button>
+                                            );
+                                        });
                                     })()}
                                 </div>
                             </div>
