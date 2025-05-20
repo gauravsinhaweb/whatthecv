@@ -178,63 +178,6 @@ const Navigation: React.FC = () => {
               ))}
             </div>
           </div>
-
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {isAuthenticated && userProfile ? (
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={toggleUserMenu}
-                  className="flex items-center space-x-2 p-1 rounded-full hover:bg-slate-100 focus:outline-none transition"
-                >
-                  {/* <div className="relative">
-                    {userProfile.picture ? (
-                      <img
-                        src={userProfile.picture}
-                        alt={userProfile.name || 'User'}
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <User className="h-5 w-5 text-blue-600" />
-                      </div>
-                    )}
-                  </div> */}
-                  <span className="text-sm font-medium text-slate-700">{userProfile.name || userProfile.email.split('@')[0]}</span>
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
-                </button>
-
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-slate-200">
-                    <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-sm font-medium text-slate-900 truncate">{userProfile.name || userProfile.email.split('@')[0]}</p>
-                      <p className="text-xs text-slate-500 truncate">{userProfile.email}</p>
-                    </div>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={handleLogin}
-                  disabled={isLoading}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-blue-500 hover:underline underline-offset-2 bg-white-600 hover:bg-white-700 focus:outline-none transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading && (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  )}
-                  {isLoading ? 'Signing in...' : 'Sign In'}
-                </button>
-              </div>
-            )}
-          </div>
-
           <div className="-mr-2 flex items-center sm:hidden">
             <button
               onClick={toggleMobileMenu}
