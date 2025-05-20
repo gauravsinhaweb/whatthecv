@@ -1,4 +1,4 @@
-import { Briefcase, FileText, Layout, Menu, Upload, X, LogIn, UserPlus, User, LogOut, ChevronDown } from 'lucide-react';
+import { Briefcase, FileText, Layout, Menu, Upload, X, LogIn, UserPlus, User, LogOut, ChevronDown, Loader2 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getPageFromPath } from '../routes';
@@ -9,6 +9,8 @@ const Navigation: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState<UserType | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
@@ -41,29 +43,47 @@ const Navigation: React.FC = () => {
 
   const fetchUserProfile = async (token: string) => {
     try {
+      setIsLoading(true);
+      setLoginError(null);
       const baseApiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      const response = await fetch(`${baseApiUrl}/api/v1/auth/me`, {
+      const cleanBaseUrl = baseApiUrl.replace(/\/api\/v1\/?$/, '');
+
+      // Ensure token is properly formatted
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      console.log('Fetching user profile with token:', formattedToken.substring(0, 20) + '...');
+
+      const response = await fetch(`${cleanBaseUrl}/api/v1/auth/me`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': formattedToken,
+          'accept': 'application/json'
         }
       });
 
       if (response.ok) {
         const userData = await response.json();
+        console.log('User profile fetched successfully:', userData);
         setUserProfile({
           id: userData.id,
           email: userData.email,
-          name: userData.email.split('@')[0], // Use part before @ as name if no name provided
+          name: userData.email.split('@')[0],
           isVerified: userData.is_verified,
           picture: userData.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.email)}&background=random`
         });
       } else {
-        // If token is invalid, log out
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to fetch user profile:', errorData);
+        setLoginError(errorData.detail || errorData.message || 'Failed to fetch user profile');
         localStorage.removeItem('token');
         setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
+      setLoginError('Network error occurred');
+      localStorage.removeItem('token');
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -79,14 +99,21 @@ const Navigation: React.FC = () => {
     navigate('/');
   };
 
-  const handleLogin = () => {
-    // Get base URL without /api/v1 suffix
-    const baseApiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-    const baseUrl = baseApiUrl.endsWith('/api/v1')
-      ? baseApiUrl.slice(0, -7) // Remove '/api/v1'
-      : baseApiUrl;
+  const handleLogin = async () => {
+    try {
+      setIsLoading(true);
+      setLoginError(null);
+      const baseApiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const baseUrl = baseApiUrl.endsWith('/api/v1')
+        ? baseApiUrl.slice(0, -7)
+        : baseApiUrl;
 
-    window.location.href = `${baseUrl}/api/v1/auth/google`;
+      window.location.href = `${baseUrl}/api/v1/auth/google`;
+    } catch (error) {
+      console.error('Login error:', error);
+      setLoginError('Failed to initiate login');
+      setIsLoading(false);
+    }
   };
 
   const navItems = [
@@ -152,14 +179,14 @@ const Navigation: React.FC = () => {
             </div>
           </div>
 
-          {/* <div className="hidden sm:ml-6 sm:flex sm:items-center">
+          <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {isAuthenticated && userProfile ? (
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={toggleUserMenu}
                   className="flex items-center space-x-2 p-1 rounded-full hover:bg-slate-100 focus:outline-none transition"
                 >
-                  <div className="relative">
+                  {/* <div className="relative">
                     {userProfile.picture ? (
                       <img
                         src={userProfile.picture}
@@ -171,7 +198,7 @@ const Navigation: React.FC = () => {
                         <User className="h-5 w-5 text-blue-600" />
                       </div>
                     )}
-                  </div>
+                  </div> */}
                   <span className="text-sm font-medium text-slate-700">{userProfile.name || userProfile.email.split('@')[0]}</span>
                   <ChevronDown className="h-4 w-4 text-slate-400" />
                 </button>
@@ -193,14 +220,25 @@ const Navigation: React.FC = () => {
                 )}
               </div>
             ) : (
-              <button
-                onClick={handleLogin}
-                className="inline-flex items-center px-4 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded-md text-white bg-blue-500"
-              >
-                Login
-              </button>
+              <div className="relative">
+                <button
+                  onClick={handleLogin}
+                  disabled={isLoading}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-blue-500 hover:underline underline-offset-2 bg-white-600 hover:bg-white-700 focus:outline-none transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading && (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  )}
+                  {isLoading ? 'Signing in...' : 'Sign In'}
+                </button>
+                {loginError && (
+                  <div className="absolute right-0 mt-2 w-64 p-2 bg-red-50 text-red-600 text-xs rounded-md shadow-sm">
+                    {loginError}
+                  </div>
+                )}
+              </div>
             )}
-          </div> */}
+          </div>
 
           <div className="-mr-2 flex items-center sm:hidden">
             <button

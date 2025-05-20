@@ -5,6 +5,18 @@ import DOMPurify from 'dompurify';
 import { formatTextWithBullets } from '../utils/html';
 
 export const exportResumeToPDF = (resumeData: ResumeData) => {
+    const originalTitle = document.title;
+    const date = new Date();
+    const formattedDate = date.getFullYear().toString() +
+        (date.getMonth() + 1).toString().padStart(2, '0') +
+        date.getDate().toString().padStart(2, '0');
+
+    const name = resumeData.personalInfo.name || 'Resume';
+    const [firstName = '', lastName = ''] = name.split(' ');
+    const formattedName = `${firstName.toLowerCase()}_${lastName.toLowerCase()}`;
+    const pdfTitle = `${formattedName}_${formattedDate}.pdf`;
+    document.title = pdfTitle;
+
     const printFrame = document.createElement('iframe');
     printFrame.style.position = 'fixed';
     printFrame.style.right = '0';
@@ -37,7 +49,7 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
             <!DOCTYPE html>
             <html>
             <head>
-                <title> WhatTheCV -  Resume_${resumeData.personalInfo.name || 'Export'}_${Date.now()}</title>
+                <title>${resumeData.personalInfo.name || 'Resume'}_${formattedDate}.pdf</title>
                 <meta charset="utf-8">
                 <style>
                     @page {
@@ -444,6 +456,7 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
             }
 
             setTimeout(() => {
+                document.title = originalTitle;
                 document.body.removeChild(printFrame);
             }, 1000);
         }, 1000);
