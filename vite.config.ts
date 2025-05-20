@@ -23,7 +23,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['preact', 'react-dom', '@google/generative-ai'],
+          vendor: ['preact', 'react-dom'],
           candidate: [
             './src/screens/Candidate/create/CreateResume.tsx',
             './src/screens/Candidate/analyze/ResumeUpload.tsx',
