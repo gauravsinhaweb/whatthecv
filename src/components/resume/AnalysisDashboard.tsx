@@ -25,6 +25,8 @@ interface CategoryAnalysis {
     isLoading: boolean;
 }
 
+type EnhancementStage = 'extracting' | 'enhancing' | 'finalizing' | 'error';
+
 const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     analysisResult,
     extractedText,
@@ -217,27 +219,36 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
 
         setIsEnhancing(true);
         setEnhancementStage('extracting');
+        let errorMessage = '';
 
         try {
             // Add a small delay to show the different stages for better UX
-            setTimeout(() => setEnhancementStage('enhancing'), 1000);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            setEnhancementStage('enhancing');
 
             // Use the file directly instead of the extracted text
             const result = await enhanceResumeFromFile(file);
 
-            console.log('Enhanced resume data:', result);
+            // Validate the enhanced data
+            const validationErrors = [];
 
-            // Log potential issues with the enhanced data
             if (!result.personalInfo || !result.personalInfo.name) {
-                console.warn('Missing personal info or name in enhanced resume data');
+                validationErrors.push('Personal information is incomplete');
             }
 
             if (!result.workExperience || result.workExperience.length === 0) {
-                console.warn('No work experience in enhanced resume data');
+                validationErrors.push('No work experience found');
             }
 
             if (!result.skills || result.skills.length === 0) {
-                console.warn('No skills in enhanced resume data');
+                validationErrors.push('No skills identified');
+            }
+
+            if (validationErrors.length > 0) {
+                console.warn('Validation warnings:', validationErrors);
+                errorMessage = validationErrors.join(', ');
+                setEnhancementStage('error');
+                throw new Error(errorMessage);
             }
 
             setEnhancementStage('finalizing');
@@ -245,18 +256,41 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
             // Save enhanced resume data to Zustand store
             setEnhancedResumeData(result);
 
-            setTimeout(() => {
-                // Navigate to create-resume route
-                navigate('/create-resume');
-                setIsEnhancing(false);
-            }, 800);
+            // Add a small delay before navigation for better UX
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            // Navigate to create-resume route
+            navigate('/create-resume');
         } catch (error) {
             console.error('Error enhancing resume:', error);
-            setIsEnhancing(false);
-            setEnhancedResumeData(null);
+            setEnhancementStage('error');
 
-            // Simple error notification
-            alert('Error enhancing resume. Please try again.');
+            // Handle specific error cases
+            if (error instanceof Error) {
+                if (error.message.includes('cancelled') || error.message.includes('aborted')) {
+                    errorMessage = 'The enhancement process was interrupted. Please try again.';
+                } else if (error.message.includes('timed out')) {
+                    errorMessage = 'The request took too long. Please try again with a smaller file.';
+                } else if (error.message.includes('File size too large')) {
+                    errorMessage = 'The file is too large. Please upload a smaller file (max 10MB).';
+                } else if (error.message.includes('Unsupported file type')) {
+                    errorMessage = 'Please upload a PDF, DOCX, or TXT file.';
+                } else {
+                    errorMessage = error.message;
+                }
+            } else {
+                errorMessage = 'Failed to enhance resume. Please try again.';
+            }
+
+            // Reset states after error
+            setTimeout(() => {
+                setIsEnhancing(false);
+                setEnhancementStage('extracting');
+            }, 2000);
+        } finally {
+            if (!errorMessage) {
+                setIsEnhancing(false);
+            }
         }
     };
 

@@ -30,8 +30,8 @@ interface ResumeStore {
     // UI state
     isEnhancing: boolean;
     setIsEnhancing: (isEnhancing: boolean) => void;
-    enhancementStage: 'extracting' | 'enhancing' | 'finalizing';
-    setEnhancementStage: (stage: 'extracting' | 'enhancing' | 'finalizing') => void;
+    enhancementStage: 'extracting' | 'enhancing' | 'finalizing' | 'error';
+    setEnhancementStage: (stage: 'extracting' | 'enhancing' | 'finalizing' | 'error') => void;
 
     // UI state previously in useResumeState
     activeSection: string;

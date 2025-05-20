@@ -11,19 +11,14 @@ export const formatBulletPoints = (text: string): string => {
     // First, normalize all line breaks to \n
     let formattedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-    // Replace bullet points that don't start on a new line with properly formatted ones
-    // This regex looks for bullet symbols (•, -, *, etc.) that don't have a preceding newline
-    formattedText = formattedText.replace(/([^\n])([•\-\*])/g, '$1\n$2');
+    // Replace any bullet point with a newline and bullet point
+    formattedText = formattedText.replace(/[•\-\*]/g, '\n•');
 
-    // Ensure bullet points have proper spacing between them
-    // Find bullet points followed by text and then another bullet point without a line break
-    formattedText = formattedText.replace(/([•\-\*][^\n]*?)(\n[•\-\*])/g, '$1\n$2');
+    // Remove any double newlines
+    formattedText = formattedText.replace(/\n\n+/g, '\n');
 
-    // If text starts with a bullet point, ensure it's properly positioned
-    formattedText = formattedText.replace(/^([•\-\*])/g, '$1');
-
-    // Ensure each bullet point is properly separated
-    formattedText = formattedText.replace(/\n([•\-\*])/g, '\n$1');
+    // Remove leading/trailing whitespace and newlines
+    formattedText = formattedText.trim();
 
     return formattedText;
 };

@@ -2,6 +2,7 @@ import React, { useMemo, useEffect } from 'react';
 import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
 import { MapPin, Mail, Phone, User, ExternalLink, ArrowUpRight, Link as ChainLink, Linkedin, Github, Twitter, FileCode, BookOpen, MessageSquare } from 'lucide-react';
 import { createMarkup, SafeHTML } from '../../../../utils/html';
+import { formatBulletPoints } from '../../../../utils/resumeFormatUtils';
 
 interface ResumePreviewProps {
     resumeData: ResumeData;
@@ -91,20 +92,37 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         return dateStr;
     };
 
-    const ensureBulletPoints = (content: string): string => {
-        if (!content) return '';
+    // Process text with bullet points to create proper list items
+    const preprocessBulletPoints = (text: string): string[] => {
+        if (!text) return [];
 
-        // If already in HTML format, return as is
-        if (content.includes('<ul>') || content.includes('<ol>')) {
-            return content;
+        // First check if there are any bullet points
+        if (text.includes('•')) {
+            // Split by bullet points, but keep the first segment if it's not empty
+            const parts = text.split('•').map(part => part.trim());
+            const result: string[] = [];
+
+            // The first segment might be regular text, not a bullet point
+            if (parts[0]) {
+                result.push(parts[0]);
+            }
+
+            // Add remaining parts as bullet points
+            for (let i = 1; i < parts.length; i++) {
+                if (parts[i]) {
+                    result.push(parts[i]);
+                }
+            }
+
+            return result;
         }
 
-        // Split by newlines or existing bullet markers
-        const lines = content.split(/\n|•|-/).filter(line => line.trim());
-        if (lines.length === 0) return content;
+        // If no bullet points, return the whole text as a single item
+        return [text];
+    };
 
-        // Format as bullet points
-        return `<ul>${lines.map(line => `<li>${line.trim()}</li>`).join('')}</ul>`;
+    const ensureBulletPoints = (text: string): string => {
+        return text.replace(/•/g, '<br/>•');
     };
 
     // Calculate appropriate line height for bullet points based on content
@@ -198,6 +216,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
         return <Icon className={`${size} ml-1`} />;
     };
+
+    // Utility to detect if a string is HTML
+    const isHTML = (str: string) => /<[a-z][\s\S]*>/i.test(str);
 
     // Add Google Fonts
     useEffect(() => {
@@ -648,13 +669,24 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                         )}
                                                                     </div>
                                                                 )}
-
                                                                 {exp.description && (
-                                                                    <SafeHTML
-                                                                        html={ensureBulletPoints(exp.description)}
-                                                                        className={`text-sm ${getLineHeightClass(exp.description)}`}
-                                                                    />
+                                                                    isHTML(exp.description) ? (
+                                                                        <SafeHTML
+                                                                            html={exp.description}
+                                                                            className={`text-sm ${getLineHeightClass(exp.description)}`}
+                                                                        />
+                                                                    ) : (
+                                                                        <ul className="list-disc pl-5 space-y-1">
+                                                                            {preprocessBulletPoints(exp.description).map((point, idx) => (
+                                                                                <li key={idx} className={`text-sm ${getLineHeightClass(exp.description)}`}>
+                                                                                    {point}
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    )
                                                                 )}
+
+
                                                             </div>
 
                                                             {customizationOptions.layout.columns === 'one' && (exp.startDate || exp.endDate || exp.location) && (

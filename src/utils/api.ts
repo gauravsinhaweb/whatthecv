@@ -131,14 +131,19 @@ export async function enhanceResumeFromFile(
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-            timeout: 60000, // 60 second timeout for longer processing
+            timeout: 120000, // Increase timeout to 2 minutes
             validateStatus: status => true, // Don't throw on error status codes
+            signal: undefined, // Remove any existing signal to prevent cancellation
         });
 
         console.log('Received enhance-file response:', {
             status: response.status,
             statusText: response.statusText,
         });
+
+        if (response.status === 499) {
+            throw new Error('Request was cancelled');
+        }
 
         if (response.status !== 200) {
             throw new Error(`Server responded with status ${response.status}: ${response.statusText}`);
@@ -160,33 +165,6 @@ export async function enhanceResumeFromFile(
         // Process and validate the response data
         const processedData = processEnhancedResumeData(response.data);
 
-        // Additional validation to ensure name is not mixed with position
-        if (processedData.personalInfo.name && processedData.personalInfo.name.includes('Fullstack')) {
-            // Attempt to fix the name by removing the position part
-            const nameParts = processedData.personalInfo.name.split(' ');
-            const positionIndex = nameParts.findIndex(part =>
-                part.toLowerCase().includes('fullstack') ||
-                part.toLowerCase().includes('developer') ||
-                part.toLowerCase().includes('engineer')
-            );
-
-            if (positionIndex > 0) {
-                // Extract name and position parts
-                const cleanName = nameParts.slice(0, positionIndex).join(' ');
-                const positionPart = nameParts.slice(positionIndex).join(' ');
-
-                // Update the data
-                processedData.personalInfo.name = cleanName;
-
-                // Only update position if it's not already set or if we can meaningfully combine them
-                if (!processedData.personalInfo.position) {
-                    processedData.personalInfo.position = positionPart;
-                } else if (!processedData.personalInfo.position.toLowerCase().includes(positionPart.toLowerCase())) {
-                    processedData.personalInfo.position = `${positionPart} ${processedData.personalInfo.position}`;
-                }
-            }
-        }
-
         return processedData;
     } catch (error) {
         console.error('Resume file enhancement error:', error);
@@ -198,7 +176,23 @@ export async function enhanceResumeFromFile(
                 statusText: error.response?.statusText,
                 data: error.response?.data,
                 headers: error.response?.headers,
+                code: error.code,
+                message: error.message,
             });
+
+            // Handle specific error cases
+            if (error.code === 'ECONNABORTED') {
+                throw new Error('Request timed out. Please try again.');
+            }
+            if (error.code === 'ERR_CANCELED') {
+                throw new Error('Request was cancelled. Please try again.');
+            }
+            if (error.response?.status === 413) {
+                throw new Error('File size too large. Please upload a smaller file.');
+            }
+            if (error.response?.status === 415) {
+                throw new Error('Unsupported file type. Please upload a PDF, DOCX, or TXT file.');
+            }
         }
 
         throw error;

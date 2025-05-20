@@ -1,6 +1,6 @@
-import { Briefcase, FileText, Layout, Menu, Upload, X, LogIn, UserPlus, User, LogOut, ChevronDown, Loader2 } from 'lucide-react';
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Briefcase, ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageFromPath } from '../routes';
 import { User as UserType } from '../types';
 
@@ -231,11 +231,6 @@ const Navigation: React.FC = () => {
                   )}
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
-                {loginError && (
-                  <div className="absolute right-0 mt-2 w-64 p-2 bg-red-50 text-red-600 text-xs rounded-md shadow-sm">
-                    {loginError}
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -257,7 +252,7 @@ const Navigation: React.FC = () => {
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
             {/* User profile for mobile */}
-            {isAuthenticated && userProfile && (
+            {/* {isAuthenticated && userProfile && (
               <div className="px-4 py-3 border-b border-slate-200">
                 <div className="flex items-center">
                   {userProfile.picture ? (
@@ -281,7 +276,7 @@ const Navigation: React.FC = () => {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
             {navItems.map((item) => (
               <button
