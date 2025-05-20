@@ -9,6 +9,7 @@ import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../.
 import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
 import ResumeEditor from './components/ResumeEditor';
 import ResumeFullScreenModal from './components/ResumeFullScreenModal';
+import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 
 const CreateResume: React.FC = () => {
     const {
@@ -27,6 +28,7 @@ const CreateResume: React.FC = () => {
     const [isMobilePreviewVisible, setIsMobilePreviewVisible] = useState(false);
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     useEffect(() => {
         // Check for enhanced resume data in the store
@@ -95,6 +97,11 @@ const CreateResume: React.FC = () => {
     );
 
     const handleExportPDF = () => {
+        setIsExportModalOpen(true);
+    };
+
+    const handleConfirmExport = () => {
+        setIsExportModalOpen(false);
         exportResumeToPDF(resumeData);
     };
 
@@ -108,6 +115,11 @@ const CreateResume: React.FC = () => {
                 previewScale={previewScale}
                 onZoomIn={handlers.handleZoomIn}
                 onZoomOut={handlers.handleZoomOut}
+            />
+            <ExportConfirmationModal
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                onConfirm={handleConfirmExport}
             />
 
             <div className="flex">

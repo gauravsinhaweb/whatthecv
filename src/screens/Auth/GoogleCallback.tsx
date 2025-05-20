@@ -10,8 +10,18 @@ const GoogleCallback: React.FC = () => {
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const token = searchParams.get('token');
+        const error = searchParams.get('error');
+
+        if (error) {
+            console.error('Authentication error:', error);
+            setError(error);
+            setIsProcessing(false);
+            setTimeout(() => navigate('/'), 3000);
+            return;
+        }
 
         if (token) {
+            console.log('Received token:', token.substring(0, 10) + '...');
             // Store token and set authenticated state
             localStorage.setItem('token', token);
             setIsProcessing(false);
@@ -21,6 +31,7 @@ const GoogleCallback: React.FC = () => {
                 navigate('/analyze');
             }, 1500);
         } else {
+            console.error('No token received');
             setError('Authentication failed. Please try again.');
             setIsProcessing(false);
             setTimeout(() => navigate('/'), 3000);
