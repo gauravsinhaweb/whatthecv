@@ -8,12 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@google/generative-ai':
-        specifier: ^0.24.0
-        version: 0.24.0
       '@react-pdf/renderer':
         specifier: ^4.3.0
-        version: 4.3.0
+        version: 4.3.0(react@19.1.0)
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -25,31 +22,28 @@ importers:
         version: 3.2.5
       framer-motion:
         specifier: ^12.9.2
-        version: 12.9.2(react-dom@19.1.0)
+        version: 12.9.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       install:
         specifier: ^0.13.0
         version: 0.13.0
       lucide-react:
         specifier: ^0.503.0
-        version: 0.503.0
+        version: 0.503.0(react@19.1.0)
       preact:
         specifier: ^10.26.4
         version: 10.26.5
       react-dom:
         specifier: ^19.1.0
-        version: 19.1.0
+        version: 19.1.0(react@19.1.0)
       react-router-dom:
         specifier: ^7.5.2
-        version: 7.5.2(react-dom@19.1.0)
-      react-split-pane:
-        specifier: ^0.1.92
-        version: 0.1.92(react-dom@19.1.0)
+        version: 7.5.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       tailwind-merge:
         specifier: ^3.2.0
         version: 3.2.0
       zustand:
         specifier: ^5.0.4
-        version: 5.0.4(@types/react@19.1.2)
+        version: 5.0.4(@types/react@19.1.2)(react@19.1.0)
     devDependencies:
       '@preact/preset-vite':
         specifier: ^2.10.1
@@ -340,10 +334,6 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
-
-  '@google/generative-ai@0.24.0':
-    resolution: {integrity: sha512-fnEITCGEB7NdX0BhoYZ/cq/7WPZ1QS5IzJJfC3Tg/OwkvBetMiVJciyaan297OvE4B9Jg1xvo0zIazX/9sGu1Q==}
-    engines: {node: '>=18.0.0'}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -1304,9 +1294,6 @@ packages:
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
-  react-lifecycles-compat@3.0.4:
-    resolution: {integrity: sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==}
-
   react-router-dom@7.5.2:
     resolution: {integrity: sha512-yk1XW8Fj7gK7flpYBXF3yzd2NbX6P7Kxjvs2b5nu1M04rb5pg/Zc4fGdBNTeT4eDYL2bvzWNyKaIMJX/RKHTTg==}
     engines: {node: '>=20.0.0'}
@@ -1324,14 +1311,9 @@ packages:
       react-dom:
         optional: true
 
-  react-split-pane@0.1.92:
-    resolution: {integrity: sha512-GfXP1xSzLMcLJI5BM36Vh7GgZBpy+U/X0no+VM3fxayv+p1Jly5HpMofZJraeaMl73b3hvlr+N9zJKvLB/uz9w==}
-    peerDependencies:
-      react: ^16.0.0-0
-      react-dom: ^16.0.0-0
-
-  react-style-proptype@3.2.2:
-    resolution: {integrity: sha512-ywYLSjNkxKHiZOqNlso9PZByNEY+FTyh3C+7uuziK0xFXu9xzdyfHwg4S9iyiRRoPCR4k2LqaBBsWVmSBwCWYQ==}
+  react@19.1.0:
+    resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
+    engines: {node: '>=0.10.0'}
 
   read-cache@1.0.0:
     resolution: {integrity: sha512-Owdv/Ft7IjOgm/i0xvNDZ1LrRANRfew4b2prF3OWMQLxLfu3bS8FVhCsrSCMK4lR56Y9ya+AThoTpDCTxCmpRA==}
@@ -1814,8 +1796,6 @@ snapshots:
   '@esbuild/win32-x64@0.25.2':
     optional: true
 
-  '@google/generative-ai@0.24.0': {}
-
   '@isaacs/cliui@8.0.2':
     dependencies:
       string-width: 5.1.2
@@ -1936,9 +1916,10 @@ snapshots:
 
   '@react-pdf/primitives@4.1.1': {}
 
-  '@react-pdf/reconciler@1.1.4':
+  '@react-pdf/reconciler@1.1.4(react@19.1.0)':
     dependencies:
       object-assign: 4.1.1
+      react: 19.1.0
       scheduler: 0.25.0-rc-603e6108-20241029
 
   '@react-pdf/render@4.3.0':
@@ -1954,7 +1935,7 @@ snapshots:
       parse-svg-path: 0.1.2
       svg-arc-to-cubic-bezier: 3.2.0
 
-  '@react-pdf/renderer@4.3.0':
+  '@react-pdf/renderer@4.3.0(react@19.1.0)':
     dependencies:
       '@babel/runtime': 7.27.0
       '@react-pdf/fns': 3.1.2
@@ -1962,13 +1943,14 @@ snapshots:
       '@react-pdf/layout': 4.4.0
       '@react-pdf/pdfkit': 4.0.3
       '@react-pdf/primitives': 4.1.1
-      '@react-pdf/reconciler': 1.1.4
+      '@react-pdf/reconciler': 1.1.4(react@19.1.0)
       '@react-pdf/render': 4.3.0
       '@react-pdf/types': 2.9.0
       events: 3.3.0
       object-assign: 4.1.1
       prop-types: 15.8.1
       queue: 6.0.2
+      react: 19.1.0
 
   '@react-pdf/stylesheet@6.1.0':
     dependencies:
@@ -2388,13 +2370,14 @@ snapshots:
 
   fraction.js@4.3.7: {}
 
-  framer-motion@12.9.2(react-dom@19.1.0):
+  framer-motion@12.9.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       motion-dom: 12.9.1
       motion-utils: 12.8.3
       tslib: 2.8.1
     optionalDependencies:
-      react-dom: 19.1.0
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   fsevents@2.3.3:
     optional: true
@@ -2580,7 +2563,9 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@0.503.0: {}
+  lucide-react@0.503.0(react@19.1.0):
+    dependencies:
+      react: 19.1.0
 
   magic-string@0.30.17:
     dependencies:
@@ -2728,37 +2713,29 @@ snapshots:
     dependencies:
       inherits: 2.0.4
 
-  react-dom@19.1.0:
+  react-dom@19.1.0(react@19.1.0):
     dependencies:
+      react: 19.1.0
       scheduler: 0.26.0
 
   react-is@16.13.1: {}
 
-  react-lifecycles-compat@3.0.4: {}
-
-  react-router-dom@7.5.2(react-dom@19.1.0):
+  react-router-dom@7.5.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
-      react-dom: 19.1.0
-      react-router: 7.5.2(react-dom@19.1.0)
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+      react-router: 7.5.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
 
-  react-router@7.5.2(react-dom@19.1.0):
+  react-router@7.5.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       cookie: 1.0.2
+      react: 19.1.0
       set-cookie-parser: 2.7.1
       turbo-stream: 2.4.0
     optionalDependencies:
-      react-dom: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
-  react-split-pane@0.1.92(react-dom@19.1.0):
-    dependencies:
-      prop-types: 15.8.1
-      react-dom: 19.1.0
-      react-lifecycles-compat: 3.0.4
-      react-style-proptype: 3.2.2
-
-  react-style-proptype@3.2.2:
-    dependencies:
-      prop-types: 15.8.1
+  react@19.1.0: {}
 
   read-cache@1.0.0:
     dependencies:
@@ -3015,6 +2992,7 @@ snapshots:
 
   yoga-layout@3.2.1: {}
 
-  zustand@5.0.4(@types/react@19.1.2):
+  zustand@5.0.4(@types/react@19.1.2)(react@19.1.0):
     optionalDependencies:
       '@types/react': 19.1.2
+      react: 19.1.0
