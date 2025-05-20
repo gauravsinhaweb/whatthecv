@@ -69,7 +69,6 @@ const ProgressStatus: React.FC<ProgressStatusProps> = ({
     const funnyMessages = [
         "Convincing AI that your resume isn't just fiction...",
         "Evaluating how many employers will actually believe this...",
-        "Converting your weekend projects into 'extensive experience'...",
         "Translating 'I once saw Excel' to 'Advanced spreadsheet proficiency'...",
         "Calculating how many coffees this job will require...",
         "Searching for evidence you're not just a well-trained parrot...",
@@ -151,7 +150,7 @@ const ProgressStatus: React.FC<ProgressStatusProps> = ({
     // Trigger pulse animation when stage changes
     useEffect(() => {
         setPulseAnimation(true);
-        const timer = setTimeout(() => setPulseAnimation(false), 800);
+        const timer = setTimeout(() => setPulseAnimation(false), 2500);
         return () => clearTimeout(timer);
     }, [isCheckingResume, isUploading, isAnalyzing]);
 
