@@ -1,5 +1,5 @@
-import { Eye, EyeOff, FileDown, Layout, Palette } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import { Eye, EyeOff, FileDown, Layout, Palette, Laptop } from 'lucide-react';
+import React, { useEffect, useMemo, useState, ReactElement } from 'react';
 import Button from '../../../components/ui/Button';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { useResumeStore } from '../../../store/resumeStore';
@@ -29,6 +29,16 @@ const CreateResume: React.FC = () => {
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setScreenWidth(window.innerWidth);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         // Check for enhanced resume data in the store
@@ -105,8 +115,51 @@ const CreateResume: React.FC = () => {
         exportResumeToPDF(resumeData);
     };
 
+    const renderTabButton = (tab: string, icon: ReactElement, label: string) => {
+        const isActive = activeTab === tab;
+        return (
+            <button
+                className={`transition-colors relative flex flex-col items-center justify-center 
+                    ${isActive
+                        ? 'text-blue-600'
+                        : 'text-slate-600 hover:text-slate-800'}`}
+                onClick={() => setActiveTab(tab)}
+            >
+                <div className="flex flex-col items-center">
+                    {icon}
+                    <span className="text-xs mt-1">{label}</span>
+                </div>
+                {isActive && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 md:hidden"></div>}
+                {isActive && <div className="absolute right-0 top-0 h-full w-0.5 bg-blue-600 hidden md:block"></div>}
+            </button>
+        );
+    };
+
+    // Screen too small message
+    if (screenWidth < 450) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
+                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+                    <div className="flex justify-center mb-6">
+                        <Laptop className="w-16 h-16 text-blue-500" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4 text-gray-800">Screen Too Small</h2>
+                    <p className="text-gray-600 mb-6">
+                        The resume builder requires a minimum screen width of 450px for the best experience.
+                        Please use a larger device or rotate your device to landscape mode.
+                    </p>
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <p className="text-sm text-blue-700">
+                            For the best experience, we recommend using a desktop or tablet device with a screen width of at least 768px.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="container mx-auto px-2 md:px-4 py-4 md:py-6 max-w-7xl">
             <ResumeFullScreenModal
                 isOpen={isFullScreenPreview}
                 onClose={() => setIsFullScreenPreview(false)}
@@ -122,34 +175,27 @@ const CreateResume: React.FC = () => {
                 onConfirm={handleConfirmExport}
             />
 
-            <div className="flex">
-                {/* Vertical tab navigation */}
-                <div className="bg-white rounded-l-lg shadow-md border border-slate-200 mr-6 flex-shrink-0 self-start sticky top-6">
+            {/* Mobile Bottom Navigation */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-md border-t border-slate-200 z-10">
+                <div className="flex justify-around items-center h-16">
+                    {renderTabButton('content', <Layout className="w-5 h-5" />, 'Content')}
+                    {renderTabButton('customization', <Palette className="w-5 h-5" />, 'Design')}
+                    <button
+                        className="flex flex-col items-center justify-center text-slate-600 hover:text-slate-800"
+                        onClick={handleExportPDF}
+                    >
+                        <FileDown className="w-5 h-5" />
+                        <span className="text-xs mt-1">Export</span>
+                    </button>
+                </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row pb-20 md:pb-0">
+                {/* Desktop Sidebar Navigation - hidden on mobile */}
+                <div className="hidden md:block bg-white rounded-lg shadow-md border border-slate-200 mr-6 flex-shrink-0 self-start sticky top-6">
                     <div className="flex flex-col border-r border-slate-200">
-                        <button
-                            className={`p-4 font-medium transition-colors relative ${activeTab === 'content'
-                                ? 'text-blue-600 border-r-2 border-blue-600 bg-white'
-                                : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                                }`}
-                            onClick={() => setActiveTab('content')}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Layout className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Content</span>
-                            </div>
-                        </button>
-                        <button
-                            className={`p-4 font-medium transition-colors relative ${activeTab === 'customization'
-                                ? 'text-blue-600 border-r-2 border-blue-600 bg-white'
-                                : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                                }`}
-                            onClick={() => setActiveTab('customization')}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Palette className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Design</span>
-                            </div>
-                        </button>
+                        {renderTabButton('content', <Layout className="w-5 h-5 mb-1" />, 'Content')}
+                        {renderTabButton('customization', <Palette className="w-5 h-5 mb-1" />, 'Design')}
                         <button
                             className="p-4 font-medium transition-colors relative text-slate-600 hover:text-slate-800 hover:bg-slate-50"
                             onClick={handleExportPDF}
@@ -165,7 +211,7 @@ const CreateResume: React.FC = () => {
                 {/* Content area */}
                 <div className="flex-1">
                     {activeTab === 'content' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 relative">
                             <div className={`${isMobilePreviewVisible ? 'hidden' : 'block'} sm:block`}>
                                 <ResumeEditor
                                     {...editorProps}
@@ -174,8 +220,8 @@ const CreateResume: React.FC = () => {
                                 />
                             </div>
                             <div className={`${isMobilePreviewVisible ? 'block' : 'hidden'} sm:block`}>
-                                <div className="lg:sticky top-20 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
-                                    <div className="flex justify-center items-center">
+                                <div className="lg:sticky top-20 hide-scrollbar overflow-x-auto" style={{ maxHeight: 'calc(100vh - 8rem)', overflowY: 'auto' }}>
+                                    <div className="flex justify-center items-center min-w-full">
                                         {renderPreviewContainer(
                                             resumeData,
                                             customizationOptions,
@@ -189,8 +235,8 @@ const CreateResume: React.FC = () => {
                     )}
 
                     {activeTab === 'customization' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
-                            <div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 relative">
+                            <div className={`${isMobilePreviewVisible ? 'hidden' : 'block'} sm:block`}>
                                 <ResumeCustomizationPanel
                                     options={customizationOptions}
                                     onChange={handlers.setCustomizationOptions}
@@ -198,9 +244,9 @@ const CreateResume: React.FC = () => {
                                     onSaveAsDraft={handlers.saveAsDraft}
                                 />
                             </div>
-                            <div>
-                                <div className="lg:sticky top-24 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
-                                    <div className="flex justify-center items-center">
+                            <div className={`${isMobilePreviewVisible ? 'block' : 'hidden'} sm:block`}>
+                                <div className="lg:sticky top-24 hide-scrollbar overflow-x-auto" style={{ maxHeight: 'calc(100vh - 8rem)', overflowY: 'auto' }}>
+                                    <div className="flex justify-center items-center min-w-full">
                                         {renderPreviewContainer(
                                             resumeData,
                                             customizationOptions,
