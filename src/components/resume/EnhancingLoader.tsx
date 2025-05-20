@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, FileText, Loader2, Settings, Sparkles, Coffee, Brain, Bot } from 'lucide-react';
+import { CheckCircle2, FileText, Loader2, Settings, Sparkles, Coffee, Brain, Bot, AlertCircle } from 'lucide-react';
 import { Progress } from '../ui/Progress';
 
 // Custom CSS for animations
@@ -15,7 +15,7 @@ const animationStyles = `
 `;
 
 interface EnhancingLoaderProps {
-    stage: 'extracting' | 'enhancing' | 'finalizing';
+    stage: 'extracting' | 'enhancing' | 'finalizing' | 'error';
 }
 
 const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
@@ -81,6 +81,18 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
             "Running final sanity check on your 'transferable skills' claims...",
             "Adding strategic white space to hide the fact that you lack experience...",
             "Creating a polished version of you that even you won't recognize..."
+        ],
+        error: [
+            "Oops! Something went wrong...",
+            "The AI is having an existential crisis...",
+            "Our servers are taking a coffee break...",
+            "The resume enhancement machine needs a reboot...",
+            "Even AI has bad days sometimes...",
+            "The algorithm is having a moment...",
+            "Our robots are on strike...",
+            "The enhancement process needs a timeout...",
+            "The AI is questioning its life choices...",
+            "Our servers are having a midlife crisis..."
         ]
     };
 
@@ -111,6 +123,8 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                 return 65;
             case 'finalizing':
                 return 90;
+            case 'error':
+                return 0;
             default:
                 return 0;
         }
@@ -125,6 +139,8 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                 return 'Enhancing resume content with AI...';
             case 'finalizing':
                 return 'Finalizing your resume data...';
+            case 'error':
+                return 'Error enhancing resume...';
             default:
                 return 'Processing...';
         }
@@ -138,6 +154,8 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                 return 'Improving content quality and formatting';
             case 'finalizing':
                 return 'Preparing your resume for editing';
+            case 'error':
+                return 'Please try again or contact support';
             default:
                 return '';
         }
@@ -155,7 +173,8 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
         const stageIcons = {
             extracting: [FileText, Bot, Brain],
             enhancing: [Sparkles, Brain, Settings],
-            finalizing: [Bot, Sparkles, Coffee]
+            finalizing: [Bot, Sparkles, Coffee],
+            error: [AlertCircle, Bot, Brain]
         };
 
         // Get appropriate icons or fallback to default set
