@@ -90,7 +90,9 @@ WhatTheCV helps job seekers create professionally designed resumes that are opti
 
 ## Technology Stack
 
-- **Frontend**: React, TypeScript, Tailwind CSS
+- **Frontend**: Preact, TypeScript, Tailwind CSS
+- **Backend**: Python FastAPI
+- **Deployments**: Docker
 - **UI Components**: Custom components with Tailwind styling
 - **Icons**: Lucide React
 - **State Management**: React Hooks
