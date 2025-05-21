@@ -12,7 +12,7 @@ export const formatBulletPoints = (text: string): string => {
     let formattedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
     // Replace any bullet point with a newline and bullet point
-    formattedText = formattedText.replace(/[•\-\*]/g, '\n•');
+    formattedText = formattedText.replace(/[•\*]/g, '\n•');
 
     // Remove any double newlines
     formattedText = formattedText.replace(/\n\n+/g, '\n');

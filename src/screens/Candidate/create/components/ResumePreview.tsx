@@ -665,7 +665,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                         )}
                                                                         {exp.location && <span className='px-1'>{"|"}</span>}
                                                                         {exp.location && (
-                                                                            <span>{exp.location}</span>
+                                                                            <span>{exp.location || ''}</span>
                                                                         )}
                                                                     </div>
                                                                 )}
