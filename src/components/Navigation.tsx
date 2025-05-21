@@ -1,4 +1,4 @@
-import { Briefcase, ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, X } from 'lucide-react';
+import { Briefcase, ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageFromPath } from '../routes';
