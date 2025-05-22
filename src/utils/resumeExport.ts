@@ -51,6 +51,11 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
             <head>
                 <title>${resumeData.personalInfo.name || 'Resume'}_${formattedDate}.pdf</title>
                 <meta charset="utf-8">
+                <meta name="pdfkit-page-size" content="A4">
+                <meta name="pdfkit-margin-top" content="0">
+                <meta name="pdfkit-margin-right" content="0">
+                <meta name="pdfkit-margin-bottom" content="0">
+                <meta name="pdfkit-margin-left" content="0">
                 <style>
                     @page {
                         size: 210mm 297mm;
@@ -62,6 +67,9 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                         width: 210mm;
                         height: 297mm;
                         overflow: hidden;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
                     }
                     .print-container {
                         position: relative;
@@ -102,9 +110,13 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                     p, div {
                         text-overflow: ellipsis !important;
                         overflow: hidden !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     h1, h2, h3, h4, h5, h6 {
                         font-weight: inherit !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     .font-black {
                         font-weight: 800 !important;
@@ -125,12 +137,13 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                         margin-bottom: 1.25rem !important;
                     }
                     
-                    /* Ensure bullet points display properly */
                     ul {
                         list-style-type: disc !important;
                         list-style-position: outside !important;
                         padding-left: 1.5em !important;
                         display: block !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     
                     ol {
@@ -138,32 +151,42 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                         list-style-position: outside !important;
                         padding-left: 1.5em !important;
                         display: block !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     
                     li {
                         display: list-item !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     
-                    /* Target the safely content-rendered HTML */
                     .safe-html-content ul, 
                     .safe-html-content ol,
                     .safe-html-content li {
                         list-style-position: outside !important;
                         overflow: visible !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     
-                    /* Style for rich text formatting */
                     b, strong {
                         font-weight: 800 !important;
                         letter-spacing: -0.01em;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     
                     i, em {
                         font-style: italic !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     
                     u {
                         text-decoration: underline !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     
                     @media (min-width: 768px) {
@@ -181,10 +204,14 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                         max-height: none !important;
                         overflow: visible !important;
                         line-height: 1.4 !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     .skills-list, .project-list {
                         max-height: none !important;
                         overflow: hidden !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
                     }
                     .mb-8 {
                         margin-bottom: 1rem !important;
