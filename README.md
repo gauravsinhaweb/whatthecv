@@ -163,8 +163,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-- **Project Maintainer**: [Gaurav Sinha](https://github.com/gauravsinhaweb)
-- **Project Link**: [https://github.com/gauravsinhaweb/whatthecv](https://github.com/gauravsinhaweb/whatthecv)
+- **Project Maintainer**: [Gaurav Sinha](https://x.com/defigoro)
+- **Frontend**: [https://github.com/gauravsinhaweb/whatthecv](https://github.com/gauravsinhaweb/whatthecv)
+- **Backend**: [https://github.com/gauravsinhaweb/whatthecv-backend](https://github.com/gauravsinhaweb/whatthecv-backend)
 - **Issues**: [https://github.com/gauravsinhaweb/whatthecv/issues](https://github.com/gauravsinhaweb/whatthecv/issues)
 
 ## Acknowledgements
