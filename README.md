@@ -24,23 +24,6 @@
 
 WhatTheCV helps job seekers create professionally designed resumes that are optimized to pass through Applicant Tracking Systems, while also providing tools for recruiters to find ideal candidates. Our AI-powered platform offers intelligent feedback, job-specific tailoring, and professional templates.
 
-## Features
-
-### For Job Seekers
-
-- **ATS Optimization** - Get your resume scored against Applicant Tracking Systems and receive detailed improvement suggestions
-- **Professional Templates** - Choose from multiple ATS-friendly templates designed for tech professionals
-- **AI-Powered Analysis** - Receive intelligent feedback on your resume content and structure
-- **Job-Specific Tailoring** - Customize your resume for specific job descriptions to increase your match score
-- **Privacy Control** - Choose whether your resume is visible to recruiters or keep it private while you work on it
-
-### For Recruiters
-
-- **Candidate Search** - Find matching candidates based on job requirements
-- **Job Posting** - Post job listings that candidates can target their resumes toward
-- **Skills Filtering** - Filter candidates by specific skills and qualifications
-- **Direct Contact** - Connect with promising candidates through the platform
-
 ## Getting Started
 
 ### Prerequisites
