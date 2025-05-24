@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageFromPath } from '../routes';
 import { User as UserType } from '../types';
+import { signInWithGoogle, signOut, getSession, getUser } from '../lib/supabase';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -18,15 +19,35 @@ const Navigation: React.FC = () => {
   const currentPage = getPageFromPath(location.pathname);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
+    checkAuth();
+  }, [location]);
 
-    if (token) {
-      fetchUserProfile(token);
-    } else {
+  const checkAuth = async () => {
+    try {
+      const session = await getSession();
+      setIsAuthenticated(!!session);
+
+      if (session) {
+        const user = await getUser();
+        if (user) {
+          setUserProfile({
+            id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+            isVerified: user.email_confirmed_at !== null,
+            picture: user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email || '')}&background=random`
+          });
+        }
+      } else {
+        setUserProfile(null);
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+      setLoginError('Failed to check authentication status');
+      setIsAuthenticated(false);
       setUserProfile(null);
     }
-  }, [location]);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,74 +62,28 @@ const Navigation: React.FC = () => {
     };
   }, []);
 
-  const fetchUserProfile = async (token: string) => {
-    try {
-      setIsLoading(true);
-      setLoginError(null);
-      const baseApiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      const cleanBaseUrl = baseApiUrl.replace(/\/api\/v1\/?$/, '');
-
-      // Ensure token is properly formatted
-      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-      console.log('Fetching user profile with token:', formattedToken.substring(0, 20) + '...');
-
-      const response = await fetch(`${cleanBaseUrl}/api/v1/auth/me`, {
-        method: 'GET',
-        headers: {
-          'Authorization': formattedToken,
-          'accept': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('User profile fetched successfully:', userData);
-        setUserProfile({
-          id: userData.id,
-          email: userData.email,
-          name: userData.email.split('@')[0],
-          isVerified: userData.is_verified,
-          picture: userData.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.email)}&background=random`
-        });
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Failed to fetch user profile:', errorData);
-        setLoginError(errorData.detail || errorData.message || 'Failed to fetch user profile');
-        localStorage.removeItem('token');
-        setIsAuthenticated(false);
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      setLoginError('Network error occurred');
-      localStorage.removeItem('token');
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    setUserProfile(null);
-    setShowUserMenu(false);
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      setUserProfile(null);
+      setShowUserMenu(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      setLoginError('Failed to logout');
+    }
   };
 
   const handleLogin = async () => {
     try {
       setIsLoading(true);
       setLoginError(null);
-      const baseApiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      const baseUrl = baseApiUrl.endsWith('/api/v1')
-        ? baseApiUrl.slice(0, -7)
-        : baseApiUrl;
-
-      window.location.href = `${baseUrl}/api/v1/auth/google`;
+      await signInWithGoogle();
     } catch (error) {
       console.error('Login error:', error);
       setLoginError('Failed to initiate login');

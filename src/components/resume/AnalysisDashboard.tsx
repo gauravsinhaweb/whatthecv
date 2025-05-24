@@ -551,17 +551,15 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
 
                     <div>
                         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as AnalysisTab)} className="p-0">
-                            <TabsList className="w-full bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-3 rounded-t-xl border-b border-slate-200 h-auto justify-start overflow-x-auto no-scrollbar">
+                            <TabsList className="w-full bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-3 rounded-t-xl border-b border-slate-200 h-auto justify-around overflow-x-auto no-scrollbar">
                                 {(Object.keys({
                                     overview: { label: 'Overview', icon: Award, color: 'blue' },
-                                    format: { label: 'Format', icon: FileText, color: 'emerald' },
                                     content: { label: 'Content', icon: BarChart2, color: 'indigo' },
                                     keywords: { label: 'Keywords', icon: KeyRound, color: 'purple' },
                                     improvement: { label: 'Improvements', icon: Layers, color: 'amber' }
                                 }) as AnalysisTab[]).map(tab => {
                                     const config = {
                                         overview: { label: 'Overview', icon: Award, color: 'blue' },
-                                        format: { label: 'Format', icon: FileText, color: 'emerald' },
                                         content: { label: 'Content', icon: BarChart2, color: 'indigo' },
                                         keywords: { label: 'Keywords', icon: KeyRound, color: 'purple' },
                                         improvement: { label: 'Improvements', icon: Layers, color: 'amber' }
@@ -638,12 +636,12 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                                         <FileText className="h-5 w-5 text-blue-500 mr-2" />
                                                         Format Enhancement
                                                     </h3>
-                                                    <div className={`px-3 py-1 rounded-full text-sm font-medium 
+                                                    {/* <div className={`px-3 py-1 rounded-full text-sm font-medium 
                                                         ${analysisData.format.score && analysisData.format.score >= 80 ? 'bg-emerald-100 text-emerald-700' :
                                                             analysisData.format.score && analysisData.format.score >= 60 ? 'bg-indigo-100 text-indigo-700' :
                                                                 analysisData.format.score ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>
                                                         Score: {analysisData.format.score ?? "--"}/100
-                                                    </div>
+                                                    </div> */}
                                                 </div>
                                             </div>
 
@@ -714,12 +712,12 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                                         <BarChart2 className="h-5 w-5 text-indigo-500 mr-2" />
                                                         Content Optimization
                                                     </h3>
-                                                    <div className={`px-3 py-1 rounded-full text-sm font-medium 
+                                                    {/* <div className={`px-3 py-1 rounded-full text-sm font-medium 
                                                         ${analysisData.content.score && analysisData.content.score >= 80 ? 'bg-emerald-100 text-emerald-700' :
                                                             analysisData.content.score && analysisData.content.score >= 60 ? 'bg-indigo-100 text-indigo-700' :
                                                                 analysisData.content.score ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>
                                                         Score: {analysisData.content.score ?? "--"}/100
-                                                    </div>
+                                                    </div> */}
                                                 </div>
                                             </div>
 
@@ -790,12 +788,12 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                                         <KeyRound className="h-5 w-5 text-purple-500 mr-2" />
                                                         Keyword Optimization
                                                     </h3>
-                                                    <div className={`px-3 py-1 rounded-full text-sm font-medium 
+                                                    {/* <div className={`px-3 py-1 rounded-full text-sm font-medium 
                                                         ${analysisData.tailoring.score && analysisData.tailoring.score >= 80 ? 'bg-emerald-100 text-emerald-700' :
                                                             analysisData.tailoring.score && analysisData.tailoring.score >= 60 ? 'bg-indigo-100 text-indigo-700' :
                                                                 analysisData.tailoring.score ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>
                                                         Score: {analysisData.tailoring.score ?? "--"}/100
-                                                    </div>
+                                                    </div> */}
                                                 </div>
                                             </div>
 
@@ -901,12 +899,12 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                                         <Rocket className="h-5 w-5 text-indigo-500 mr-2" />
                                                         Performance Boosters
                                                     </h3>
-                                                    <div className={`px-3 py-1 rounded-full text-sm font-medium 
+                                                    {/* <div className={`px-3 py-1 rounded-full text-sm font-medium 
                                                         ${analysisData.sections.score && analysisData.sections.score >= 80 ? 'bg-emerald-100 text-emerald-700' :
                                                             analysisData.sections.score && analysisData.sections.score >= 60 ? 'bg-indigo-100 text-indigo-700' :
                                                                 analysisData.sections.score ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>
                                                         Score: {analysisData.sections.score ?? "--"}/100
-                                                    </div>
+                                                    </div> */}
                                                 </div>
                                             </div>
 
