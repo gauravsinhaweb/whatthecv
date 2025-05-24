@@ -137,12 +137,12 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
         }
     },
     colors: {
-        accent: '#2563eb',
+        accent: '#000000',
         text: '#000000',
         headings: '#000000',
     },
     spacing: {
-        fontSize: 10.5,
+        fontSize: 11.5,
         lineHeight: 1.2,
         margins: {
             left: 10,
@@ -153,11 +153,11 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
     },
     font: {
         family: 'serif',
-        specificFont: 'Source Serif Pro',
+        specificFont: 'Times New Roman',
     },
     header: {
         nameSize: 'l',
-        nameBold: true,
+        nameBold: false,
         jobTitleSize: 'm',
         showPhoto: false,
         headerFont: 'Source Sans Pro',
