@@ -121,12 +121,6 @@ export async function enhanceResumeFromFile(
         const formData = new FormData();
         formData.append('file', file);
 
-        console.log('Sending enhance-file request with:', {
-            fileName: file.name,
-            fileSize: file.size,
-            fileType: file.type
-        });
-
         const response = await api.post('/resume/enhance-file', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -134,11 +128,6 @@ export async function enhanceResumeFromFile(
             timeout: 120000, // Increase timeout to 2 minutes
             validateStatus: status => true, // Don't throw on error status codes
             signal: undefined, // Remove any existing signal to prevent cancellation
-        });
-
-        console.log('Received enhance-file response:', {
-            status: response.status,
-            statusText: response.statusText,
         });
 
         if (response.status === 499) {
