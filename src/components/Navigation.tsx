@@ -104,12 +104,12 @@ const Navigation: React.FC = () => {
       path: '/create-resume',
       page: 'create-resume',
     },
-    {
-      name: "I'm a Recruiter",
-      icon: <Briefcase className="w-5 h-5" />,
-      path: '/recruiter-coming-soon',
-      page: 'recruiter-coming-soon',
-    },
+    // {
+    //   name: "I'm a Recruiter",
+    //   icon: <Briefcase className="w-5 h-5" />,
+    //   path: '/recruiter-coming-soon',
+    //   page: 'recruiter-coming-soon',
+    // },
   ];
 
   const handleNavigation = (path: string) => {

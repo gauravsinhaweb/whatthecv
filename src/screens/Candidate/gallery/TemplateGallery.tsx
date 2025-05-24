@@ -1,8 +1,38 @@
-import React from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import { Card } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
+import { toast } from 'react-hot-toast';
 
 const TemplateGallery: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const handleSubscribe = async () => {
+    if (!email) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsSubscribed(true);
+      toast.success('Successfully subscribed to template notifications!');
+      setEmail('');
+    } catch (error) {
+      toast.error('Failed to subscribe. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
+    setEmail(input.value);
+  };
+
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
@@ -13,25 +43,53 @@ const TemplateGallery: React.FC = () => {
 
         <Card className="w-full p-8 mb-10">
           <div className="flex flex-col items-center">
-            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-slate-800 mb-2">Be the first to know</h3>
-            <p className="text-slate-600 mb-6 text-center">
-              Subscribe to get notified when our template gallery launches
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <Button className="whitespace-nowrap">
-                Notify Me
-              </Button>
-            </div>
+            {isSubscribed ? (
+              <div className="text-center">
+                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-2">You're on the list!</h3>
+                <p className="text-slate-600 mb-6">
+                  We'll notify you when our template gallery launches. Stay tuned for updates!
+                </p>
+                <Button
+                  className="text-sm"
+                  onClick={() => setIsSubscribed(false)}
+                >
+                  Subscribe Another Email
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-2">Be the first to know</h3>
+                <p className="text-slate-600 mb-6 text-center">
+                  Subscribe to get notified when our template gallery launches
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    className="flex-1 px-4 py-3 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <Button
+                    className="whitespace-nowrap"
+                    onClick={handleSubscribe}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Subscribing...' : 'Notify Me'}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </Card>
 
