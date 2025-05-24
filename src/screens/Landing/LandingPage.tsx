@@ -44,9 +44,7 @@ const LandingPage: React.FC = () => {
         {
             title: "Resources",
             links: [
-                { name: "Help Center", path: "#" },
-                { name: "Privacy Policy", path: "#" },
-                { name: "Terms of Service", path: "#" }
+                { name: "Feedback", path: "https://docs.google.com/forms/d/e/1FAIpQLScDwpgHCKzVwUaxGGDDAxR6mBhJfTgy5O0Je2Ldt07KZ2we5g/viewform?usp=sharing&ouid=113476487922478109524" },
             ]
         }
     ];
@@ -539,6 +537,8 @@ const LandingPage: React.FC = () => {
                                             <a
                                                 href={link.path}
                                                 className="text-slate-400 hover:text-white transition-colors duration-300"
+                                                target={link.path.startsWith('http') ? "_blank" : undefined}
+                                                rel={link.path.startsWith('http') ? "noopener noreferrer" : undefined}
                                             >
                                                 {link.name}
                                             </a>
