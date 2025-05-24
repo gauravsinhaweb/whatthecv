@@ -2,6 +2,7 @@ import React, { useState, ChangeEvent } from 'react';
 import { Card } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import { toast } from 'react-hot-toast';
+import { subscribeToNotifications, NotificationType } from '../../../services/notification';
 
 const TemplateGallery: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,8 +17,7 @@ const TemplateGallery: React.FC = () => {
 
     try {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await subscribeToNotifications(email, NotificationType.TEMPLATE);
       setIsSubscribed(true);
       toast.success('Successfully subscribed to template notifications!');
       setEmail('');

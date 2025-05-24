@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, Briefcase } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/ui/Button';
+import { subscribeToNotifications, NotificationType } from '../../services/notification';
 
 const RecruiterComingSoon: React.FC = () => {
     const navigate = useNavigate();
@@ -18,8 +19,7 @@ const RecruiterComingSoon: React.FC = () => {
 
         try {
             setIsLoading(true);
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await subscribeToNotifications(email, NotificationType.RECRUITER);
             setIsSubscribed(true);
             toast.success('Successfully subscribed to recruiter portal notifications!');
             setEmail('');
