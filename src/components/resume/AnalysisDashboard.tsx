@@ -1,12 +1,10 @@
-import { AlertCircle, Award, BarChart2, Check, Clock, FileText, KeyRound, Layers, Loader2, Plus, Target, Wand2, ChevronUp, ChevronDown, Sparkles, Lightbulb, Rocket, Zap, ArrowUpRight, Stars, Palette } from 'lucide-react';
+import { Award, BarChart2, Check, ChevronDown, ChevronUp, FileText, KeyRound, Layers, Lightbulb, Loader2, Plus, Rocket, Sparkles, Target, Zap } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnalysisCategory, performDetailedAnalysis } from '../../services/analysisService';
 import { useResumeStore } from '../../store/resumeStore';
 import { enhanceResumeFromFile } from '../../utils/resumeService';
-import { Badge } from '../ui/Badge';
 import Button from '../ui/Button';
-import { Progress } from '../ui/Progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/Tabs';
 import EnhancingLoader from './EnhancingLoader';
 
