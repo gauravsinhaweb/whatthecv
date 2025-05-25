@@ -13,10 +13,11 @@ import {
     ThumbsUp,
     Twitter
 } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FaqSection from '../../components/landing/FaqSection';
 import Button from '../../components/ui/Button';
+import PrivacyPolicyModal from '../../components/modals/PrivacyPolicyModal';
 import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
 import './landing.css';
 import resumeBuilderImg from '/assets/create-resume.png';
@@ -26,6 +27,7 @@ const LandingPage: React.FC = () => {
     const { scrollYProgress } = useScroll();
     const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
     const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+    const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
     const handleNavigate = (path: string) => {
         navigate(path);
@@ -45,6 +47,7 @@ const LandingPage: React.FC = () => {
             title: "Resources",
             links: [
                 { name: "Feedback", path: "https://docs.google.com/forms/d/e/1FAIpQLScDwpgHCKzVwUaxGGDDAxR6mBhJfTgy5O0Je2Ldt07KZ2we5g/viewform?usp=sharing&ouid=113476487922478109524" },
+                { name: "Privacy Policy", path: "#", onClick: () => setIsPrivacyModalOpen(true) }
             ]
         }
     ];
@@ -538,6 +541,12 @@ const LandingPage: React.FC = () => {
                                         >
                                             <a
                                                 href={link.path}
+                                                onClick={(e) => {
+                                                    if (link.onClick) {
+                                                        e.preventDefault();
+                                                        link.onClick();
+                                                    }
+                                                }}
                                                 className="text-slate-400 hover:text-white transition-colors duration-300"
                                                 target={link.path.startsWith('http') ? "_blank" : undefined}
                                                 rel={link.path.startsWith('http') ? "noopener noreferrer" : undefined}
@@ -560,6 +569,10 @@ const LandingPage: React.FC = () => {
                     </div>
                 </div>
             </footer>
+            <PrivacyPolicyModal
+                isOpen={isPrivacyModalOpen}
+                onClose={() => setIsPrivacyModalOpen(false)}
+            />
         </div>
     );
 };
