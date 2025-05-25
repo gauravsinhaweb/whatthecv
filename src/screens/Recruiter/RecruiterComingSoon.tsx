@@ -4,35 +4,28 @@ import { ArrowLeft, Clock, Briefcase } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/ui/Button';
 import { subscribeToNotifications, NotificationType } from '../../services/notification';
+import { useEmailValidation } from '../../hooks/useEmailValidation';
 
 const RecruiterComingSoon: React.FC = () => {
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
+    const { email, error, handleEmailChange, validateEmail } = useEmailValidation();
     const [isLoading, setIsLoading] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
 
     const handleSubscribe = async () => {
-        if (!email) {
-            toast.error('Please enter your email address');
-            return;
-        }
+        const { isValid } = validateEmail(email);
+        if (!isValid) return;
 
+        setIsLoading(true);
         try {
-            setIsLoading(true);
             await subscribeToNotifications(email, NotificationType.RECRUITER);
             setIsSubscribed(true);
             toast.success('Successfully subscribed to recruiter portal notifications!');
-            setEmail('');
         } catch (error) {
             toast.error('Failed to subscribe. Please try again.');
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const input = e.target as HTMLInputElement;
-        setEmail(input.value);
     };
 
     return (
@@ -121,21 +114,27 @@ const RecruiterComingSoon: React.FC = () => {
                         <p className="text-slate-500 text-sm">
                             Want to get notified when the Recruiter Portal launches?
                         </p>
-                        <div className="flex max-w-md mx-auto mt-4">
-                            <input
-                                type="email"
-                                placeholder="Your email address"
-                                value={email}
-                                onChange={handleEmailChange}
-                                className="flex-grow p-2 border border-slate-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <Button
-                                onClick={handleSubscribe}
-                                disabled={isLoading}
-                                className="rounded-l-none"
-                            >
-                                {isLoading ? 'Subscribing...' : 'Notify Me'}
-                            </Button>
+                        <div className="flex flex-col max-w-md mx-auto mt-4 gap-2">
+                            <div className="flex">
+                                <input
+                                    type="email"
+                                    placeholder="Your email address"
+                                    value={email}
+                                    onChange={handleEmailChange}
+                                    className={`flex-grow p-2 border ${error ? 'border-red-500' : 'border-slate-300'
+                                        } rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                />
+                                <Button
+                                    onClick={handleSubscribe}
+                                    disabled={isLoading || !!error}
+                                    className="rounded-l-none"
+                                >
+                                    {isLoading ? 'Subscribing...' : 'Notify Me'}
+                                </Button>
+                            </div>
+                            {error && (
+                                <p className="text-sm text-red-500">{error}</p>
+                            )}
                         </div>
                     </>
                 )}

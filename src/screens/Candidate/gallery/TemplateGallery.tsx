@@ -3,34 +3,27 @@ import { Card } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import { toast } from 'react-hot-toast';
 import { subscribeToNotifications, NotificationType } from '../../../services/notification';
+import { useEmailValidation } from '../../../hooks/useEmailValidation';
 
 const TemplateGallery: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const { email, error, handleEmailChange, validateEmail } = useEmailValidation();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   const handleSubscribe = async () => {
-    if (!email) {
-      toast.error('Please enter your email address');
-      return;
-    }
+    const { isValid } = validateEmail(email);
+    if (!isValid) return;
 
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       await subscribeToNotifications(email, NotificationType.TEMPLATE);
       setIsSubscribed(true);
       toast.success('Successfully subscribed to template notifications!');
-      setEmail('');
     } catch (error) {
       toast.error('Failed to subscribe. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.target as HTMLInputElement;
-    setEmail(input.value);
   };
 
   return (
@@ -73,17 +66,23 @@ const TemplateGallery: React.FC = () => {
                   Subscribe to get notified when our template gallery launches
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={handleEmailChange}
-                    className="flex-1 px-4 py-3 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <div className="flex-1">
+                    <input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={handleEmailChange}
+                      className={`w-full px-4 py-3 rounded-md border ${error ? 'border-red-500' : 'border-slate-300'
+                        } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    />
+                    {error && (
+                      <p className="mt-1 text-sm text-red-500">{error}</p>
+                    )}
+                  </div>
                   <Button
                     className="whitespace-nowrap"
                     onClick={handleSubscribe}
-                    disabled={isLoading}
+                    disabled={isLoading || !!error}
                   >
                     {isLoading ? 'Subscribing...' : 'Notify Me'}
                   </Button>
