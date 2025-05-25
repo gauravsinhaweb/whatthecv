@@ -496,14 +496,16 @@ const LandingPage: React.FC = () => {
                             </p>
                             <div className="flex space-x-4">
                                 {[
-                                    { icon: <Twitter className="h-5 w-5" />, href: "#" },
-                                    { icon: <Linkedin className="h-5 w-5" />, href: "#" },
-                                    { icon: <Github className="h-5 w-5" />, href: "#" },
-                                    { icon: <Mail className="h-5 w-5" />, href: "#" }
+                                    { icon: <Twitter className="h-5 w-5" />, href: "https://x.com/defigoro" },
+                                    { icon: <Linkedin className="h-5 w-5" />, href: "https://www.linkedin.com/in/gauravsinhaa/" },
+                                    { icon: <Github className="h-5 w-5" />, href: "https://github.com/gauravsinhaweb" },
+                                    { icon: <Mail className="h-5 w-5" />, href: "mailto:sinhagaurav.me@gmail.com" }
                                 ].map((social, i) => (
                                     <motion.a
                                         key={i}
                                         href={social.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="bg-slate-800 p-2 rounded-full hover:bg-blue-600 transition-colors duration-300"
                                         whileHover={{ y: -5 }}
                                         transition={{ type: "spring", stiffness: 400 }}
