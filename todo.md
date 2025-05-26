@@ -91,11 +91,3 @@ Want me to help mock up a sample UI/UX layout or onboarding flow based on these 
 - improved resume after analysis and view full analysis - breakdown prompts
 
 ---
-
-v1 goal
-
-- only date only year
-- font fam ui (bug)
-- [akash arora963@gmail.com](mailto:akash arora963@gmail.com). don’t manipulate personal info (space in email)
-- modal edit
-- verify details b4 export
