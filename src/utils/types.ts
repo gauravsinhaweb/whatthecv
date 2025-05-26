@@ -47,6 +47,11 @@ export interface EnhancedResumeData {
         location: string;
         summary: string;
         profilePicture?: string | null;
+        socialLinks?: {
+            platform: 'linkedin' | 'github' | 'twitter' | 'leetcode' | 'medium' | 'stackoverflow' | 'other';
+            url: string;
+            label?: string;
+        }[];
     };
     workExperience: Array<{
         id: string;
@@ -57,6 +62,7 @@ export interface EnhancedResumeData {
         endDate: string;
         current: boolean;
         description: string;
+        experienceLink?: string;
     }>;
     education: Array<{
         id: string;
@@ -66,6 +72,8 @@ export interface EnhancedResumeData {
         startDate: string;
         endDate: string;
         description: string;
+        degreeLink?: string;
+        institutionLink?: string;
     }>;
     skills: string[];
     projects: Array<{

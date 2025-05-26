@@ -21,7 +21,6 @@ const Navigation: React.FC = () => {
   useEffect(() => {
     checkAuth();
   }, [location]);
-
   const checkAuth = async () => {
     try {
       const session = await getSession();
@@ -35,7 +34,7 @@ const Navigation: React.FC = () => {
             email: user.email || '',
             name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
             isVerified: user.email_confirmed_at !== null,
-            picture: user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email || '')}&background=random`
+            picture: user.user_metadata?.picture || user.user_metadata?.avatar_url || ''
           });
         }
       } else {
@@ -161,7 +160,7 @@ const Navigation: React.FC = () => {
                   onClick={toggleUserMenu}
                   className="flex items-center space-x-2 p-1 rounded-full hover:bg-slate-100 focus:outline-none transition"
                 >
-                  {/* <div className="relative">
+                  <div className="relative">
                     {userProfile.picture ? (
                       <img
                         src={userProfile.picture}
@@ -173,7 +172,7 @@ const Navigation: React.FC = () => {
                         <User className="h-5 w-5 text-blue-600" />
                       </div>
                     )}
-                  </div> */}
+                  </div>
                   <span className="text-sm font-medium text-slate-700">{userProfile.name || userProfile.email.split('@')[0]}</span>
                   <ChevronDown className="h-4 w-4 text-slate-400" />
                 </button>
