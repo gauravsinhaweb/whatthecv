@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/assets/banner.svg" alt="WhatTheCV" width="800"/>
+  <img src="public/assets/banner.png" alt="WhatTheCV" width="800"/>
 
   <p>AI-powered resume builder and ATS optimization platform</p>
 
