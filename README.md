@@ -92,7 +92,7 @@ whatthecv/
 │   │   ├── Dashboard.tsx   # Main dashboard component
 │   │   └── ...       # Other components
 │   ├── pages/        # Page components
-│   ├── styles/       # Global styles
+│   ├── styles/       # Globalstyles
 │   ├── utils/        # Utility functions
 │   ├── types/        # TypeScript type definitions
 │   └── ...           # Other source files
