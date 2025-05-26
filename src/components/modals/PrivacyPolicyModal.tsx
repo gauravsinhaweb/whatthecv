@@ -78,6 +78,10 @@ const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, onClose
                                         We implement appropriate security measures to protect your personal information.
                                         However, no method of transmission over the internet is 100% secure.
                                     </p>
+                                    <p className="text-slate-600 mt-2">
+                                        Your data is stored temporarily and is automatically deleted after a certain period.
+                                        We do not retain your information longer than necessary to provide our services.
+                                    </p>
                                 </section>
 
                                 <section>
