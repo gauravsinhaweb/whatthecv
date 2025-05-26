@@ -21,7 +21,6 @@ const GoogleCallback: React.FC = () => {
         }
 
         if (token) {
-            console.log('Received token:', token.substring(0, 10) + '...');
             // Store token and set authenticated state
             localStorage.setItem('token', token);
             setIsProcessing(false);

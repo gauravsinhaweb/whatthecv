@@ -117,7 +117,6 @@ export function patchQuillInternals(): () => void {
                     };
                 }
 
-                console.log('Successfully patched Quill Scroll class with optimized observer');
             }
         } catch (e) {
             console.error('Error patching Quill:', e);

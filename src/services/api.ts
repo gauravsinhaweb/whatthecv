@@ -136,7 +136,6 @@ export const performDetailedAnalysis = async (
 
     // For now, we're simulating the API call
     const prompt = generateDetailedAnalysisPrompt(category, resumeText);
-    console.log(`Sending prompt for ${category} analysis:`, prompt.substring(0, 100) + '...');
 
     // Simulate API delay - different times for different categories to make it realistic
     const delays: Record<AnalysisCategory, number> = {
