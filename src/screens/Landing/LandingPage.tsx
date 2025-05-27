@@ -512,7 +512,7 @@ const LandingPage: React.FC = () => {
                                     { icon: <Twitter className="h-5 w-5" />, href: "https://x.com/defigoro" },
                                     { icon: <Linkedin className="h-5 w-5" />, href: "https://www.linkedin.com/in/gauravsinhaa/" },
                                     { icon: <Github className="h-5 w-5" />, href: "https://github.com/gauravsinhaweb" },
-                                    { icon: <Mail className="h-5 w-5" />, href: "mailto:sinhagaurav.me@gmail.com" }
+                                    { icon: <Mail className="h-5 w-5" />, href: "mailto:support@whatthecv.com" }
                                 ].map((social, i) => (
                                     <motion.a
                                         key={i}

@@ -114,7 +114,7 @@ const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, onClose
                                         href="mailto:sinhagaurav.me@gmail.com"
                                         className="text-blue-600 hover:text-blue-700 underline"
                                     >
-                                        sinhagaurav.me@gmail.com
+                                        support@whatthecv.com
                                     </a>
                                 </p>
                             </section>
