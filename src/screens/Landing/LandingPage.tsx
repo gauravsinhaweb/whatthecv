@@ -95,6 +95,8 @@ const LandingPage: React.FC = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.5 }}
                             className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6"
+                            role="status"
+                            aria-label="Platform Type"
                         >
                             AI-Powered Resume Platform
                         </motion.div>
@@ -104,14 +106,16 @@ const LandingPage: React.FC = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ type: "spring", stiffness: 50, duration: 0.8, delay: 0.2 }}
                             className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 leading-tight max-w-5xl"
+                            id="main-heading"
                         >
-                            Build an <span className="text-blue-600 relative inline-block">
+                            Build an <span className="text-blue-600 relative inline-block" aria-label="ATS-Optimized Resume">
                                 ATS-Optimized
                                 <motion.span
                                     className="absolute -bottom-2 left-0 right-0 h-1.5 bg-blue-600 rounded-full"
                                     initial={{ scaleX: 0 }}
                                     animate={{ scaleX: 1 }}
                                     transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
+                                    aria-hidden="true"
                                 />
                             </span> Resume That Gets You Hired
                         </motion.h1>
@@ -381,13 +385,13 @@ const LandingPage: React.FC = () => {
                         variants={containerVariants}
                         className="text-center mb-16"
                     >
-                        <motion.div variants={itemVariants} className="inline-block px-4 py-1.5 bg-indigo-100 rounded-full text-indigo-700 font-medium text-sm mb-6">
+                        <motion.div variants={itemVariants} className="inline-block px-4 py-1.5 bg-indigo-100 rounded-full text-indigo-700 font-medium text-sm mb-6" role="status" aria-label="Process Type">
                             Simple Process
                         </motion.div>
-                        <motion.h2 variants={itemVariants} className="text-4xl font-bold text-slate-900 mb-6">
+                        <motion.h2 variants={itemVariants} className="text-4xl font-bold text-slate-900 mb-6" id="how-it-works">
                             How It Works
                         </motion.h2>
-                        <motion.p variants={itemVariants} className="text-xl text-slate-600 max-w-2xl mx-auto">
+                        <motion.p variants={itemVariants} className="text-xl text-slate-600 max-w-2xl mx-auto" aria-labelledby="how-it-works">
                             From upload to interview-ready in minutes
                         </motion.p>
                     </motion.div>
@@ -491,10 +495,11 @@ const LandingPage: React.FC = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
+                                id="footer-heading"
                             >
                                 WhatTheCV
                             </motion.h3>
-                            <p className="text-slate-400 mb-6 max-w-md">
+                            <p className="text-slate-400 mb-6 max-w-md" aria-labelledby="footer-heading">
                                 The AI-powered resume platform that helps you create, analyze, and optimize your resume for maximum success with Applicant Tracking Systems.
                             </p>
                             <div className="flex space-x-4">

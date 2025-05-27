@@ -19,7 +19,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 export const signInWithGoogle = async () => {
     const redirectTo = import.meta.env.PROD
-        ? 'https://whatthecv.vercel.app/auth/callback'
+        ? 'https://www.whatthecv.com//auth/callback'
         : 'http://localhost:3000/auth/callback'
 
     const { data, error } = await supabase.auth.signInWithOAuth({

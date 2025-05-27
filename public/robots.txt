@@ -1,0 +1,34 @@
+User-agent: *
+Allow: /
+Allow: /sitemap.xml
+Allow: /create
+Allow: /analyze
+Allow: /templates
+Allow: /pricing
+Allow: /about
+Allow: /privacy
+Allow: /terms
+
+# Disallow admin and API routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /profile/
+
+# Crawl-delay for specific bots
+User-agent: Googlebot
+Crawl-delay: 1
+
+User-agent: Bingbot
+Crawl-delay: 1
+
+User-agent: Slurp
+Crawl-delay: 2
+
+# Sitemap location
+Sitemap: https://www.whatthecv.com/sitemap.xml
+
+# Allow all other routes
+Allow: /* 
