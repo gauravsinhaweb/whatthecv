@@ -80,6 +80,20 @@
       "url": "https://www.whatthecv.com"
     }
     </script>
+    <script>
+      const prodHost = 'www.whatthecv.com';
+      const currentHost = window.location.hostname;
+    
+      const isLocalhost =
+        currentHost === 'localhost' ||
+        currentHost === '127.0.0.1' ||
+        currentHost.endsWith('.local');
+    
+      if (!isLocalhost && currentHost !== prodHost) {
+        const newUrl = `https://${prodHost}${location.pathname}${location.search}${location.hash}`;
+        window.location.replace(newUrl);
+      }
+    </script>
   </head>
   <body>
     <div id="app" role="application" aria-label="WhatTheCV Application"></div>
