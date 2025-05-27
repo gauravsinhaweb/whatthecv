@@ -227,28 +227,6 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
             // Use the file directly instead of the extracted text
             const result = await enhanceResumeFromFile(file);
 
-            // Validate the enhanced data
-            const validationErrors = [];
-
-            if (!result.personalInfo || !result.personalInfo.name) {
-                validationErrors.push('Personal information is incomplete');
-            }
-
-            if (!result.workExperience || result.workExperience.length === 0) {
-                validationErrors.push('No work experience found');
-            }
-
-            if (!result.skills || result.skills.length === 0) {
-                validationErrors.push('No skills identified');
-            }
-
-            if (validationErrors.length > 0) {
-                console.warn('Validation warnings:', validationErrors);
-                errorMessage = validationErrors.join(', ');
-                setEnhancementStage('error');
-                throw new Error(errorMessage);
-            }
-
             setEnhancementStage('finalizing');
 
             // Save enhanced resume data to Zustand store
