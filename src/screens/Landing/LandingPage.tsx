@@ -25,8 +25,8 @@ import resumeBuilderImg from '/assets/create-resume.png';
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { scrollYProgress } = useScroll();
-    const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-    const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+    const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 1]);
+    const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.85]);
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
     const handleNavigate = (path: string) => {
@@ -172,20 +172,49 @@ const LandingPage: React.FC = () => {
 
                     <motion.div
                         style={{ opacity, scale }}
-                        className="relative max-w-4xl mx-auto"
+                        className="relative max-w-4xl mx-auto px-2 sm:px-6 lg:px-8 transform-gpu will-change-transform -mt-8 sm:mt-0"
                     >
-                        <div className="absolute -right-4 -top-4 bg-blue-500 text-white px-4 py-2 rounded-lg font-medium z-10 shadow-lg">
-                            Live Preview
-                        </div>
-                        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-                            <video
-                                autoPlay
-                                muted
-                                playsInline
-                                loop
-                                src="/assets/demo.mp4"
-                                className="w-full h-auto"
-                            />
+                        <div className="bg-white rounded-xl sm:rounded-2xl shadow-[0_20px_70px_-10px_rgba(0,0,0,0.5),0_0_0_1px_rgba(0,0,0,0.1),0_-20px_70px_-10px_rgba(36,99,235,0.2),0_-10px_40px_-5px_rgba(36,99,235,0.15)] sm:shadow-[0_30px_100px_-15px_rgba(0,0,0,0.6),0_0_0_1px_rgba(0,0,0,0.1),0_10px_30px_-5px_rgba(0,0,0,0.3),0_-30px_100px_-15px_rgba(36,99,235,0.25),0_-15px_50px_-10px_rgba(36,99,235,0.2)] overflow-hidden border border-slate-200 transition-all duration-300 ease-out">
+                            <div className="relative aspect-[16/10] sm:aspect-video">
+                                <video
+                                    autoPlay
+                                    muted
+                                    playsInline
+                                    loop
+                                    src="/assets/demo.mp4"
+                                    className="w-full h-full object-cover transform-gpu"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
+                                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1.5 sm:gap-2 bg-black/40 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transform-gpu">
+                                    <div className="relative flex items-center">
+                                        <motion.div
+                                            className="w-1.5 h-1.5 bg-white rounded-full transform-gpu"
+                                            animate={{
+                                                scale: [1, 1.2, 1],
+                                                opacity: [1, 0.8, 1],
+                                            }}
+                                            transition={{
+                                                duration: 1.5,
+                                                repeat: Infinity,
+                                                ease: "easeInOut"
+                                            }}
+                                        />
+                                        <motion.div
+                                            className="absolute w-1.5 h-1.5 bg-red-500 rounded-full transform-gpu"
+                                            animate={{
+                                                scale: [1, 2, 1],
+                                                opacity: [0.5, 0, 0.5],
+                                            }}
+                                            transition={{
+                                                duration: 1.5,
+                                                repeat: Infinity,
+                                                ease: "easeInOut"
+                                            }}
+                                        />
+                                    </div>
+                                    <span className="text-[10px] sm:text-xs text-white font-medium">Recording</span>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
                 </div>
