@@ -37,17 +37,17 @@ const LandingPage: React.FC = () => {
         {
             title: "Product",
             links: [
-                { name: "Templates", path: "/templates" },
                 { name: "Resume Builder", path: "/create-resume" },
+                { name: "For Recruiters", path: "/recruiter-coming-soon" },
                 { name: "ATS Checker", path: "/analyze" },
-                { name: "For Recruiters", path: "/recruiter-coming-soon" }
+                { name: "Templates", path: "/templates" },
             ]
         },
         {
             title: "Resources",
             links: [
+                { name: "Privacy Policy", path: "#", onClick: () => setIsPrivacyModalOpen(true) },
                 { name: "Feedback", path: "https://docs.google.com/forms/d/e/1FAIpQLScDwpgHCKzVwUaxGGDDAxR6mBhJfTgy5O0Je2Ldt07KZ2we5g/viewform?usp=sharing&ouid=113476487922478109524" },
-                { name: "Privacy Policy", path: "#", onClick: () => setIsPrivacyModalOpen(true) }
             ]
         }
     ];
