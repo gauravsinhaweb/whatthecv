@@ -8,7 +8,7 @@ export interface ResumeData {
         summary: string;
         profilePicture?: string;
         socialLinks?: {
-            platform: 'linkedin' | 'github' | 'twitter' | 'leetcode' | 'medium' | 'stackoverflow' | 'other';
+            platform: 'linkedin' | 'github' | 'twitter' | 'leetcode' | 'medium' | 'stackoverflow' | 'peerlist' | 'other';
             url: string;
             label?: string;
         }[];
@@ -88,6 +88,7 @@ export interface ResumeCustomizationOptions {
         photoSize?: 'small' | 'medium' | 'large';
         photoBorder?: 'none' | 'thin' | 'medium' | 'thick';
         photoStyle?: 'accent' | 'headings' | 'border' | 'none';
+        alignment?: 'left' | 'center';
     };
     sectionTitles: {
         size: 's' | 'm' | 'l' | 'xl';
@@ -164,6 +165,7 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
         photoSize: 'medium',
         photoBorder: 'thin',
         photoStyle: 'accent',
+        alignment: 'left',
     },
     sectionTitles: {
         size: 'l',
