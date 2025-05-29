@@ -360,8 +360,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 }}
             >
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-8" data-id="resume-header">
-                    <div className="max-w-2xl">
+                <div className={`flex flex-col md:flex-row ${customizationOptions.header.alignment === 'center' ? 'md:justify-center' : 'md:justify-between'} md:items-start mb-8`} data-id="resume-header">
+                    <div className={`${customizationOptions.header.alignment === 'center' ? 'text-center w-full' : ''}`}>
                         <h1 className={`${getNameFontSize()} font-${customizationOptions.header.nameBold ? 'bold' : 'medium'} uppercase tracking-tight`} style={{ color: getHeadingColor() }}>
                             {resumeData.personalInfo.name || 'YOUR NAME'}
                         </h1>
@@ -371,7 +371,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             </h2>
                         )}
 
-                        <div className="flex flex-wrap mt-3 text-sm gap-y-2 gap-x-6">
+                        <div className={`flex flex-wrap mt-3 text-sm gap-y-2 gap-x-6 ${customizationOptions.header.alignment === 'center' ? 'justify-center' : ''}`}>
                             {resumeData.personalInfo.phone && (
                                 <a
                                     href={`tel:${resumeData.personalInfo.phone}`}
@@ -465,6 +465,27 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             {resumeData.personalInfo.socialLinks && resumeData.personalInfo.socialLinks.map((link, index) => {
                                 if (!link.url || !link.url.startsWith('http')) return null;
 
+                                // Platform-specific URL validation
+                                const validatePlatformUrl = (platform: string, url: string) => {
+                                    if (!url) return false;
+
+                                    const patterns = {
+                                        linkedin: /^https?:\/\/(?:www\.)?linkedin\.com\/in\/[\w\-]+(?:\/)?$/i,
+                                        peerlist: /^https?:\/\/(?:www\.)?peerlist\.io\/[\w\-]+(?:\/)?$/i,
+                                        github: /^https?:\/\/(?:www\.)?github\.com\/[\w\-]+(?:\/)?$/i,
+                                        twitter: /^https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/[\w\-]+(?:\/)?$/i,
+                                        leetcode: /^https?:\/\/(?:www\.)?leetcode\.com\/u\/[\w\-]+(?:\/)?$/i,
+                                        medium: /^https?:\/\/(?:www\.)?medium\.com\/@[\w\-]+(?:\/)?$/i,
+                                        stackoverflow: /^https?:\/\/(?:www\.)?stackoverflow\.com\/users\/[\w\-]+(?:\/)?$/i
+                                    };
+
+                                    const pattern = patterns[platform as keyof typeof patterns];
+                                    return pattern ? pattern.test(url) : false;
+                                };
+
+                                // Skip if URL doesn't match the platform pattern
+                                if (!validatePlatformUrl(link.platform, link.url)) return null;
+
                                 let icon;
                                 let label = '';
 
@@ -524,6 +545,20 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     case 'stackoverflow':
                                         icon = <MessageSquare {...iconProps} />;
                                         label = link.label || 'Stack Overflow';
+                                        break;
+                                    case 'peerlist':
+                                        icon = <img
+                                            src="/assets/peerlist.svg"
+                                            alt="Peerlist"
+                                            className={iconSize}
+                                            style={{
+                                                color: iconColor,
+                                                filter: customizationOptions.socialIcons?.style === 'filled' ? 'none' : 'brightness(0)',
+                                                backgroundColor: customizationOptions.socialIcons?.style === 'filled' ? '#D9D9D9' : undefined,
+                                                borderRadius: customizationOptions.socialIcons?.style === 'filled' ? '8px' : undefined
+                                            }}
+                                        />;
+                                        label = link.label || 'Peerlist';
                                         break;
                                     default:
                                         icon = <ExternalLink {...iconProps} />;

@@ -1,5 +1,6 @@
 import {
     AlignLeft,
+    AlignCenter,
     ArrowDownUp,
     Award,
     BoldIcon,
@@ -509,6 +510,19 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                 orientation="horizontal"
                                 variant="segmented"
                                 size="sm"
+                            />
+
+                            <RadioGroup
+                                name="headerAlignment"
+                                label="Header Alignment"
+                                options={[
+                                    { value: 'left', label: 'Left', icon: <AlignLeft className="w-4 h-4" /> },
+                                    { value: 'center', label: 'Center', icon: <AlignCenter className="w-4 h-4" /> },
+                                ]}
+                                value={options.header.alignment || 'left'}
+                                onChange={(value) => handleChange('header', 'alignment', value)}
+                                orientation="horizontal"
+                                variant="button"
                             />
 
                             <div className="flex items-center mt-4">

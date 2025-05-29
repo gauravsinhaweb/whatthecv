@@ -67,6 +67,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showProfileUploader, setShowProfileUploader] = useState(false);
+    const [socialLinkErrors, setSocialLinkErrors] = useState<{ url?: string; label?: string }[]>([]);
+    const [socialLinkTouched, setSocialLinkTouched] = useState<{ url?: boolean; label?: boolean }[]>([]);
 
     const hasValidProfilePic = resumeData.personalInfo.profilePicture &&
         resumeData.personalInfo.profilePicture.startsWith('data:image');
@@ -82,6 +84,101 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             }, 100);
         }
     }, [customizationOptions?.header.showPhoto, showProfileUploader, hasValidProfilePic]);
+
+    // Helper to validate URL
+    const isValidUrl = (url: string) => {
+        try {
+            new URL(url);
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    // Platform-specific URL validation
+    const validatePlatformUrl = (platform: string, url: string) => {
+        if (!url) return false;
+
+        // First check if the URL contains any other platform's domain
+        const domainChecks = {
+            linkedin: /linkedin\.com/i,
+            peerlist: /peerlist\.io/i,
+            github: /github\.com/i,
+            twitter: /(?:twitter\.com|x\.com)/i,
+            leetcode: /leetcode\.com/i,
+            medium: /medium\.com/i,
+            stackoverflow: /stackoverflow\.com/i
+        };
+
+        // Check if URL contains any other platform's domain
+        for (const [otherPlatform, pattern] of Object.entries(domainChecks)) {
+            if (otherPlatform !== platform && pattern.test(url)) {
+                return false;
+            }
+        }
+
+        const patterns = {
+            linkedin: /^https?:\/\/(?:www\.)?linkedin\.com\/in\/[\w\-]+(?:\/)?$/i,
+            peerlist: /^https?:\/\/(?:www\.)?peerlist\.io\/[\w\-]+(?:\/)?$/i,
+            github: /^https?:\/\/(?:www\.)?github\.com\/[\w\-]+(?:\/)?$/i,
+            twitter: /^https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/[\w\-]+(?:\/)?$/i,
+            leetcode: /^https?:\/\/(?:www\.)?leetcode\.com\/u\/[\w\-]+(?:\/)?$/i,
+            medium: /^https?:\/\/(?:www\.)?medium\.com\/@[\w\-]+(?:\/)?$/i,
+            stackoverflow: /^https?:\/\/(?:www\.)?stackoverflow\.com\/users\/[\w\-]+(?:\/)?$/i
+        };
+
+        // Then validate against the correct platform pattern
+        const pattern = patterns[platform as keyof typeof patterns];
+        return pattern ? pattern.test(url) : isValidUrl(url);
+    };
+
+    // Validate all social links on change
+    useEffect(() => {
+        const errors = (resumeData.personalInfo.socialLinks || []).map((link) => {
+            const error: { url?: string; label?: string } = {};
+            if (!link.url || !validatePlatformUrl(link.platform, link.url)) {
+                switch (link.platform) {
+                    case 'linkedin':
+                        error.url = 'Enter a valid LinkedIn URL (e.g., https://linkedin.com/in/username)';
+                        break;
+                    case 'peerlist':
+                        error.url = 'Enter a valid Peerlist URL (e.g., https://peerlist.io/username)';
+                        break;
+                    case 'github':
+                        error.url = 'Enter a valid GitHub URL (e.g., https://github.com/username)';
+                        break;
+                    case 'twitter':
+                        error.url = 'Enter a valid Twitter/X URL (e.g., https://twitter.com/username)';
+                        break;
+                    case 'leetcode':
+                        error.url = 'Enter a valid LeetCode URL (e.g., https://leetcode.com/u/username)';
+                        break;
+                    case 'medium':
+                        error.url = 'Enter a valid Medium URL (e.g., https://medium.com/@username)';
+                        break;
+                    case 'stackoverflow':
+                        error.url = 'Enter a valid Stack Overflow URL (e.g., https://stackoverflow.com/users/username)';
+                        break;
+                    default:
+                        error.url = 'Enter a valid URL (https://...)';
+                }
+            }
+            if (link.platform === 'other' && (!link.label || !link.label.trim())) {
+                error.label = 'Label required for Other';
+            }
+            return error;
+        });
+        setSocialLinkErrors(errors);
+    }, [resumeData.personalInfo.socialLinks]);
+
+    // Update touched state array if number of links changes
+    useEffect(() => {
+        setSocialLinkTouched((prev) => {
+            const links = resumeData.personalInfo.socialLinks || [];
+            if (prev.length === links.length) return prev;
+            return links.map((_, i) => prev[i] || {});
+        });
+    }, [resumeData.personalInfo.socialLinks]);
 
     return (
         <div className="bg-white rounded-lg shadow-md border border-slate-200">
@@ -293,7 +390,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             {resumeData.personalInfo.socialLinks.map((link, index) => (
                                                 <div key={index} className="flex items-center space-x-2">
                                                     <select
-                                                        className="p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                                        className={`p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white${socialLinkErrors[index]?.label && link.platform === 'other' ? ' border-red-500' : ''}`}
                                                         value={link.platform}
                                                         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                                                             const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
@@ -302,6 +399,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                         }}
                                                     >
                                                         <option value="linkedin">LinkedIn</option>
+                                                        <option value="peerlist">Peerlist</option>
                                                         <option value="github">GitHub</option>
                                                         <option value="twitter">Twitter/X</option>
                                                         <option value="leetcode">LeetCode</option>
@@ -312,12 +410,19 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
                                                     <input
                                                         type="url"
-                                                        className="flex-1 p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                                        className={`flex-1 p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white${socialLinkErrors[index]?.url && socialLinkTouched[index]?.url ? ' border-red-500' : ''}`}
                                                         value={link.url}
                                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                             const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
                                                             newLinks[index] = { ...newLinks[index], url: e.currentTarget.value };
                                                             onPersonalInfoChange('socialLinks', JSON.stringify(newLinks));
+                                                        }}
+                                                        onBlur={() => {
+                                                            setSocialLinkTouched((prev) => {
+                                                                const next = [...prev];
+                                                                next[index] = { ...next[index], url: true };
+                                                                return next;
+                                                            });
                                                         }}
                                                         placeholder="https://yourprofile.com"
                                                     />
@@ -325,12 +430,19 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                                     {link.platform === 'other' && (
                                                         <input
                                                             type="text"
-                                                            className="w-24 p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                                            className={`w-24 p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white${socialLinkErrors[index]?.label && socialLinkTouched[index]?.label ? ' border-red-500' : ''}`}
                                                             value={link.label || ''}
                                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                                 const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
                                                                 newLinks[index] = { ...newLinks[index], label: e.currentTarget.value };
                                                                 onPersonalInfoChange('socialLinks', JSON.stringify(newLinks));
+                                                            }}
+                                                            onBlur={() => {
+                                                                setSocialLinkTouched((prev) => {
+                                                                    const next = [...prev];
+                                                                    next[index] = { ...next[index], label: true };
+                                                                    return next;
+                                                                });
                                                             }}
                                                             placeholder="Label"
                                                         />
