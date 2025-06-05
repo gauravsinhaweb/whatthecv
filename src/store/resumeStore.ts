@@ -2,7 +2,26 @@ import { create } from 'zustand';
 import type { EnhancedResumeData } from '../utils/types';
 import { ResumeData, initialResumeData, ResumeCustomizationOptions, defaultCustomizationOptions } from '../types/resume';
 
+interface Document {
+    id: string;
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+    template: string;
+    type: 'resume' | 'coverLetter';
+    resumeData: ResumeData;
+    customizationOptions: ResumeCustomizationOptions;
+}
+
 interface ResumeStore {
+    documents: Document[];
+    selectedDocument: Document | null;
+    setDocuments: (documents: Document[]) => void;
+    setSelectedDocument: (document: Document | null) => void;
+    addDocument: (document: Document) => void;
+    updateDocument: (id: string, document: Partial<Document>) => void;
+    deleteDocument: (id: string) => void;
+
     // Resume data
     resumeData: ResumeData;
     setResumeData: (data: ResumeData) => void;
@@ -47,6 +66,20 @@ interface ResumeStore {
 }
 
 export const useResumeStore = create<ResumeStore>((set) => ({
+    documents: [],
+    selectedDocument: null,
+    setDocuments: (documents) => set({ documents }),
+    setSelectedDocument: (document) => set({ selectedDocument: document }),
+    addDocument: (document) => set((state) => ({ documents: [...state.documents, document] })),
+    updateDocument: (id, document) =>
+        set((state) => ({
+            documents: state.documents.map((d) => (d.id === id ? { ...d, ...document } : d)),
+        })),
+    deleteDocument: (id) =>
+        set((state) => ({
+            documents: state.documents.filter((d) => d.id !== id),
+        })),
+
     // Initial resume data
     resumeData: initialResumeData,
     setResumeData: (data) => set({ resumeData: data }),
@@ -214,11 +247,11 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     isEnhancing: false,
     setIsEnhancing: (isEnhancing) => set({ isEnhancing }),
     enhancementStage: 'extracting',
-    setEnhancementStage: (enhancementStage) => set({ enhancementStage }),
+    setEnhancementStage: (stage: 'extracting' | 'enhancing' | 'finalizing' | 'error') => set({ enhancementStage: stage }),
 
     // UI state previously in useResumeState
     activeSection: 'personalInfo',
-    setActiveSection: (activeSection) => set({ activeSection }),
+    setActiveSection: (section: string) => set({ activeSection: section }),
 
     expandedSections: {
         personalInfo: true,
@@ -227,9 +260,9 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         skills: false,
         projects: false,
     },
-    setExpandedSections: (expandedSections) => set({ expandedSections }),
+    setExpandedSections: (sections: Record<string, boolean>) => set({ expandedSections: sections }),
 
-    toggleSection: (section) => set((state) => {
+    toggleSection: (section: string) => set((state) => {
         const newExpandedSections = {
             ...state.expandedSections,
             [section]: !state.expandedSections[section]
@@ -242,7 +275,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         };
     }),
 
-    editSection: (section) => set((state) => ({
+    editSection: (section: string) => set((state) => ({
         activeSection: section,
         expandedSections: {
             ...state.expandedSections,
@@ -251,7 +284,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     })),
 
     previewScale: 70,
-    setPreviewScale: (previewScale) => set({ previewScale }),
+    setPreviewScale: (scale: number) => set({ previewScale: scale }),
 
     handleZoomIn: () => set((state) => ({
         previewScale: Math.min(state.previewScale + 10, 150)

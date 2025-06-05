@@ -4,23 +4,23 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { getPageFromPath } from '../routes';
 import { User as UserType } from '../types';
 import { signInWithGoogle, signOut, getSession, getUser } from '../lib/supabase';
+import { useUserStore } from '../store/userStore';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserType | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = getPageFromPath(location.pathname);
+  const { userProfile, isAuthenticated, setUserProfile, setIsAuthenticated, setLoginError } = useUserStore();
 
   useEffect(() => {
     checkAuth();
   }, [location]);
+
   const checkAuth = async () => {
     try {
       const session = await getSession();
@@ -165,7 +165,12 @@ const Navigation: React.FC = () => {
                       <img
                         src={userProfile.picture}
                         alt={userProfile.name || 'User'}
-                        className="h-8 w-8 rounded-full object-cover"
+                        className="h-8 w-8 rounded-xl object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.name || userProfile.email.split('@')[0])}&background=3B82F6&color=fff`;
+                        }}
                       />
                     ) : (
                       <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
