@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useResumeStore } from '../store/resumeStore';
-import { saveResumeData, saveCompleteResumeData, saveResumeDraft } from '../utils/resumeSaveUtils';
+import { saveResumeData, saveCompleteResumeData } from '../utils/resumeSaveUtils';
 import { formatBulletPoints, formatAllDescriptions } from '../utils/resumeFormatUtils';
 import { ResumeCustomizationOptions } from '../types/resume';
+import { saveDraft } from '../utils/api';
 
 export const useResumeState = () => {
     const {

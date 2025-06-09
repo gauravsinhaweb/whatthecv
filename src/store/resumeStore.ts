@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { EnhancedResumeData } from '../utils/types';
 import { ResumeData, initialResumeData, ResumeCustomizationOptions, defaultCustomizationOptions } from '../types/resume';
+import { saveDraft } from '../utils/api';
 
 interface Document {
     id: string;
@@ -63,9 +64,16 @@ interface ResumeStore {
     setPreviewScale: (scale: number) => void;
     handleZoomIn: () => void;
     handleZoomOut: () => void;
+
+    // Draft saving state
+    isSavingDraft: boolean;
+    lastSavedDraftId: string | null;
+    saveAsDraft: () => Promise<void>;
+
+    resetStore: () => void;
 }
 
-export const useResumeStore = create<ResumeStore>((set) => ({
+export const useResumeStore = create<ResumeStore>((set, get) => ({
     documents: [],
     selectedDocument: null,
     setDocuments: (documents) => set({ documents }),
@@ -293,4 +301,57 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     handleZoomOut: () => set((state) => ({
         previewScale: Math.max(state.previewScale - 10, 50)
     })),
+
+    // Draft saving state
+    isSavingDraft: false,
+    lastSavedDraftId: null,
+    saveAsDraft: async () => {
+        const { resumeData, selectedDocument } = get();
+        set({ isSavingDraft: true });
+        try {
+            // Convert ResumeData to EnhancedResumeData format
+            const enhancedData: EnhancedResumeData = {
+                personalInfo: {
+                    ...resumeData.personalInfo,
+                    summary: resumeData.personalInfo.summary || ''
+                },
+                workExperience: resumeData.workExperience,
+                education: resumeData.education,
+                skills: resumeData.skills,
+                projects: resumeData.projects
+            };
+
+            // Generate a title based on the current date and time
+            const title = `Resume Draft ${new Date().toLocaleString()}`;
+
+            const response = await saveDraft(enhancedData, title, get().customizationOptions, selectedDocument?.id);
+            set({ lastSavedDraftId: response.id });
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            throw error;
+        } finally {
+            set({ isSavingDraft: false });
+        }
+    },
+
+    resetStore: () => set({
+        documents: [],
+        selectedDocument: null,
+        resumeData: initialResumeData,
+        enhancedResumeData: null,
+        customizationOptions: defaultCustomizationOptions,
+        isEnhancing: false,
+        enhancementStage: 'extracting',
+        activeSection: 'personalInfo',
+        expandedSections: {
+            personalInfo: true,
+            workExperience: false,
+            education: false,
+            skills: false,
+            projects: false,
+        },
+        previewScale: 70,
+        isSavingDraft: false,
+        lastSavedDraftId: null
+    }),
 })); 

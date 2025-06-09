@@ -1,18 +1,81 @@
 import axios from 'axios';
-import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult } from './types.ts';
+import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult, ResumeResponse } from './types.ts';
+import { supabase, refreshSession } from '../lib/supabase';
+import { getToken, setToken } from './storage';
+import { ResumeData, ResumeCustomizationOptions } from '../types/resume';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+
+interface DraftResponse {
+    success: boolean;
+    draftId: string;
+    message: string;
+}
 
 // Create axios instance with base configuration
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1',
+    baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Interceptor for handling common error patterns
+// Add request interceptor to include auth token
+api.interceptors.request.use(async (config) => {
+    const token = getToken();
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// Interceptor for handling common error patterns and token refresh
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+
+        // If the error is due to an expired token and we haven't tried to refresh yet
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                // Get current Supabase session
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (session) {
+                    // Update the authorization header with the new token
+                    originalRequest.headers.Authorization = `Bearer ${session.access_token}`;
+                    setToken(session.access_token);
+
+                    // Retry the original request
+                    return api(originalRequest);
+                } else {
+                    // If no session, try to refresh it
+                    const { data: { session: newSession } } = await supabase.auth.refreshSession();
+
+                    if (newSession) {
+                        // Update the authorization header with the new token
+                        originalRequest.headers.Authorization = `Bearer ${newSession.access_token}`;
+                        setToken(newSession.access_token);
+
+                        // Retry the original request
+                        return api(originalRequest);
+                    } else {
+                        // If refresh fails, redirect to login
+                        window.location.href = '/login';
+                        return Promise.reject(new Error('Session expired. Please login again.'));
+                    }
+                }
+            } catch (refreshError) {
+                console.error('Token refresh failed:', refreshError);
+                // If refresh fails, redirect to login
+                window.location.href = '/login';
+                return Promise.reject(new Error('Authentication failed. Please login again.'));
+            }
+        }
+
+        // Handle other errors
         const errorMessage = error.response?.data?.detail || 'An unexpected error occurred';
         console.error('API request failed:', errorMessage);
         return Promise.reject(new Error(errorMessage));
@@ -365,5 +428,66 @@ export async function checkResumeFile(
         };
     }
 }
+
+/**
+ * Get all resume versions for the current user
+ */
+export async function getResumeVersions(): Promise<ResumeResponse[]> {
+    try {
+        const response = await api.get('/resume/versions');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching resume versions:', error);
+        throw error;
+    }
+}
+
+/**
+ * Update a specific resume version
+ */
+export async function updateResumeVersion(resumeId: string, file: File): Promise<ResumeResponse> {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await api.put(`/resume/versions/${resumeId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating resume version:', error);
+        throw error;
+    }
+}
+
+/**
+ * Delete a specific resume version
+ */
+export async function deleteResumeVersion(resumeId: string): Promise<void> {
+    try {
+        await api.delete(`/resume/versions/${resumeId}`);
+    } catch (error) {
+        console.error('Error deleting resume version:', error);
+        throw error;
+    }
+}
+
+export const saveDraft = async (resumeData: EnhancedResumeData, title: string, customizationOptions?: any, id?: string) => {
+    try {
+        const response = await api.post('/resume/save', {
+            resume_data: resumeData,
+            title,
+            customization_options: customizationOptions,
+            id
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error saving draft:', error);
+        throw error;
+    }
+};
 
 export default api; 

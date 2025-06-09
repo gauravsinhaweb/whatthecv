@@ -1,77 +1,88 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getSession, getUser } from '../../lib/supabase';
+import { useUserStore } from '../../store/userStore';
+import { setToken, setUserProfile } from '../../utils/storage';
+import { UserProfile } from '../../utils/types';
 
-const GoogleCallback: React.FC = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
+export default function GoogleCallback() {
     const [error, setError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(true);
+    const location = useLocation();
+    const navigate = useNavigate();
+    const setUser = useUserStore((state) => state.setUser);
 
     useEffect(() => {
-        const searchParams = new URLSearchParams(location.search);
-        const token = searchParams.get('token');
-        const error = searchParams.get('error');
+        const handleCallback = async () => {
+            try {
+                setIsProcessing(true);
+                setError(null);
+                console.log('dddsdsdsdsd')
+                // Get Supabase session
+                const { session } = await getSession();
+                if (!session) {
+                    throw new Error('Failed to get Supabase session');
+                }
 
-        if (error) {
-            console.error('Authentication error:', error);
-            setError(error);
-            setIsProcessing(false);
-            setTimeout(() => navigate('/'), 3000);
-            return;
-        }
+                // Get user data from Supabase
+                const userData = await getUser();
+                if (!userData) {
+                    throw new Error('Failed to get user data');
+                }
 
-        if (token) {
-            // Store token and set authenticated state
-            localStorage.setItem('token', token);
-            setIsProcessing(false);
+                // Store FastAPI token
+                setToken(session.access_token);
+                console.log('FastAPI token stored');
 
-            // Navigate to the main app after a short delay
-            setTimeout(() => {
-                navigate('/analyze');
-            }, 1500);
-        } else {
-            console.error('No token received');
-            setError('Authentication failed. Please try again.');
-            setIsProcessing(false);
-            setTimeout(() => navigate('/'), 3000);
-        }
-    }, [location, navigate]);
+                // Create user profile
+                const profile: UserProfile = {
+                    id: userData.id,
+                    email: userData.email || '',
+                    name: userData.user_metadata?.full_name,
+                    avatar_url: userData.user_metadata?.avatar_url,
+                    created_at: userData.created_at,
+                    updated_at: userData.updated_at
+                };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-                {error ? (
-                    <div className="text-center">
-                        <div className="text-xl font-medium text-red-600 mb-4">
-                            Authentication Error
-                        </div>
-                        <p className="text-slate-600">{error}</p>
-                        <p className="text-slate-500 text-sm mt-4">
-                            Redirecting to home page...
-                        </p>
-                    </div>
-                ) : (
-                    <div className="text-center">
-                        <div className="text-xl font-medium text-blue-600 mb-4">
-                            {isProcessing ? 'Processing Authentication...' : 'Authentication Successful'}
-                        </div>
-                        {isProcessing ? (
-                            <div className="flex justify-center my-4">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                            </div>
-                        ) : (
-                            <p className="text-slate-600">
-                                You've successfully logged in with Google.
-                            </p>
-                        )}
-                        <p className="text-slate-500 text-sm mt-4">
-                            {isProcessing ? 'Please wait...' : 'Redirecting to your dashboard...'}
-                        </p>
-                    </div>
-                )}
+                // Store user profile
+                setUserProfile(profile);
+                setUser(profile);
+
+                console.log('Authentication successful');
+                navigate('/dashboard');
+            } catch (err) {
+                console.error('Authentication error:', err);
+                setError(err instanceof Error ? err.message : 'Authentication failed');
+                navigate('/auth/login/failure');
+            } finally {
+                setIsProcessing(false);
+            }
+        };
+
+        handleCallback();
+    }, [location, navigate, setUser]);
+
+    if (isProcessing) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 text-lg">Processing authentication...</p>
+                </div>
             </div>
-        </div>
-    );
-};
+        );
+    }
 
-export default GoogleCallback; 
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center text-red-600">
+                    <h2 className="text-2xl font-bold mb-4">Authentication Error</h2>
+                    <p>{error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    return null;
+} 

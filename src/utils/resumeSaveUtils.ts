@@ -28,18 +28,4 @@ export const saveCompleteResumeData = (
     const completeData = { resumeData, customizationOptions };
     const filename = `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_complete_resume.json`;
     saveAsJson(completeData, filename);
-};
-
-export const saveResumeDraft = (
-    resumeData: ResumeData,
-    customizationOptions: ResumeCustomizationOptions
-) => {
-    const completeData = {
-        resumeData,
-        customizationOptions,
-        savedAt: new Date().toISOString(),
-        isDraft: true,
-    };
-    localStorage.setItem('resumeDraft', JSON.stringify(completeData));
-    return completeData;
 }; 

@@ -1,4 +1,4 @@
-import { Eye, EyeOff, FileDown, Layout, Palette, Laptop } from 'lucide-react';
+import { Eye, EyeOff, FileDown, Layout, Palette, Laptop, Save } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import Button from '../../../components/ui/Button';
 import { useResumeState } from '../../../hooks/useResumeState';
@@ -10,6 +10,7 @@ import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
 import ResumeEditor from './components/ResumeEditor';
 import ResumeFullScreenModal from './components/ResumeFullScreenModal';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
+import { toast } from 'react-hot-toast';
 
 const CreateResume: React.FC = () => {
     const {
@@ -23,7 +24,7 @@ const CreateResume: React.FC = () => {
     } = useResumeState();
 
     // Get enhanced resume data and setResumeData from Zustand store
-    const { enhancedResumeData, setEnhancedResumeData, setResumeData } = useResumeStore();
+    const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft } = useResumeStore();
 
     const [isMobilePreviewVisible, setIsMobilePreviewVisible] = useState(false);
     const [activeTab, setActiveTab] = useState<string>('content');
@@ -115,6 +116,15 @@ const CreateResume: React.FC = () => {
         exportResumeToPDF(resumeData);
     };
 
+    const handleSaveDraft = async () => {
+        try {
+            await saveAsDraft();
+            toast.success('Draft saved successfully');
+        } catch (error) {
+            toast.error('Failed to save draft');
+        }
+    };
+
     // Screen too small message
     if (screenWidth < 450) {
         return (
@@ -190,6 +200,16 @@ const CreateResume: React.FC = () => {
                             <div className="flex flex-col items-center">
                                 <FileDown className="w-5 h-5 mb-1" />
                                 <span className="text-xs">Export</span>
+                            </div>
+                        </button>
+                        <button
+                            className="p-4 font-medium transition-colors relative text-slate-600 hover:text-slate-800 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={handleSaveDraft}
+                            disabled={isSavingDraft}
+                        >
+                            <div className="flex flex-col items-center">
+                                <Save className="w-5 h-5 mb-1" />
+                                <span className="text-xs">{isSavingDraft ? 'Saving...' : 'Save'}</span>
                             </div>
                         </button>
                     </div>
