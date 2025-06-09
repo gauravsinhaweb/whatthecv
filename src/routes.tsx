@@ -12,13 +12,14 @@ const GoogleCallback = lazy(() => import('./screens/Auth/GoogleCallback.tsx'));
 const LoginFailure = lazy(() => import('./screens/Auth/LoginFailure.tsx'));
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-    const { isAuthenticated } = useUserStore();
-    return isAuthenticated ? <>{children}</> : <LandingPage />;
+    const { user, isAuthenticated } = useUserStore();
+    const token = user && isAuthenticated;
+    return token ? <>{children}</> : <LandingPage />;
 };
 
 export const routes: RouteObject[] = [
     {
-        path: '/',
+        path: '/dashboard',
         element: <PrivateRoute><Dashboard /></PrivateRoute>,
     },
     {
@@ -35,7 +36,11 @@ export const routes: RouteObject[] = [
     },
     {
         path: '/create-resume',
-        element: <PrivateRoute><CreateResume /></PrivateRoute>,
+        element: <CreateResume />,
+    },
+    {
+        path: '/auth/callback',
+        element: <GoogleCallback />,
     },
     {
         path: '/auth/login/success',

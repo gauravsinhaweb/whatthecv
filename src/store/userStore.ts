@@ -1,29 +1,22 @@
 import { create } from 'zustand'
-
-interface UserProfile {
-    id: string
-    email: string
-    name: string
-    isVerified: boolean
-    picture: string
-}
+import { UserProfile } from '../utils/types'
 
 interface UserStore {
-    userProfile: UserProfile | null
+    user: UserProfile | null
     isAuthenticated: boolean
     loginError: string | null
-    setUserProfile: (profile: UserProfile | null) => void
+    setUser: (user: UserProfile | null) => void
     setIsAuthenticated: (isAuthenticated: boolean) => void
     setLoginError: (error: string | null) => void
-    reset: () => void
+    clearUser: () => void
 }
 
 export const useUserStore = create<UserStore>((set) => ({
-    userProfile: null,
+    user: null,
     isAuthenticated: false,
     loginError: null,
-    setUserProfile: (profile) => set({ userProfile: profile }),
+    setUser: (user) => set({ user }),
     setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
     setLoginError: (error) => set({ loginError: error }),
-    reset: () => set({ userProfile: null, isAuthenticated: false, loginError: null }),
+    clearUser: () => set({ user: null, isAuthenticated: false, loginError: null }),
 })) 
