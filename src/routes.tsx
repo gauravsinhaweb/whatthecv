@@ -57,7 +57,8 @@ export const routes: RouteObject[] = [
 ];
 
 export const getPageFromPath = (path: string): string => {
-    if (path === '/') return 'dashboard';
+    if (path === '/') return 'landing';
+    if (path === '/dashboard') return 'dashboard';
     if (path === '/templates') return 'templates';
     if (path === '/analyze') return 'upload';
     if (path === '/recruiter-coming-soon') return 'recruiter-coming-soon';
