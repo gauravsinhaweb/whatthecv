@@ -1,12 +1,11 @@
-import { Briefcase, ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X } from 'lucide-react';
+import { ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getSession, getUser, signInWithGoogle, signOut } from '../lib/supabase';
 import { getPageFromPath } from '../routes';
-import { User as UserType } from '../types';
-import { signInWithGoogle, signOut, getSession, getUser } from '../lib/supabase';
-import { useUserStore } from '../store/userStore';
-import { setToken, removeToken } from '../utils/storage';
 import { useResumeStore } from '../store/resumeStore';
+import { useUserStore } from '../store/userStore';
+import { removeToken } from '../utils/storage';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -130,7 +129,7 @@ const Navigation: React.FC = () => {
   const toggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
   };
-  console.log(isAuthenticated, user)
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="container mx-auto px-4">
