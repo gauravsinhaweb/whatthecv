@@ -3,16 +3,24 @@ import { useNavigate } from 'react-router-dom'
 import DashboardResumePreview from '../screens/Candidate/create/components/DashboardResumePreview.tsx'
 import { useResumeStore } from '../store/resumeStore'
 import { defaultCustomizationOptions, initialResumeData } from '../types/resume'
-import { FileText, Plus, Briefcase, Eye, Trash2, Edit2 } from 'lucide-react'
-import { getResumeVersions, deleteResumeVersion } from '../utils/api'
+import { FileText, Plus, Briefcase, Eye, Trash2, Edit2, MoreVertical, X, ArrowBigRight, ArrowRight } from 'lucide-react'
+import { getResumeVersions, deleteResumeVersion, saveDraft } from '../utils/api'
 import { toast } from 'react-hot-toast'
+import { format } from 'date-fns'
+import type { EnhancedResumeData } from '../utils/types'
 
 const Dashboard = () => {
     const navigate = useNavigate()
-    const { documents, setDocuments, setResumeData, setCustomizationOptions, setSelectedDocument, resetStore } = useResumeStore()
+    const { documents, setDocuments, setResumeData, setCustomizationOptions, setSelectedDocument, resetStore, updateDocument } = useResumeStore()
     const [activeTab, setActiveTab] = useState<'resumes' | 'cover-letters'>('resumes')
     const [hoveredResume, setHoveredResume] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [editingTitle, setEditingTitle] = useState<string | null>(null)
+    const [newTitle, setNewTitle] = useState('')
+    const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; resumeId: string | null }>({
+        isOpen: false,
+        resumeId: null
+    })
 
     useEffect(() => {
         const fetchResumes = async () => {
@@ -98,7 +106,7 @@ const Dashboard = () => {
         try {
             await deleteResumeVersion(resumeId)
             setDocuments(documents.filter(doc => doc.id !== resumeId))
-            toast.success('Resume deleted successfully')
+            toast.success('Deleted successfully')
         } catch (error) {
             console.error('Failed to delete resume:', error)
             toast.error('Failed to delete resume')
@@ -115,8 +123,88 @@ const Dashboard = () => {
         navigate('/create-resume')
     }
 
+    const handleTitleEdit = async (resumeId: string, currentTitle: string) => {
+        setEditingTitle(resumeId)
+        setNewTitle(currentTitle)
+    }
+
+    const handleTitleSave = async (resumeId: string) => {
+        try {
+            const resume = documents.find(doc => doc.id === resumeId)
+            if (!resume) return
+
+            // Convert ResumeData to EnhancedResumeData
+            const enhancedResumeData: EnhancedResumeData = {
+                personalInfo: {
+                    name: resume.resumeData.personalInfo.name,
+                    position: resume.resumeData.personalInfo.position,
+                    email: resume.resumeData.personalInfo.email,
+                    phone: resume.resumeData.personalInfo.phone,
+                    location: resume.resumeData.personalInfo.location,
+                    summary: resume.resumeData.personalInfo.summary,
+                    profilePicture: resume.resumeData.personalInfo.profilePicture || null,
+                    socialLinks: resume.resumeData.personalInfo.socialLinks?.map(link => ({
+                        platform: link.platform === 'peerlist' ? 'other' : link.platform,
+                        url: link.url,
+                        label: link.label
+                    }))
+                },
+                workExperience: resume.resumeData.workExperience.map(exp => ({
+                    id: exp.id,
+                    position: exp.position,
+                    company: exp.company,
+                    location: exp.location,
+                    startDate: exp.startDate,
+                    endDate: exp.endDate,
+                    current: exp.current,
+                    description: exp.description
+                })),
+                education: resume.resumeData.education.map(edu => ({
+                    id: edu.id,
+                    degree: edu.degree,
+                    institution: edu.institution,
+                    location: edu.location,
+                    startDate: edu.startDate,
+                    endDate: edu.endDate,
+                    description: edu.description
+                })),
+                skills: resume.resumeData.skills,
+                projects: resume.resumeData.projects.map(proj => ({
+                    id: proj.id,
+                    name: proj.name,
+                    description: proj.description,
+                    technologies: proj.technologies,
+                    link: proj.link
+                }))
+            }
+
+            await saveDraft(enhancedResumeData, newTitle, resume.customizationOptions, resumeId)
+
+            updateDocument(resumeId, { title: newTitle })
+            toast.success('Title updated successfully')
+        } catch (error) {
+            console.error('Failed to update title:', error)
+            toast.error('Failed to update title')
+        } finally {
+            setEditingTitle(null)
+        }
+    }
+
+    const handleDeleteConfirm = async (resumeId: string) => {
+        try {
+            await deleteResumeVersion(resumeId)
+            setDocuments(documents.filter(doc => doc.id !== resumeId))
+            toast.success('Resume deleted successfully')
+        } catch (error) {
+            console.error('Failed to delete resume:', error)
+            toast.error('Failed to delete resume')
+        } finally {
+            setDeleteConfirmModal({ isOpen: false, resumeId: null })
+        }
+    }
+
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full">
             <div className="mb-8">
                 <p className="mt-1 text-sm text-slate-500">Manage your documents</p>
             </div>
@@ -186,7 +274,7 @@ const Dashboard = () => {
                     </button>
                 </div>
             </div>
-            <div className="w-full flex gap-8 justify-start items-center flex-grow overflow-x-auto">
+            <div className="w-full flex gap-8 justify-start items-center flex-grow">
                 {activeTab === 'resumes' ? (
                     isLoading ? (
                         <div className="w-full flex items-center justify-center py-12">
@@ -211,14 +299,22 @@ const Dashboard = () => {
                         resumes.map((resume) => (
                             <div
                                 key={resume.id}
-                                onClick={() => handleResumeClick(resume)}
-                                onMouseEnter={() => setHoveredResume(resume.id)}
-                                onMouseLeave={() => setHoveredResume(null)}
                                 className="group p-2 relative bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                                onClick={(e) => {
+                                    if (!hoveredResume) {
+                                        handleResumeClick(resume)
+                                    }
+                                }}
                             >
-                                <div className="w-full px-2 flex items-center justify-center bg-slate-50 rounded-md overflow-hidden">
+                                <div className="w-full px-2 flex items-center justify-center bg-slate-50 rounded-md overflow-hidden group-hover:bg-slate-100 transition-colors duration-200 relative">
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-10">
+                                        <div className="flex flex-row items-center gap-2">
+                                            <ArrowRight className="h-6 w-6 text-white" />
+                                            <span className="text-white font-medium">View</span>
+                                        </div>
+                                    </div>
                                     <div
-                                        className="bg-white aspect-[210/297] rounded shadow font-sans text-[9pt] leading-[15px] flex flex-col items-center justify-center"
+                                        className="bg-white aspect-[210/297] rounded shadow font-sans text-[9pt] leading-[15px] flex flex-col items-center justify-center transform transition-transform duration-200 group-hover:scale-[1.02]"
                                         style={{
                                             width: '210px',
                                             minWidth: '210px',
@@ -235,29 +331,93 @@ const Dashboard = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="mt-3">
-                                    <h3 className="text-sm font-medium text-slate-900 truncate">{resume.title}</h3>
-                                    <p className="mt-0.5 text-xs text-slate-500 truncate">
-                                        {resume.resumeData.personalInfo.name} • {resume.resumeData.personalInfo.position}
-                                    </p>
-                                </div>
-                                <div className={`absolute inset-0 rounded-lg bg-slate-900/50 flex items-center justify-center transition-opacity duration-200 ${hoveredResume === resume.id ? 'opacity-100' : 'opacity-0'}`}>
-                                    <div className="flex items-center space-x-4 text-white">
-                                        <button
-                                            onClick={(e) => handleEditResume(resume, e)}
-                                            className="flex items-center space-x-1 hover:text-amber-400 transition-colors"
-                                        >
-                                            <Edit2 className="h-5 w-5" />
-                                            <span className="text-sm font-medium">Edit</span>
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleDeleteResume(resume.id, e)}
-                                            className="flex items-center space-x-1 hover:text-red-400 transition-colors"
-                                        >
-                                            <Trash2 className="h-5 w-5" />
-                                            <span className="text-sm font-medium">Delete</span>
-                                        </button>
-                                    </div>
+                                <div className="mt-3 px-2">
+                                    {editingTitle === resume.id ? (
+                                        <div className="flex items-center space-x-2">
+                                            <input
+                                                type="text"
+                                                value={newTitle}
+                                                onClick={e => e.stopPropagation()}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTitle(e.target.value)}
+                                                className="flex-1 text-sm border rounded px-2 py-1"
+                                                autoFocus
+                                                onBlur={() => handleTitleSave(resume.id)}
+                                                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleTitleSave(resume.id)
+                                                    } else if (e.key === 'Escape') {
+                                                        setEditingTitle(null)
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h3
+                                                    className="text-sm font-medium text-slate-900 truncate cursor-pointer hover:text-blue-600 max-w-[180px]"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        handleTitleEdit(resume.id, resume.title)
+                                                    }}
+                                                >
+                                                    {resume.title}
+                                                </h3>
+                                                <p className="mt-0.5 text-xs text-slate-500">
+                                                    {format(new Date(resume.updatedAt), 'MMM d, yyyy · h:mm a')}
+                                                </p>
+                                            </div>
+                                            <div className="relative">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setHoveredResume(hoveredResume === resume.id ? null : resume.id)
+                                                    }}
+                                                    className="p-1 hover:bg-slate-100 rounded-full"
+                                                >
+                                                    <MoreVertical className="h-5 w-5 text-slate-500" />
+                                                </button>
+                                                {hoveredResume === resume.id && (
+                                                    <>
+                                                        <div
+                                                            className="fixed inset-0 z-40"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setHoveredResume(null)
+                                                            }}
+                                                        />
+                                                        <div
+                                                            className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    handleTitleEdit(resume.id, resume.title)
+                                                                    setHoveredResume(null)
+                                                                }}
+                                                                className="flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                                                            >
+                                                                <Edit2 className="h-4 w-4 mr-2" />
+                                                                Rename
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    setDeleteConfirmModal({ isOpen: true, resumeId: resume.id })
+                                                                    setHoveredResume(null)
+                                                                }}
+                                                                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-slate-100"
+                                                            >
+                                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))
@@ -279,6 +439,46 @@ const Dashboard = () => {
                     </div>
                 )}
             </div>
+            {deleteConfirmModal.isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+                        onClick={() => setDeleteConfirmModal({ isOpen: false, resumeId: null })}
+                    />
+                    {/* Modal */}
+                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+                        <div className="bg-white rounded-lg shadow-xl p-6 w-[400px]">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-slate-900">Delete Resume</h3>
+                                <button
+                                    onClick={() => setDeleteConfirmModal({ isOpen: false, resumeId: null })}
+                                    className="p-1 hover:bg-slate-100 rounded-full"
+                                >
+                                    <X className="h-5 w-5 text-slate-500" />
+                                </button>
+                            </div>
+                            <p className="text-slate-600 mb-6">
+                                Are you sure you want to delete this resume? This action cannot be undone.
+                            </p>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setDeleteConfirmModal({ isOpen: false, resumeId: null })}
+                                    className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-md"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => deleteConfirmModal.resumeId && handleDeleteConfirm(deleteConfirmModal.resumeId)}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     )
 }
