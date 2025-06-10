@@ -337,8 +337,8 @@ const Dashboard = () => {
                                             <input
                                                 type="text"
                                                 value={newTitle}
-                                                onClick={e => e.stopPropagation()}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTitle(e.target.value)}
+                                                onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTitle((e.target as HTMLInputElement).value)}
                                                 className="flex-1 text-sm border rounded px-2 py-1"
                                                 autoFocus
                                                 onBlur={() => handleTitleSave(resume.id)}
