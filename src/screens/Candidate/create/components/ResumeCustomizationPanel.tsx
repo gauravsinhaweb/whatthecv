@@ -30,8 +30,8 @@ import React, { useEffect, useState } from 'react';
 import RadioGroup from '../../../../components/ui/RadioGroup';
 import Slider from '../../../../components/ui/Slider';
 import { ResumeCustomizationOptions } from '../../../../types/resume';
-import ClassicSingleColumnTemplate from '../../../../../public/assets/single-column.png';
-import ClassicDoubleColumnTemplate from '../../../../../public/assets/double-column.png';
+import ClassicSingleColumnTemplate from '../../../../assets/single-column.png';
+import ClassicDoubleColumnTemplate from '../../../../assets/double-column.png';
 
 export interface SectionInfo {
     id: string;
