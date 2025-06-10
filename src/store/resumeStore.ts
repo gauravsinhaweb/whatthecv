@@ -326,7 +326,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             };
 
             // Generate a title based on the current date and time
-            const title = `Resume Draft ${new Date().toLocaleString()}`;
+            const title = `Draft ${new Date().toLocaleString()}`;
 
             const response = await saveDraft(enhancedData, title, get().customizationOptions, selectedDocument?.id);
             set({ lastSavedDraftId: response.id });
