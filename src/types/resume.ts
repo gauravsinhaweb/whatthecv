@@ -55,7 +55,7 @@ export interface Project {
 
 export interface ResumeCustomizationOptions {
     layout: {
-        columns: 'one' | 'two';
+        templates: 'one' | 'two';
         sectionOrder: string[];
         sectionTitles: Record<string, string>;
         visibleSections: Record<string, boolean>;
@@ -97,8 +97,8 @@ export interface ResumeCustomizationOptions {
         underline: boolean;
     };
     skills: {
-        format: 'pills' | 'comma' | 'bullets' | 'grid' | 'compact' | 'bubble' | 'pipe' | 'newline' | 'level';
-        columns: 1 | 2 | 3;
+        format: 'compact' | 'comma' | 'bullets' | 'pills' | 'bubble' | 'grid' | 'level' | 'pipe' | 'newline';
+        templates: 1 | 2 | 3;
     };
     links: {
         icon: 'external' | 'arrow' | 'chain' | 'none';
@@ -120,7 +120,7 @@ export interface ResumeCustomizationOptions {
 
 export const defaultCustomizationOptions: ResumeCustomizationOptions = {
     layout: {
-        columns: 'one',
+        templates: 'one',
         sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects'],
         sectionTitles: {
             personalInfo: 'Personal Info',
@@ -175,7 +175,7 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
     },
     skills: {
         format: 'compact',
-        columns: 2
+        templates: 2
     },
     links: {
         icon: 'external',

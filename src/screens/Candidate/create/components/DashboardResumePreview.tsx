@@ -630,9 +630,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     ) : null}
                 </div>
 
-                <div className={`flex flex-col ${customizationOptions.layout.columns === 'two' ? 'md:flex-row gap-6' : ''}`} data-id="resume-body">
+                <div className={`flex flex-col ${customizationOptions.layout.templates === 'two' ? 'md:flex-row gap-6' : ''}`} data-id="resume-body">
                     {/* Left Column - Main Content */}
-                    <div className={`${customizationOptions.layout.columns === 'two' ? 'md:w-3/5' : 'w-full'}`} data-id="resume-main-column">
+                    <div className={`${customizationOptions.layout.templates === 'two' ? 'md:w-3/5' : 'w-full'}`} data-id="resume-main-column">
                         {/* Render sections according to custom order */}
                         {customizationOptions.layout.sectionOrder.map((sectionKey) => {
                             // Skip hidden sections (except Personal Info, which should always be shown)
@@ -666,7 +666,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                 .filter(exp => exp.position || exp.company || exp.description)
                                                 .map((exp, index) => (
                                                     <div key={exp.id || index} className="mb-4">
-                                                        <div className={`${customizationOptions.layout.columns === 'one' ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                        <div className={`${customizationOptions.layout.templates === 'one' ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
                                                                 <div className="flex flex-wrap items-baseline">
                                                                     <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
@@ -691,7 +691,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                     )}
                                                                 </div>
 
-                                                                {customizationOptions.layout.columns !== 'one' && (exp.startDate || exp.endDate || exp.location) && (
+                                                                {customizationOptions.layout.templates !== 'one' && (exp.startDate || exp.endDate || exp.location) && (
                                                                     <div className="flex items-center text-sm opacity-80 mb-1">
                                                                         {exp.startDate && (
                                                                             <span>
@@ -724,7 +724,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                                             </div>
 
-                                                            {customizationOptions.layout.columns === 'one' && (exp.startDate || exp.endDate || exp.location) && (
+                                                            {customizationOptions.layout.templates === 'one' && (exp.startDate || exp.endDate || exp.location) && (
                                                                 <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
                                                                     {exp.startDate && (
                                                                         <div>
@@ -756,7 +756,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                 .filter((edu) => edu.degree || edu.institution)
                                                 .map((edu, index) => (
                                                     <div key={index} className="mb-3">
-                                                        <div className={`${customizationOptions.layout.columns === 'one' ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                        <div className={`${customizationOptions.layout.templates === 'one' ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
                                                                 <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
                                                                     {edu.degree || 'Degree'}
@@ -779,7 +779,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                         {edu.institution}
                                                                     </div>
                                                                 )}
-                                                                {customizationOptions.layout.columns !== 'one' && (edu.startDate || edu.endDate || edu.location) && (
+                                                                {customizationOptions.layout.templates !== 'one' && (edu.startDate || edu.endDate || edu.location) && (
                                                                     <div className="flex items-center text-sm opacity-80">
                                                                         {edu.startDate && edu.endDate && (
                                                                             <span>
@@ -796,7 +796,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                 )}
                                                             </div>
 
-                                                            {customizationOptions.layout.columns === 'one' && (edu.startDate || edu.endDate || edu.location) && (
+                                                            {customizationOptions.layout.templates === 'one' && (edu.startDate || edu.endDate || edu.location) && (
                                                                 <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
                                                                     {edu.startDate && edu.endDate && (
                                                                         <div>
@@ -817,7 +817,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             }
 
                             // Skills - only in one column layout
-                            if (sectionKey === 'skills' && customizationOptions.layout.columns === 'one' && topSkills.length > 0) {
+                            if (sectionKey === 'skills' && customizationOptions.layout.templates === 'one' && topSkills.length > 0) {
                                 return (
                                     <div key={sectionKey} className="mb-6">
                                         <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
@@ -827,7 +827,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                         {/* Pills/Bubble Format */}
                                         {(customizationOptions.skills.format === 'pills' || customizationOptions.skills.format === 'bubble') && (
                                             <div
-                                                className={`flex flex-wrap gap-1.5 mt-2 ${customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns}` : ''
+                                                className={`flex flex-wrap gap-1.5 mt-2 ${customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates}` : ''
                                                     }`}
                                             >
                                                 {topSkills.map((skill) => (
@@ -848,8 +848,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                         {/* Grid Format */}
                                         {customizationOptions.skills.format === 'grid' && (
                                             <div
-                                                className={`grid gap-2 mt-2 ${customizationOptions.skills.columns === 1 ? 'grid-cols-1' :
-                                                    customizationOptions.skills.columns === 2 ? 'grid-cols-2' :
+                                                className={`grid gap-2 mt-2 ${customizationOptions.skills.templates === 1 ? 'grid-cols-1' :
+                                                    customizationOptions.skills.templates === 2 ? 'grid-cols-2' :
                                                         'grid-cols-3'
                                                     }`}
                                             >
@@ -871,8 +871,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                         {/* Level Format */}
                                         {customizationOptions.skills.format === 'level' && (
                                             <div
-                                                className={`grid gap-2 mt-2 ${customizationOptions.skills.columns === 1 ? 'grid-cols-1' :
-                                                    customizationOptions.skills.columns === 2 ? 'grid-cols-2' :
+                                                className={`grid gap-2 mt-2 ${customizationOptions.skills.templates === 1 ? 'grid-cols-1' :
+                                                    customizationOptions.skills.templates === 2 ? 'grid-cols-2' :
                                                         'grid-cols-3'
                                                     }`}
                                             >
@@ -904,7 +904,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                         {/* Compact Format */}
                                         {customizationOptions.skills.format === 'compact' && (
                                             <div
-                                                className={`flex flex-wrap gap-1 mt-2 ${customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns}` : ''
+                                                className={`flex flex-wrap gap-1 mt-2 ${customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates}` : ''
                                                     }`}
                                             >
                                                 {topSkills.map((skill) => (
@@ -920,7 +920,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                         {/* Comma-separated List */}
                                         {customizationOptions.skills.format === 'comma' && (
-                                            <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
+                                            <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
                                                 <p className="text-sm">
                                                     {topSkills.join(', ')}
                                                 </p>
@@ -929,7 +929,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                         {/* Pipe Format */}
                                         {customizationOptions.skills.format === 'pipe' && (
-                                            <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
+                                            <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
                                                 <p className="text-sm">
                                                     {topSkills.join('  |  ')}
                                                 </p>
@@ -938,7 +938,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                         {/* Newline Format */}
                                         {customizationOptions.skills.format === 'newline' && (
-                                            <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
+                                            <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
                                                 {topSkills.map((skill) => (
                                                     <div key={skill} className="text-sm mb-1">
                                                         {skill}
@@ -949,7 +949,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                         {/* Bullet Points */}
                                         {customizationOptions.skills.format === 'bullets' && (
-                                            <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
+                                            <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
                                                 {topSkills.map((skill) => (
                                                     <div key={skill} className="flex items-center text-sm mb-1">
                                                         <span className="mr-2" style={{ color: getAccentColor(1) }}>•</span>
@@ -963,7 +963,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             }
 
                             // Projects - only in one column layout
-                            if (sectionKey === 'projects' && customizationOptions.layout.columns === 'one' && resumeData.projects.some((project) => project.name || project.description)) {
+                            if (sectionKey === 'projects' && customizationOptions.layout.templates === 'one' && resumeData.projects.some((project) => project.name || project.description)) {
                                 return (
                                     <div key={sectionKey} className="mb-6">
                                         <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
@@ -1036,7 +1036,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     </div>
 
                     {/* Right Column - Skills & Projects - only in 2-column layout */}
-                    {customizationOptions.layout.columns === 'two' && (
+                    {customizationOptions.layout.templates === 'two' && (
                         <div className="md:w-2/5" data-id="resume-side-column">
                             {/* Skills */}
                             {topSkills.length > 0 && customizationOptions.layout.visibleSections?.skills !== false && (
@@ -1048,7 +1048,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     {/* Pills/Bubble Format */}
                                     {(customizationOptions.skills.format === 'pills' || customizationOptions.skills.format === 'bubble') && (
                                         <div
-                                            className={`flex flex-wrap gap-1.5 mt-2 ${customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns}` : ''
+                                            className={`flex flex-wrap gap-1.5 mt-2 ${customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates}` : ''
                                                 }`}
                                         >
                                             {topSkills.map((skill) => (
@@ -1069,8 +1069,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     {/* Grid Format */}
                                     {customizationOptions.skills.format === 'grid' && (
                                         <div
-                                            className={`grid gap-2 mt-2 ${customizationOptions.skills.columns === 1 ? 'grid-cols-1' :
-                                                customizationOptions.skills.columns === 2 ? 'grid-cols-2' :
+                                            className={`grid gap-2 mt-2 ${customizationOptions.skills.templates === 1 ? 'grid-cols-1' :
+                                                customizationOptions.skills.templates === 2 ? 'grid-cols-2' :
                                                     'grid-cols-3'
                                                 }`}
                                         >
@@ -1092,8 +1092,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     {/* Level Format */}
                                     {customizationOptions.skills.format === 'level' && (
                                         <div
-                                            className={`grid gap-2 mt-2 ${customizationOptions.skills.columns === 1 ? 'grid-cols-1' :
-                                                customizationOptions.skills.columns === 2 ? 'grid-cols-2' :
+                                            className={`grid gap-2 mt-2 ${customizationOptions.skills.templates === 1 ? 'grid-cols-1' :
+                                                customizationOptions.skills.templates === 2 ? 'grid-cols-2' :
                                                     'grid-cols-3'
                                                 }`}
                                         >
@@ -1125,7 +1125,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     {/* Compact Format */}
                                     {customizationOptions.skills.format === 'compact' && (
                                         <div
-                                            className={`flex flex-wrap gap-1 mt-2 ${customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns}` : ''
+                                            className={`flex flex-wrap gap-1 mt-2 ${customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates}` : ''
                                                 }`}
                                         >
                                             {topSkills.map((skill) => (
@@ -1142,7 +1142,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                     {/* Comma-separated List */}
                                     {customizationOptions.skills.format === 'comma' && (
-                                        <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
+                                        <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
                                             <p className="text-sm">
                                                 {topSkills.join(', ')}
                                             </p>
@@ -1151,7 +1151,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                     {/* Pipe Format */}
                                     {customizationOptions.skills.format === 'pipe' && (
-                                        <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
+                                        <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
                                             <p className="text-sm">
                                                 {topSkills.join('  |  ')}
                                             </p>
@@ -1160,7 +1160,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                     {/* Newline Format */}
                                     {customizationOptions.skills.format === 'newline' && (
-                                        <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
+                                        <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
                                             {topSkills.map((skill) => (
                                                 <div key={skill} className="text-sm mb-1">
                                                     {skill}
@@ -1171,7 +1171,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                     {/* Bullet Points */}
                                     {customizationOptions.skills.format === 'bullets' && (
-                                        <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
+                                        <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
                                             {topSkills.map((skill) => (
                                                 <div key={skill} className="flex items-center text-sm mb-1">
                                                     <span className="mr-2" style={{ color: getAccentColor(1) }}>•</span>

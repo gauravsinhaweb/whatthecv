@@ -313,7 +313,11 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             const enhancedData: EnhancedResumeData = {
                 personalInfo: {
                     ...resumeData.personalInfo,
-                    summary: resumeData.personalInfo.summary || ''
+                    summary: resumeData.personalInfo.summary || '',
+                    socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
+                        ...link,
+                        platform: link.platform === 'peerlist' ? 'other' : link.platform
+                    })) as EnhancedResumeData['personalInfo']['socialLinks']
                 },
                 workExperience: resumeData.workExperience,
                 education: resumeData.education,
