@@ -114,15 +114,15 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                 // Two-column layout - increase font size and line height
                 newOptions.spacing = {
                     ...options.spacing,
-                    fontSize: 11.5,
+                    fontSize: 11,
                     lineHeight: 1.5
                 };
             } else {
                 // One-column layout - use default font size and line height
                 newOptions.spacing = {
                     ...options.spacing,
-                    fontSize: 10.5,
-                    lineHeight: 1.2
+                    fontSize: 11,
+                    lineHeight: 1.3
                 };
             }
 
