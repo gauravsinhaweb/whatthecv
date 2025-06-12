@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { removeToken, setToken } from '../utils/storage';
+import { removeToken, setToken, setUserProfile, removeUserProfile } from '../utils/storage';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -38,8 +38,35 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 supabase.auth.onAuthStateChange((event, session) => {
     if (event === 'TOKEN_REFRESHED' && session) {
         setToken(session.access_token);
+        // Update user profile if needed
+        if (session.user) {
+            const profile = {
+                id: session.user.id,
+                email: session.user.email || '',
+                name: session.user.user_metadata?.full_name,
+                avatar_url: session.user.user_metadata?.avatar_url,
+                created_at: session.user.created_at,
+                updated_at: session.user.updated_at
+            };
+            setUserProfile(profile);
+        }
     } else if (event === 'SIGNED_OUT') {
         removeToken();
+        removeUserProfile();
+    } else if (event === 'SIGNED_IN' && session) {
+        setToken(session.access_token);
+        // Update user profile on sign in
+        if (session.user) {
+            const profile = {
+                id: session.user.id,
+                email: session.user.email || '',
+                name: session.user.user_metadata?.full_name,
+                avatar_url: session.user.user_metadata?.avatar_url,
+                created_at: session.user.created_at,
+                updated_at: session.user.updated_at
+            };
+            setUserProfile(profile);
+        }
     }
 });
 

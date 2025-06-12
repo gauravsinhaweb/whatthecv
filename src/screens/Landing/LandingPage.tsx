@@ -13,7 +13,7 @@ import {
     ThumbsUp,
     Twitter
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FaqSection from '../../components/landing/FaqSection';
 import Button from '../../components/ui/Button';
@@ -21,10 +21,12 @@ import PrivacyPolicyModal from '../../components/modals/PrivacyPolicyModal';
 import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
 import './landing.css';
 import resumeBuilderImg from '/assets/create-resume.png';
+import { useUserStore } from '../../store/userStore';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { scrollYProgress } = useScroll();
+    const { isAuthenticated, user } = useUserStore();
     const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 1]);
     const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.85]);
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -32,6 +34,14 @@ const LandingPage: React.FC = () => {
     const handleNavigate = (path: string) => {
         navigate(path);
     };
+
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            navigate('/dashboard');
+        } else {
+            navigate('/');
+        }
+    }, [isAuthenticated]);
 
     const footerLinks = [
         {
