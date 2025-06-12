@@ -314,6 +314,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 personalInfo: {
                     ...resumeData.personalInfo,
                     summary: resumeData.personalInfo.summary || '',
+                    profilePicture: resumeData.personalInfo.profilePicture || null,
                     socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
                         ...link,
                         platform: link.platform === 'peerlist' ? 'other' : link.platform

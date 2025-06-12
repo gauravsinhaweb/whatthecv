@@ -6,7 +6,22 @@ const PROFILE_KEY = 'user-profile';
 export function setToken(token: string): void {
     try {
         if (token.length === 0) return;
-        document.cookie = `${TOKEN_KEY}=${encodeURIComponent(token)}; path=/; secure; samesite=lax`;
+
+        const cookieOptions = [
+            `${TOKEN_KEY}=${encodeURIComponent(token)}`,
+            'path=/',
+            'secure',
+            'samesite=lax'
+        ];
+
+        // Add domain for non-localhost environments
+        const domain = window.location.hostname;
+        const isLocalhost = domain === 'localhost' || domain === '127.0.0.1';
+        if (!isLocalhost) {
+            cookieOptions.push(`domain=.${domain}`);
+        }
+
+        document.cookie = cookieOptions.join('; ');
     } catch (error) {
         console.error('Error setting token:', error);
     }

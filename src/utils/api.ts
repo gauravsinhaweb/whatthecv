@@ -1,16 +1,10 @@
 import axios from 'axios';
-import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult, ResumeResponse } from './types.ts';
-import { supabase, refreshSession } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { getToken, setToken } from './storage';
-import { ResumeData, ResumeCustomizationOptions } from '../types/resume';
+import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult, ResumeResponse } from './types.ts';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
-interface DraftResponse {
-    success: boolean;
-    draftId: string;
-    message: string;
-}
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -40,37 +34,25 @@ api.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                // Get current Supabase session
-                const { data: { session } } = await supabase.auth.getSession();
+                // Try to refresh the session
+                const { data: { session: newSession } } = await supabase.auth.refreshSession();
 
-                if (session) {
+                if (newSession) {
                     // Update the authorization header with the new token
-                    originalRequest.headers.Authorization = `Bearer ${session.access_token}`;
-                    setToken(session.access_token);
+                    originalRequest.headers.Authorization = `Bearer ${newSession.access_token}`;
+                    setToken(newSession.access_token);
 
                     // Retry the original request
                     return api(originalRequest);
                 } else {
-                    // If no session, try to refresh it
-                    const { data: { session: newSession } } = await supabase.auth.refreshSession();
-
-                    if (newSession) {
-                        // Update the authorization header with the new token
-                        originalRequest.headers.Authorization = `Bearer ${newSession.access_token}`;
-                        setToken(newSession.access_token);
-
-                        // Retry the original request
-                        return api(originalRequest);
-                    } else {
-                        // If refresh fails, redirect to login
-                        window.location.href = '/login';
-                        return Promise.reject(new Error('Session expired. Please login again.'));
-                    }
+                    // If refresh fails, redirect to login
+                    window.location.href = '/auth/login';
+                    return Promise.reject(new Error('Session expired. Please login again.'));
                 }
             } catch (refreshError) {
                 console.error('Token refresh failed:', refreshError);
                 // If refresh fails, redirect to login
-                window.location.href = '/login';
+                window.location.href = '/auth/login';
                 return Promise.reject(new Error('Authentication failed. Please login again.'));
             }
         }
@@ -309,7 +291,14 @@ function processEnhancedResumeData(data: any): EnhancedResumeData {
         phone: data.personalInfo?.phone || '',
         location: data.personalInfo?.location || '',
         summary: data.personalInfo?.summary || '',
-        profilePicture: data.personalInfo?.profilePicture || null
+        profilePicture: data.personalInfo?.profilePicture || null,
+        socialLinks: Array.isArray(data.personalInfo?.socialLinks)
+            ? data.personalInfo.socialLinks.map(link => ({
+                platform: (link.platform?.toLowerCase() === 'peerlist' ? 'other' : link.platform?.toLowerCase()) as "linkedin" | "github" | "twitter" | "leetcode" | "medium" | "stackoverflow" | "other",
+                url: link.url || '',
+                label: link.label
+            }))
+            : []
     };
 
     // Process work experience
@@ -487,6 +476,92 @@ export const saveDraft = async (resumeData: EnhancedResumeData, title: string, c
     } catch (error) {
         console.error('Error saving draft:', error);
         throw error;
+    }
+};
+
+export const createPaymentOrder = async (amount: number) => {
+    try {
+        const res = await api.post('/token/create-payment-order', { amount });
+        return res.data;
+    } catch (error) {
+        console.error('Error creating payment order:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+                throw new Error('Invalid amount. Please enter a valid amount greater than 0.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+            if (error.response?.status === 500) {
+                throw new Error('Failed to create payment order. Please try again later.');
+            }
+        }
+        throw new Error('Failed to create payment order. Please try again.');
+    }
+};
+
+export const verifyPayment = async (payment_id: string, order_id: string, signature: string, log_id: string) => {
+    console.log('verifyPayment called with:', { payment_id, order_id, signature, log_id })
+    try {
+        const res = await api.post('/token/verify-payment', {
+            payment_id,
+            order_id,
+            signature,
+            log_id
+        })
+        console.log('verifyPayment response:', res.data)
+        return res.data
+    } catch (error) {
+        console.error('verifyPayment error:', error)
+        throw error
+    }
+};
+
+export const getTokenBalance = async () => {
+    try {
+        const res = await api.get('/token/balance');
+        return res.data;
+    } catch (error) {
+        console.error('Error fetching token balance:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                throw new Error('Please login to view your token balance.');
+            }
+        }
+        throw new Error('Failed to fetch token balance. Please try again.');
+    }
+};
+
+export const getTokenTransactions = async () => {
+    try {
+        const res = await api.get('/token/transactions');
+        return res.data.items;
+    } catch (error) {
+        console.error('Error fetching token transactions:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                throw new Error('Please login to view your transaction history.');
+            }
+        }
+        throw new Error('Failed to fetch token transactions. Please try again.');
+    }
+};
+
+export const spendTokens = async (action_id: string, token: number) => {
+    try {
+        const res = await api.post('/token/spend', { action_id, token });
+        return res.data;
+    } catch (error) {
+        console.error('Error spending tokens:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 402) {
+                throw new Error('Insufficient tokens. Please purchase more tokens to continue.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+        }
+        throw new Error('Failed to spend tokens. Please try again.');
     }
 };
 

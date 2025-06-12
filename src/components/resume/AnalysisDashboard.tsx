@@ -7,6 +7,7 @@ import { enhanceResumeFromFile } from '../../utils/resumeService';
 import Button from '../ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/Tabs';
 import EnhancingLoader from './EnhancingLoader';
+import { spendTokens } from '../../utils/api'
 
 interface AnalysisDashboardProps {
     analysisResult: any;
@@ -42,6 +43,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     const [expandedSuggestions, setExpandedSuggestions] = useState<string[]>([]);
     const [goodPoints, setGoodPoints] = useState<string[]>([]);
     const [improvementPoints, setImprovementPoints] = useState<string[]>([]);
+    const [spendLoading, setSpendLoading] = useState(false)
 
     // Use Zustand store instead of local state
     const {
@@ -213,61 +215,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     };
 
     const handleEnhanceResume = async () => {
-        if (!file || isEnhancing) return;
 
-        setIsEnhancing(true);
-        setEnhancementStage('extracting');
-        let errorMessage = '';
-
-        try {
-            // Add a small delay to show the different stages for better UX
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setEnhancementStage('enhancing');
-
-            // Use the file directly instead of the extracted text
-            const result = await enhanceResumeFromFile(file);
-
-            setEnhancementStage('finalizing');
-
-            // Save enhanced resume data to Zustand store
-            setEnhancedResumeData(result);
-
-            // Add a small delay before navigation for better UX
-            await new Promise(resolve => setTimeout(resolve, 800));
-
-            // Navigate to create-resume route
-            navigate('/create-resume');
-        } catch (error) {
-            console.error('Error enhancing resume:', error);
-            setEnhancementStage('error');
-
-            // Handle specific error cases
-            if (error instanceof Error) {
-                if (error.message.includes('cancelled') || error.message.includes('aborted')) {
-                    errorMessage = 'The enhancement process was interrupted. Please try again.';
-                } else if (error.message.includes('timed out')) {
-                    errorMessage = 'The request took too long. Please try again with a smaller file.';
-                } else if (error.message.includes('File size too large')) {
-                    errorMessage = 'The file is too large. Please upload a smaller file (max 10MB).';
-                } else if (error.message.includes('Unsupported file type')) {
-                    errorMessage = 'Please upload a PDF, DOCX, or TXT file.';
-                } else {
-                    errorMessage = error.message;
-                }
-            } else {
-                errorMessage = 'Failed to enhance resume. Please try again.';
-            }
-
-            // Reset states after error
-            setTimeout(() => {
-                setIsEnhancing(false);
-                setEnhancementStage('extracting');
-            }, 2000);
-        } finally {
-            if (!errorMessage) {
-                setIsEnhancing(false);
-            }
-        }
     };
 
     const renderFileActions = () => (
@@ -310,11 +258,11 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                         <Button
                             size="lg"
                             onClick={handleEnhanceResume}
-                            disabled={isEnhancing}
+                            disabled={isEnhancing || spendLoading}
                             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg flex-1 md:flex-auto md:min-w-[200px] relative overflow-hidden group"
                         >
                             <div className="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
-                            {isEnhancing ? (
+                            {isEnhancing || spendLoading ? (
                                 <div className="flex items-center">
                                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                                     <span className="font-medium">Processing...</span>
@@ -322,7 +270,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                             ) : (
                                 <div className="flex items-center">
                                     <Sparkles className="h-5 w-5 mr-2" />
-                                    <span className="font-medium">Create My Resume</span>
+                                    <span className="font-medium">Create My Resume (10 tokens)</span>
                                 </div>
                             )}
                         </Button>
