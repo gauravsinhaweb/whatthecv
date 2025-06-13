@@ -102,7 +102,6 @@ export const useTokens = (): UseTokensReturn => {
                             await refreshBalance()
                         } catch (e) {
                             console.error('Payment verification error:', e)
-                            toast.error('Payment verification failed. Please contact support.')
                         }
                     },
                     prefill: {
