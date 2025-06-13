@@ -137,28 +137,6 @@ export async function getSectionSuggestions(
 /**
  * Enhance resume for ATS optimization
  */
-export async function enhanceResume(
-    resumeText: string,
-    includeExtractedText: boolean = false
-): Promise<EnhancedResumeData> {
-    try {
-        const response = await api.post('/resume/enhance', null, {
-            params: {
-                resume_text: resumeText,
-                include_extracted_text: includeExtractedText
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        console.error('Resume enhancement error:', error);
-        throw error;
-    }
-}
-
-/**
- * Enhance resume from file directly (newer approach that processes file on backend)
- */
 export async function enhanceResumeFromFile(
     file: File
 ): Promise<EnhancedResumeData> {
@@ -197,7 +175,7 @@ export async function enhanceResumeFromFile(
         }
 
         // Process and validate the response data
-        const processedData = processEnhancedResumeData(response.data);
+        const processedData = response.data;
 
         return processedData;
     } catch (error) {
@@ -233,134 +211,6 @@ export async function enhanceResumeFromFile(
     }
 }
 
-/**
- * Process and validate enhanced resume data from backend
- */
-function processEnhancedResumeData(data: any): EnhancedResumeData {
-    // Separate name from position if they're combined
-    let name = data.personalInfo?.name || '';
-    let position = data.personalInfo?.position || data.personalInfo?.title || '';
-
-    // Position keywords that might appear in the name field
-    const positionKeywords = [
-        "fullstack", "full stack", "full-stack",
-        "frontend", "front end", "front-end",
-        "backend", "back end", "back-end",
-        "software", "developer", "engineer",
-        "manager", "director", "lead",
-        "designer", "ui", "ux",
-        "data", "product", "analyst",
-        "senior", "junior", "architect"
-    ];
-
-    // Clean the name if it contains position keywords
-    if (name) {
-        const nameParts = name.split(' ');
-        const cleanNameParts = [];
-        const positionParts = [];
-
-        for (const part of nameParts) {
-            if (positionKeywords.some(keyword =>
-                part.toLowerCase().includes(keyword) ||
-                part.toLowerCase() === keyword
-            )) {
-                positionParts.push(part);
-            } else {
-                cleanNameParts.push(part);
-            }
-        }
-
-        if (positionParts.length > 0) {
-            name = cleanNameParts.join(' ');
-            const extractedPosition = positionParts.join(' ');
-
-            // Only update position if it would add new information
-            if (!position) {
-                position = extractedPosition;
-            } else if (!position.toLowerCase().includes(extractedPosition.toLowerCase())) {
-                position = `${extractedPosition} ${position}`;
-            }
-        }
-    }
-
-    // Ensure personal info has all required fields
-    const personalInfo = {
-        name: name || '',
-        position: position || '',
-        email: data.personalInfo?.email || '',
-        phone: data.personalInfo?.phone || '',
-        location: data.personalInfo?.location || '',
-        summary: data.personalInfo?.summary || '',
-        profilePicture: data.personalInfo?.profilePicture || null,
-        socialLinks: Array.isArray(data.personalInfo?.socialLinks)
-            ? data.personalInfo.socialLinks.map(link => ({
-                platform: (link.platform?.toLowerCase() === 'peerlist' ? 'other' : link.platform?.toLowerCase()) as "linkedin" | "github" | "twitter" | "leetcode" | "medium" | "stackoverflow" | "other",
-                url: link.url || '',
-                label: link.label
-            }))
-            : []
-    };
-
-    // Process work experience
-    const workExperience = Array.isArray(data.workExperience)
-        ? data.workExperience.map((exp, index) => ({
-            id: exp.id || `work-${index + 1}`,
-            position: exp.position || exp.title || '',
-            company: exp.company || '',
-            location: exp.location || '',
-            startDate: exp.startDate || '',
-            endDate: exp.endDate || '',
-            current: !!exp.current,
-            description: exp.description || ''
-        }))
-        : [];
-
-    // Process education
-    const education = Array.isArray(data.education)
-        ? data.education.map((edu, index) => ({
-            id: edu.id || `edu-${index + 1}`,
-            degree: edu.degree || '',
-            institution: edu.institution || '',
-            location: edu.location || '',
-            startDate: edu.startDate || '',
-            endDate: edu.endDate || '',
-            description: edu.description || ''
-        }))
-        : [];
-
-    // Process skills (ensure it's an array of strings)
-    const skills = Array.isArray(data.skills)
-        ? data.skills
-            .filter(skill => typeof skill === 'string' && skill.trim() !== '')
-            .map(skill => skill.trim()) // Clean up skills
-        : [];
-
-    // Process projects
-    const projects = Array.isArray(data.projects)
-        ? data.projects.map((proj, index) => ({
-            id: proj.id || `proj-${index + 1}`,
-            name: proj.name || '',
-            description: proj.description || '',
-            technologies: proj.technologies || '',
-            link: proj.link || ''
-        }))
-        : [];
-
-    // Construct the validated data
-    const validatedData: EnhancedResumeData = {
-        personalInfo,
-        workExperience,
-        education,
-        skills,
-        projects
-    };
-
-    return validatedData;
-}
-
-/**
- * Process a resume file entirely on the backend - extraction and analysis
- */
 export async function processResumeFile(
     file: File,
     jobDescription?: string
@@ -549,7 +399,7 @@ export const getTokenTransactions = async () => {
 
 export const spendTokens = async (action_id: string, token: number) => {
     try {
-        const res = await api.post('/token/spend', { action_id, token });
+        const res = await api.post(`/token/spend?action_id=${action_id}&token=${token}`);
         return res.data;
     } catch (error) {
         console.error('Error spending tokens:', error);
@@ -559,6 +409,9 @@ export const spendTokens = async (action_id: string, token: number) => {
             }
             if (error.response?.status === 401) {
                 throw new Error('Please login to continue.');
+            }
+            if (error.response?.status === 422) {
+                throw new Error('Invalid token amount or action. Please try again.');
             }
         }
         throw new Error('Failed to spend tokens. Please try again.');

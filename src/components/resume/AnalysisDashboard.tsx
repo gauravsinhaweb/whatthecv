@@ -3,11 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnalysisCategory, performDetailedAnalysis } from '../../services/analysisService';
 import { useResumeStore } from '../../store/resumeStore';
-import { enhanceResumeFromFile } from '../../utils/resumeService';
+import { enhanceResumeFromFile } from '../../utils/api';
 import Button from '../ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/Tabs';
 import EnhancingLoader from './EnhancingLoader';
-import { spendTokens } from '../../utils/api'
+import { useTokens } from '../../hooks/useTokens';
+import { spendTokens } from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
 interface AnalysisDashboardProps {
     analysisResult: any;
@@ -24,8 +26,6 @@ interface CategoryAnalysis {
     isLoading: boolean;
 }
 
-type EnhancementStage = 'extracting' | 'enhancing' | 'finalizing' | 'error';
-
 const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     analysisResult,
     extractedText,
@@ -33,6 +33,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     clearFile
 }) => {
     const navigate = useNavigate();
+    const { tokenBalance, refreshBalance } = useTokens();
     const [activeTab, setActiveTab] = useState<AnalysisTab>('overview');
     const [analysisData, setAnalysisData] = useState<Record<AnalysisCategory, CategoryAnalysis>>({
         format: { score: null, details: [], isLoading: false },
@@ -215,7 +216,75 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     };
 
     const handleEnhanceResume = async () => {
+        if (!file || isEnhancing) return;
 
+        let errorMessage = '';
+        try {
+            // Refresh token balance and wait for it to complete
+            await refreshBalance();
+            console.log('Current token balance after refresh:', tokenBalance);
+
+            if (tokenBalance < 19) {
+                toast.error(`Insufficient tokens. You have ${tokenBalance} tokens, but need 19 tokens to continue.`);
+                return;
+            }
+
+            setIsEnhancing(true);
+            setEnhancementStage('extracting');
+
+            setSpendLoading(true);
+            await spendTokens('resume_enhancement', 19);
+            await refreshBalance();
+            console.log('Token balance after spending:', tokenBalance);
+            setSpendLoading(false);
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            setEnhancementStage('enhancing');
+
+            const result = await enhanceResumeFromFile(file);
+
+            setEnhancementStage('finalizing');
+
+            setEnhancedResumeData(result);
+
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            navigate('/create-resume');
+        } catch (error) {
+            console.error('Error enhancing resume:', error);
+            setEnhancementStage('error');
+
+            // Handle specific error cases
+            if (error instanceof Error) {
+                if (error.message.includes('cancelled') || error.message.includes('aborted')) {
+                    errorMessage = 'The enhancement process was interrupted. Please try again.';
+                } else if (error.message.includes('timed out')) {
+                    errorMessage = 'The request took too long. Please try again with a smaller file.';
+                } else if (error.message.includes('File size too large')) {
+                    errorMessage = 'The file is too large. Please upload a smaller file (max 10MB).';
+                } else if (error.message.includes('Unsupported file type')) {
+                    errorMessage = 'Please upload a PDF, DOCX, or TXT file.';
+                } else if (error.message.includes('Insufficient tokens')) {
+                    errorMessage = `Insufficient tokens. You have ${tokenBalance} tokens, but need 19 tokens to continue.`;
+                } else {
+                    errorMessage = error.message;
+                }
+            } else {
+                errorMessage = 'Failed to enhance resume. Please try again.';
+            }
+
+            // Reset states after error
+            setTimeout(() => {
+                setIsEnhancing(false);
+                setEnhancementStage('extracting');
+                setSpendLoading(false);
+            }, 2000);
+        } finally {
+            if (!errorMessage) {
+                setIsEnhancing(false);
+                setSpendLoading(false);
+            }
+        }
     };
 
     const renderFileActions = () => (
@@ -260,19 +329,10 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                             onClick={handleEnhanceResume}
                             disabled={isEnhancing || spendLoading}
                             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg flex-1 md:flex-auto md:min-w-[200px] relative overflow-hidden group"
+                            tokenAmount={19}
+                            leftIcon={<Sparkles className="h-5 w-5" />}
                         >
-                            <div className="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
-                            {isEnhancing || spendLoading ? (
-                                <div className="flex items-center">
-                                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                                    <span className="font-medium">Processing...</span>
-                                </div>
-                            ) : (
-                                <div className="flex items-center">
-                                    <Sparkles className="h-5 w-5 mr-2" />
-                                    <span className="font-medium">Create My Resume (10 tokens)</span>
-                                </div>
-                            )}
+                            Create My Resume
                         </Button>
                     </div>
                 </div>

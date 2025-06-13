@@ -221,15 +221,25 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
     // Add Google Fonts
     useEffect(() => {
-        // Create a link element for Google Fonts
+        const fontFamilies = [
+            'Tinos', 'Volkhov', 'Gelasio', 'PT+Serif', 'Alegreya', 'Aleo',
+            'Crimson+Pro', 'EB+Garamond', 'Zilla+Slab', 'Cormorant+Garamond',
+            'Crimson+Text', 'Source+Serif+Pro', 'Playfair+Display', 'Noto+Serif',
+            'Bitter', 'Arvo', 'Source+Sans+Pro', 'Karla', 'Mulish', 'Lato',
+            'Titillium+Web', 'Work+Sans', 'Barlow', 'Jost', 'Fira+Sans', 'Roboto',
+            'Rubik', 'Asap', 'Nunito', 'Open+Sans', 'Montserrat', 'Poppins', 'Inter',
+            'Raleway', 'Noto+Sans', 'Cabin', 'Exo+2', 'Chivo', 'Oswald'
+        ];
         const linkElement = document.createElement('link');
         linkElement.rel = 'stylesheet';
-        linkElement.href = 'https://fonts.googleapis.com/css2?family=Tinos&family=Volkhov&family=Gelasio&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Playfair+Display&family=Noto+Serif&family=Bitter&family=Arvo&family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&family=Exo+2&family=Chivo&family=Oswald&display=swap';
 
-        // Add to the document head
+        const familiesParam = fontFamilies
+            .map(f => `family=${f.replace(/ /g, '+')}:wght@100..900`)
+            .join('&');
+
+        linkElement.href = `https://fonts.googleapis.com/css2?${familiesParam}&display=swap`;
         document.head.appendChild(linkElement);
 
-        // Clean up function
         return () => {
             document.head.removeChild(linkElement);
         };
@@ -253,7 +263,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         >
             {/* Load Google Fonts */}
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Tinos&family=Volkhov&family=Gelasio&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Playfair+Display&family=Noto+Serif&family=Bitter&family=Arvo&family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&family=Exo+2&family=Chivo&family=Oswald&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Tinos:wght@100..900&family=Volkhov:wght@100..900&family=Gelasio:wght@100..900&family=PT+Serif:wght@100..900&family=Alegreya:wght@100..900&family=Aleo:wght@100..900&family=Crimson+Pro:wght@100..900&family=EB+Garamond:wght@100..900&family=Zilla+Slab:wght@100..900&family=Cormorant+Garamond:wght@100..900&family=Crimson+Text:wght@100..900&family=Source+Serif+Pro:wght@100..900&family=Playfair+Display:wght@100..900&family=Noto+Serif:wght@100..900&family=Bitter:wght@100..900&family=Arvo:wght@100..900&family=Source+Sans+Pro:wght@100..900&family=Karla:wght@100..900&family=Mulish:wght@100..900&family=Lato:wght@100..900&family=Titillium+Web:wght@100..900&family=Work+Sans:wght@100..900&family=Barlow:wght@100..900&family=Jost:wght@100..900&family=Fira+Sans:wght@100..900&family=Roboto:wght@100..900&family=Rubik:wght@100..900&family=Asap:wght@100..900&family=Nunito:wght@100..900&family=Open+Sans:wght@100..900&family=Montserrat:wght@100..900&family=Poppins:wght@100..900&family=Inter:wght@100..900&family=Raleway:wght@100..900&family=Noto+Sans:wght@100..900&family=Cabin:wght@100..900&family=Exo+2:wght@100..900&family=Chivo:wght@100..900&family=Oswald:wght@100..900&display=swap');
             `}</style>
 
             {/* Inject a style tag with important rules to override any conflicting styles */}
@@ -365,12 +375,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             {resumeData.personalInfo.name || 'YOUR NAME'}
                         </h1>
                         {resumeData.personalInfo.position && (
-                            <h2 className={`${getJobTitleFontSize()} font-normal mt-1`} style={{ color: getAccentColor(1) }}>
+                            <h2 className={`${getJobTitleFontSize()} font-normal`} style={{ color: getAccentColor(1) }}>
                                 {resumeData.personalInfo.position}
                             </h2>
                         )}
 
-                        <div className={`flex flex-wrap mt-3 text-sm gap-y-2 gap-x-6 ${customizationOptions.header.alignment === 'center' ? 'justify-center' : ''}`}>
+                        <div className={`flex flex-wrap mt-1 text-sm gap-y-2 gap-x-6 ${customizationOptions.header.alignment === 'center' ? 'justify-center' : ''}`}>
                             {resumeData.personalInfo.phone && (
                                 <a
                                     href={`tel:${resumeData.personalInfo.phone}`}
@@ -669,7 +679,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                             <div className="flex-1">
                                                                 <div className="flex flex-col">
                                                                     <div className="flex items-baseline">
-                                                                        <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
+                                                                        <h3 className="font-bold text-base">
                                                                             {exp.company || 'Company'}
                                                                         </h3>
                                                                         {exp.experienceLink && exp.experienceLink.startsWith('http') && (
@@ -761,7 +771,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                     <div key={index} className="mb-3">
                                                         <div className={`${customizationOptions.layout.templates === 'one' ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
-                                                                <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
+                                                                <h3 className="font-bold text-base">
                                                                     {edu.degree || 'Degree'}
                                                                     {(edu.institutionLink || edu.degreeLink) &&
                                                                         (edu.institutionLink?.startsWith('http') || edu.degreeLink?.startsWith('http')) && (
@@ -976,7 +986,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                             {resumeData.projects?.slice(0, 3)
                                                 .map((project, index) => (
                                                     <div key={index} className="mb-3">
-                                                        <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
+                                                        <h3 className="font-bold text-base">
                                                             {project.name || 'Project Name'}
                                                             {project.link && project.link.startsWith('http') && (
                                                                 <a
@@ -991,17 +1001,21 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                 </a>
                                                             )}
                                                         </h3>
-                                                        {project.description && (
-                                                            <SafeHTML
-                                                                html={project.description}
-                                                                className="text-sm"
-                                                            />
-                                                        )}
-                                                        {project.technologies && (
-                                                            <div className="text-sm mt-1 italic text-gray-600">
-                                                                {project.technologies}
-                                                            </div>
-                                                        )}
+                                                        {
+                                                            project.description && (
+                                                                <SafeHTML
+                                                                    html={project.description}
+                                                                    className="text-sm"
+                                                                />
+                                                            )
+                                                        }
+                                                        {
+                                                            project.technologies && (
+                                                                <div className="text-sm mt-1 italic text-gray-600">
+                                                                    {project.technologies}
+                                                                </div>
+                                                            )
+                                                        }
                                                     </div>
                                                 ))}
                                         </div>
@@ -1028,226 +1042,230 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     </div>
 
                     {/* Right Column - Skills & Projects - only in 2-column layout */}
-                    {customizationOptions.layout.templates === 'two' && (
-                        <div className="md:w-2/5" data-id="resume-side-column">
-                            {/* Skills */}
-                            {topSkills.length > 0 && customizationOptions.layout.visibleSections?.skills !== false && (
-                                <div className="mb-6">
-                                    <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                        {customizationOptions.layout.sectionTitles['skills']?.toUpperCase() || 'SKILLS'}
-                                    </h2>
-
-                                    {/* Pills/Bubble Format */}
-                                    {(customizationOptions.skills.format === 'pills' || customizationOptions.skills.format === 'bubble') && (
-                                        <div
-                                            className={`flex flex-wrap gap-1.5 mt-2 ${customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates}` : ''
-                                                }`}
-                                        >
-                                            {topSkills.map((skill) => (
-                                                <span
-                                                    key={skill}
-                                                    className="px-2.5 py-1 rounded-full border text-sm"
-                                                    style={{
-                                                        borderColor: getAccentColor(0.3),
-                                                        backgroundColor: `${getAccentColor(0.1)}`
-                                                    }}
-                                                >
-                                                    {skill}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Grid Format */}
-                                    {customizationOptions.skills.format === 'grid' && (
-                                        <div
-                                            className={`grid gap-2 mt-2 ${customizationOptions.skills.templates === 1 ? 'grid-cols-1' :
-                                                customizationOptions.skills.templates === 2 ? 'grid-cols-2' :
-                                                    'grid-cols-3'
-                                                }`}
-                                        >
-                                            {topSkills.map((skill) => (
-                                                <div
-                                                    key={skill}
-                                                    className="p-2 border rounded text-sm"
-                                                    style={{
-                                                        borderColor: getAccentColor(0.3),
-                                                        backgroundColor: 'white'
-                                                    }}
-                                                >
-                                                    {skill}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Level Format */}
-                                    {customizationOptions.skills.format === 'level' && (
-                                        <div
-                                            className={`grid gap-2 mt-2 ${customizationOptions.skills.templates === 1 ? 'grid-cols-1' :
-                                                customizationOptions.skills.templates === 2 ? 'grid-cols-2' :
-                                                    'grid-cols-3'
-                                                }`}
-                                        >
-                                            {topSkills.map((skill) => (
-                                                <div
-                                                    key={skill}
-                                                    className="flex justify-between items-center text-sm border-b pb-1 mb-1"
-                                                    style={{ borderColor: getAccentColor(0.2) }}
-                                                >
-                                                    <span>{skill}</span>
-                                                    <div className="flex">
-                                                        {[1, 2, 3, 4, 5].map((i) => (
-                                                            <div
-                                                                key={i}
-                                                                className="w-1.5 h-1.5 rounded-full ml-0.5"
-                                                                style={{
-                                                                    backgroundColor: i <= Math.floor(Math.random() * 3) + 3
-                                                                        ? getAccentColor(1)
-                                                                        : '#e5e7eb'
-                                                                }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Compact Format */}
-                                    {customizationOptions.skills.format === 'compact' && (
-                                        <div
-                                            className={`flex flex-wrap gap-1 mt-2 ${customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates}` : ''
-                                                }`}
-                                        >
-                                            {topSkills.map((skill) => (
-                                                <span
-                                                    key={skill}
-                                                    className="px-1.5 py-0.5 text-xs border border-transparent mr-1"
-                                                    style={{ color: getAccentColor(1) }}
-                                                >
-                                                    {skill}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Comma-separated List */}
-                                    {customizationOptions.skills.format === 'comma' && (
-                                        <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
-                                            <p className="text-sm">
-                                                {topSkills.join(', ')}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {/* Pipe Format */}
-                                    {customizationOptions.skills.format === 'pipe' && (
-                                        <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
-                                            <p className="text-sm">
-                                                {topSkills.join('  |  ')}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {/* Newline Format */}
-                                    {customizationOptions.skills.format === 'newline' && (
-                                        <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
-                                            {topSkills.map((skill) => (
-                                                <div key={skill} className="text-sm mb-1">
-                                                    {skill}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Bullet Points */}
-                                    {customizationOptions.skills.format === 'bullets' && (
-                                        <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
-                                            {topSkills.map((skill) => (
-                                                <div key={skill} className="flex items-center text-sm mb-1">
-                                                    <span className="mr-2" style={{ color: getAccentColor(1) }}>•</span>
-                                                    <span>{skill}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Projects */}
-                            {resumeData.projects.some(
-                                (project) => project.name || project.description
-                            ) && customizationOptions.layout.visibleSections?.projects !== false && (
+                    {
+                        customizationOptions.layout.templates === 'two' && (
+                            <div className="md:w-2/5" data-id="resume-side-column">
+                                {/* Skills */}
+                                {topSkills.length > 0 && customizationOptions.layout.visibleSections?.skills !== false && (
                                     <div className="mb-6">
                                         <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {customizationOptions.layout.sectionTitles['projects']?.toUpperCase() || 'PROJECTS'}
+                                            {customizationOptions.layout.sectionTitles['skills']?.toUpperCase() || 'SKILLS'}
                                         </h2>
-                                        <div className="space-y-4">
-                                            {resumeData.projects?.slice(0, 2)
-                                                .filter((project) => project.name || project.description)
-                                                .map((project, index) => (
-                                                    <div key={index} className="mb-3">
-                                                        <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
-                                                            {project.name || 'Project Name'}
-                                                            {project.link && project.link.startsWith('http') && (
-                                                                <a
-                                                                    href={project.link}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
-                                                                    style={{ color: getAccentColor(0.9) }}
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    {renderLinkIcon()}
-                                                                </a>
-                                                            )}
-                                                        </h3>
-                                                        {(project.startDate || project.endDate) && (
-                                                            <div className="text-sm opacity-80 mb-1">
-                                                                {project.startDate && project.endDate && (
-                                                                    <span>{formatDate(project.startDate)} - {formatDate(project.endDate)}</span>
-                                                                )}
-                                                                {project.startDate && !project.endDate && (
-                                                                    <span>{formatDate(project.startDate)}</span>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                        {project.description && (
-                                                            <SafeHTML
-                                                                html={project.description}
-                                                                className="text-sm"
-                                                            />
-                                                        )}
-                                                        {project.technologies && (
-                                                            <div className="text-sm mt-1 text-gray-600">
-                                                                {project.technologies}
-                                                            </div>
-                                                        )}
+
+                                        {/* Pills/Bubble Format */}
+                                        {(customizationOptions.skills.format === 'pills' || customizationOptions.skills.format === 'bubble') && (
+                                            <div
+                                                className={`flex flex-wrap gap-1.5 mt-2 ${customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates}` : ''
+                                                    }`}
+                                            >
+                                                {topSkills.map((skill) => (
+                                                    <span
+                                                        key={skill}
+                                                        className="px-2.5 py-1 rounded-full border text-sm"
+                                                        style={{
+                                                            borderColor: getAccentColor(0.3),
+                                                            backgroundColor: `${getAccentColor(0.1)}`
+                                                        }}
+                                                    >
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Grid Format */}
+                                        {customizationOptions.skills.format === 'grid' && (
+                                            <div
+                                                className={`grid gap-2 mt-2 ${customizationOptions.skills.templates === 1 ? 'grid-cols-1' :
+                                                    customizationOptions.skills.templates === 2 ? 'grid-cols-2' :
+                                                        'grid-cols-3'
+                                                    }`}
+                                            >
+                                                {topSkills.map((skill) => (
+                                                    <div
+                                                        key={skill}
+                                                        className="p-2 border rounded text-sm"
+                                                        style={{
+                                                            borderColor: getAccentColor(0.3),
+                                                            backgroundColor: 'white'
+                                                        }}
+                                                    >
+                                                        {skill}
                                                     </div>
                                                 ))}
-                                        </div>
+                                            </div>
+                                        )}
+
+                                        {/* Level Format */}
+                                        {customizationOptions.skills.format === 'level' && (
+                                            <div
+                                                className={`grid gap-2 mt-2 ${customizationOptions.skills.templates === 1 ? 'grid-cols-1' :
+                                                    customizationOptions.skills.templates === 2 ? 'grid-cols-2' :
+                                                        'grid-cols-3'
+                                                    }`}
+                                            >
+                                                {topSkills.map((skill) => (
+                                                    <div
+                                                        key={skill}
+                                                        className="flex justify-between items-center text-sm border-b pb-1 mb-1"
+                                                        style={{ borderColor: getAccentColor(0.2) }}
+                                                    >
+                                                        <span>{skill}</span>
+                                                        <div className="flex">
+                                                            {[1, 2, 3, 4, 5].map((i) => (
+                                                                <div
+                                                                    key={i}
+                                                                    className="w-1.5 h-1.5 rounded-full ml-0.5"
+                                                                    style={{
+                                                                        backgroundColor: i <= Math.floor(Math.random() * 3) + 3
+                                                                            ? getAccentColor(1)
+                                                                            : '#e5e7eb'
+                                                                    }}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Compact Format */}
+                                        {customizationOptions.skills.format === 'compact' && (
+                                            <div
+                                                className={`flex flex-wrap gap-1 mt-2 ${customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates}` : ''
+                                                    }`}
+                                            >
+                                                {topSkills.map((skill) => (
+                                                    <span
+                                                        key={skill}
+                                                        className="px-1.5 py-0.5 text-xs border border-transparent mr-1"
+                                                        style={{ color: getAccentColor(1) }}
+                                                    >
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Comma-separated List */}
+                                        {customizationOptions.skills.format === 'comma' && (
+                                            <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
+                                                <p className="text-sm">
+                                                    {topSkills.join(', ')}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Pipe Format */}
+                                        {customizationOptions.skills.format === 'pipe' && (
+                                            <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
+                                                <p className="text-sm">
+                                                    {topSkills.join('  |  ')}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Newline Format */}
+                                        {customizationOptions.skills.format === 'newline' && (
+                                            <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
+                                                {topSkills.map((skill) => (
+                                                    <div key={skill} className="text-sm mb-1">
+                                                        {skill}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Bullet Points */}
+                                        {customizationOptions.skills.format === 'bullets' && (
+                                            <div className={customizationOptions.skills.templates > 1 ? `columns-${customizationOptions.skills.templates} mt-2 gap-x-6` : 'mt-2'}>
+                                                {topSkills.map((skill) => (
+                                                    <div key={skill} className="flex items-center text-sm mb-1">
+                                                        <span className="mr-2" style={{ color: getAccentColor(1) }}>•</span>
+                                                        <span>{skill}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
-                            {/* Custom Sections - only in right column if layout is two columns */}
-                            {customizationOptions.customSections
-                                ?.filter(customSection => customizationOptions.layout.visibleSections?.[customSection.id] !== false)
-                                ?.map((customSection) => (
-                                    <div key={customSection.id} className="mb-6">
-                                        <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {customSection.title.toUpperCase()}
-                                        </h2>
-                                        <div className="space-y-4 text-sm">
-                                            <SafeHTML html={customSection.content} />
+                                {/* Projects */}
+                                {resumeData.projects.some(
+                                    (project) => project.name || project.description
+                                ) && customizationOptions.layout.visibleSections?.projects !== false && (
+                                        <div className="mb-6">
+                                            <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
+                                                {customizationOptions.layout.sectionTitles['projects']?.toUpperCase() || 'PROJECTS'}
+                                            </h2>
+                                            <div className="space-y-4">
+                                                {resumeData.projects?.slice(0, 2)
+                                                    .filter((project) => project.name || project.description)
+                                                    .map((project, index) => (
+                                                        <div key={index} className="mb-3">
+                                                            <h3 className="font-bold text-base">
+                                                                {project.name || 'Project Name'}
+                                                                {project.link && project.link.startsWith('http') && (
+                                                                    <a
+                                                                        href={project.link}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                        style={{ color: getAccentColor(0.9) }}
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        {renderLinkIcon()}
+                                                                    </a>
+                                                                )}
+                                                            </h3>
+                                                            {(project.startDate || project.endDate) && (
+                                                                <div className="text-sm opacity-80 mb-1">
+                                                                    {project.startDate && project.endDate && (
+                                                                        <span>{formatDate(project.startDate)} - {formatDate(project.endDate)}</span>
+                                                                    )}
+                                                                    {project.startDate && !project.endDate && (
+                                                                        <span>{formatDate(project.startDate)}</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            {project.description && (
+                                                                <SafeHTML
+                                                                    html={project.description}
+                                                                    className="text-sm"
+                                                                />
+                                                            )}
+                                                            {project.technologies && (
+                                                                <div className="text-sm mt-1 text-gray-600">
+                                                                    {project.technologies}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+                                    )
+                                }
+
+                                {/* Custom Sections - only in right column if layout is two columns */}
+                                {
+                                    customizationOptions.customSections
+                                        ?.filter(customSection => customizationOptions.layout.visibleSections?.[customSection.id] !== false)
+                                        ?.map((customSection) => (
+                                            <div key={customSection.id} className="mb-6">
+                                                <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
+                                                    {customSection.title.toUpperCase()}
+                                                </h2>
+                                                <div className="space-y-4 text-sm">
+                                                    <SafeHTML html={customSection.content} />
+                                                </div>
+                                            </div>
+                                        ))
+                                }
+                            </div >
+                        )}
+                </div >
+            </div >
+        </div >
     );
 };
 

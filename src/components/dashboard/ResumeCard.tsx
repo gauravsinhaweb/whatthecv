@@ -18,6 +18,22 @@ interface ResumeCardProps {
     newTitle: string
     setNewTitle: (title: string) => void
 }
+const shimmerStyles = `
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, oklch(98.4% 0.003 247.858) 25%, oklch(92.9% 0.013 255.508) 50%, oklch(98.4% 0.003 247.858) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+`;
 
 const PREVIEW_SCALE = 0.25
 
@@ -39,10 +55,10 @@ export const ResumeCard = ({
 
     return (
         <div
-            className="group bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
+            className="group bg-white  shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
             onClick={() => !hovered && onEdit(id)}
         >
-            <div className="px-2 flex items-center justify-center bg-slate-200 group-hover:bg-slate-100 transition-colors duration-200 relative">
+            <div className="px-2 py-1 flex items-center justify-center bg-slate-200 group-hover:bg-slate-100 transition-colors duration-200 relative">
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-10">
                     <div className="flex flex-row items-center gap-2">
                         <ArrowRight className="h-6 w-6 text-white" />
@@ -157,4 +173,31 @@ export const ResumeCard = ({
             </div>
         </div>
     )
-} 
+}
+
+
+export const ResumeCardSkeleton: React.FC = () => {
+    return (
+        <>
+            <style>{shimmerStyles}</style>
+            <div className="bg-white  rounded-xl shadow-sm border border-slate-200">
+                <div className="px-2 py-1 min-h-[257px] flex items-center justify-center bg-slate-200">
+                    <div className='bg-white w-full h-[217px] p-2 shimmer'></div>
+                </div>
+                <div className="p-4 pb-12 border-t border-slate-100">
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                            <div className="flex-shrink-0">
+                                <div className="w-10 h-10 rounded-lg bg-slate-100 shimmer" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="h-4 w-32 bg-slate-100 rounded shimmer mb-2" />
+                                <div className="h-3 w-24 bg-slate-100 rounded shimmer" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}; 

@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useResumeStore } from '../store/resumeStore'
 import { defaultCustomizationOptions, initialResumeData } from '../types/resume'
-import { FileText, Plus, Briefcase, Coins, History } from 'lucide-react'
+import { FileText, Plus, Briefcase, Coins, History, RefreshCw } from 'lucide-react'
 import { getResumeVersions, deleteResumeVersion, saveDraft } from '../utils/api'
 import { toast } from 'react-hot-toast'
 import type { EnhancedResumeData } from '../utils/types'
 import { useTokens } from '../hooks/useTokens'
 import { DeleteConfirmModal } from '../components/dashboard/DeleteConfirmModal'
-import { ResumeCard } from '../components/dashboard/ResumeCard'
+import { ResumeCard, ResumeCardSkeleton } from '../components/dashboard/ResumeCard'
 import { StatsCard } from '../components/dashboard/StatsCard'
+import Button from '../components/ui/Button'
 
 // Add Razorpay type declaration
 declare global {
@@ -241,34 +242,52 @@ const Dashboard = () => {
                         title="Token Balance"
                         value={
                             isBalanceLoading ? (
-                                <div className="animate-pulse h-8 w-20 bg-slate-200 rounded"></div>
+                                <div className="flex items-center space-x-2">
+                                    <div className="animate-pulse h-8 w-20 bg-slate-200 rounded-lg"></div>
+                                    <div className="animate-pulse h-4 w-4 bg-slate-200 rounded-full"></div>
+                                </div>
                             ) : error ? (
-                                <span className="text-red-500 text-sm">{error}</span>
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-red-500 text-sm font-medium">{error}</span>
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="p-1 hover:bg-red-50 rounded-full transition-colors"
+                                        title="Retry"
+                                    >
+                                        <RefreshCw className="h-4 w-4 text-red-500" />
+                                    </button>
+                                </div>
                             ) : (
-                                <div className="flex items-center">
-                                    <Coins className="h-5 w-5 mr-2 text-yellow-600" />
-                                    <span className="font-medium">{tokenBalance}</span>
+                                <div className="flex items-center space-x-2">
+                                    <span className="font-semibold text-lg bg-gradient-to-r from-yellow-600 to-yellow-500 bg-clip-text text-transparent">
+                                        {tokenBalance}
+                                    </span>
+                                    <span className="text-sm text-slate-500">tokens</span>
                                 </div>
                             )
                         }
                         icon={Coins}
-                        iconBgColor="bg-yellow-100"
+                        iconBgColor="bg-gradient-to-br from-yellow-100 to-yellow-50"
                         iconColor="text-yellow-600"
                         actions={
-                            <>
-                                <button
+                            <div className="flex items-center space-x-2">
+                                <Button
                                     onClick={() => setBuyModalOpen(true)}
-                                    className="px-3 py-1.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm font-medium transition-colors shadow-sm hover:shadow"
+                                    className="group relative px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md flex items-center space-x-2"
+                                    rightIcon={<Plus className="h-4 w-4 group-hover:scale-110 transition-transform" />}
                                 >
-                                    Buy Tokens
-                                </button>
-                                <button
+                                    Buy
+                                </Button>
+                                <Button
                                     onClick={openHistoryModal}
-                                    className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm font-medium transition-colors shadow-sm hover:shadow"
+                                    variant="ghost"
+                                    className="group p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                                    title="Transaction History"
+                                    rightIcon={<History className="h-4 w-4 group-hover:scale-110 transition-transform" />}
                                 >
-                                    <History className="h-4 w-4" />
-                                </button>
-                            </>
+                                    <span className="sr-only">Transaction History</span>
+                                </Button>
+                            </div>
                         }
                     />
                 </div>
@@ -308,12 +327,13 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Content Area */}
                 <div className="w-full">
                     {activeTab === 'resumes' ? (
                         isLoading ? (
-                            <div className="w-full flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <div className="flex justify-start items-center flex-wrap gap-6">
+                                {[1, 2, 3].map((index) => (
+                                    <ResumeCardSkeleton key={index} />
+                                ))}
                             </div>
                         ) : resumes.length === 0 ? (
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
@@ -410,7 +430,9 @@ const Dashboard = () => {
                                         onChange={(e) => setBuyAmount(Number((e.target as HTMLInputElement).value))}
                                         className="w-full pl-8 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="Enter amount"
-                                        min="1"
+                                        min="5"
+                                        step={10}
+                                        defaultValue={100}
                                     />
                                 </div>
                             </div>

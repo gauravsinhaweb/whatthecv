@@ -365,7 +365,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                 <div className="flex gap-4 overflow-x-auto p-4 hide-scrollbar">
                                     <button
                                         onClick={() => handleChange('layout', 'templates', 'one')}
-                                        className={`flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'one'
+                                        className={`relative flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'one'
                                             ? 'border-blue-200 shadow-lg'
                                             : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
                                             }`}
@@ -383,6 +383,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                                 />
                                             </div>
                                         </div>
+                                        <span className="absolute bottom-2 right-2 bg-gradient-to-r from-pink-400 to-purple-600 text-white text-[10px] font-semibold px-3 py-1 shadow-md z-10" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 80%)' }}>Most popular</span>
                                     </button>
                                     <button
                                         onClick={() => handleChange('layout', 'templates', 'two')}
@@ -898,38 +899,14 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                     {
                                         name: 'Professional Blue',
                                         accent: '#000000',   // Rich Navy Blue
-                                        headings: '#1C4ED8', // Deep Blue
+                                        headings: '#1c398e', // Deep Blue
                                         text: '#2E3A59'      // Slate Gray-Blue
-                                    },
-                                    {
-                                        name: 'Modern Teal',
-                                        accent: '#128C7E',   // Vibrant Teal
-                                        headings: '#035E5B', // Dark Teal
-                                        text: '#2F3E46'      // Charcoal Gray
-                                    },
-                                    {
-                                        name: 'Creative Purple',
-                                        accent: '#7C3AED',   // Bright Orchid
-                                        headings: '#4C1D95', // Royal Purple
-                                        text: '#383342'      // Dark Slate
                                     },
                                     {
                                         name: 'Classic Black',
                                         accent: '#222222',   // Soft Black
                                         headings: '#1A1A1A', // Off-Black
                                         text: '#333333'      // Dark Gray
-                                    },
-                                    {
-                                        name: 'Bold Red',
-                                        accent: '#B91C1C',   // True Crimson
-                                        headings: '#7F1D1D', // Deep Maroon
-                                        text: '#3C3434'      // Warm Graphite
-                                    },
-                                    {
-                                        name: 'Earthy Green',
-                                        accent: '#587047',   // Olive Green
-                                        headings: '#3E5A36', // Forest Green
-                                        text: '#3B3F32'      // Brownish Gray
                                     }
                                 ]
                                     .map((theme) => (
