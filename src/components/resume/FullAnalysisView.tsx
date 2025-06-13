@@ -284,6 +284,7 @@ const FullAnalysisView: React.FC<FullAnalysisViewProps> = ({
                                         runAnalysis(category);
                                     }}
                                     size="sm"
+                                    isLoading={analysis.isLoading}
                                     className="text-xs py-1"
                                 >
                                     Retry
@@ -296,6 +297,7 @@ const FullAnalysisView: React.FC<FullAnalysisViewProps> = ({
                                     runAnalysis(category);
                                 }}
                                 size="sm"
+                                isLoading={analysis.isLoading}
                                 className="text-xs py-1"
                             >
                                 Analyze

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { createPaymentOrder, verifyPayment, getTokenBalance, getTokenTransactions } from '../utils/api'
 import { toast } from 'react-hot-toast'
 
@@ -43,6 +43,7 @@ export const useTokens = (): UseTokensReturn => {
             setIsBalanceLoading(true)
             setError(null)
             const balance = await getTokenBalance()
+            console.log('Token balance response:', balance)
             setTokenBalance(balance.available_token)
         } catch (e) {
             setError('Failed to load token balance')
@@ -51,6 +52,11 @@ export const useTokens = (): UseTokensReturn => {
             setIsBalanceLoading(false)
         }
     }, [])
+
+    // Initialize token balance on component mount
+    useEffect(() => {
+        refreshBalance()
+    }, [refreshBalance])
 
     const handleBuyTokens = useCallback(async () => {
         if (buyAmount < 1) {
@@ -116,7 +122,7 @@ export const useTokens = (): UseTokensReturn => {
             }
             document.body.appendChild(script)
         } catch (e) {
-            console.log('Failed to initiate payment:', e)
+            console.error('Failed to initiate payment:', e)
             toast.error('Failed to initiate payment. Please try again.')
         } finally {
             setBuyLoading(false)

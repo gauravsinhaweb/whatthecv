@@ -154,28 +154,32 @@ const LandingPage: React.FC = () => {
                                 size="lg"
                                 onClick={() => handleNavigate('/analyze')}
                                 className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg group"
+                                rightIcon={
+                                    <motion.div
+                                        whileHover={{ rotate: 45 }}
+                                        transition={{ type: "spring", stiffness: 200 }}
+                                    >
+                                        <ArrowUpRight className="h-4 w-4" />
+                                    </motion.div>
+                                }
                             >
-                                <span>Analyze Your Resume</span>
-                                <motion.div
-                                    whileHover={{ rotate: 45 }}
-                                    transition={{ type: "spring", stiffness: 200 }}
-                                >
-                                    <ArrowUpRight className="ml-2 h-4 w-4" />
-                                </motion.div>
+                                Analyze Your Resume
                             </Button>
                             <Button
                                 variant="outline"
                                 size="lg"
                                 onClick={() => handleNavigate('/templates')}
                                 className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:border-blue-400 group"
+                                rightIcon={
+                                    <motion.div
+                                        whileHover={{ x: 5 }}
+                                        transition={{ type: "spring", stiffness: 400 }}
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </motion.div>
+                                }
                             >
-                                <span>Browse Templates</span>
-                                <motion.div
-                                    whileHover={{ x: 5 }}
-                                    transition={{ type: "spring", stiffness: 400 }}
-                                >
-                                    <ChevronRight className="ml-2 h-4 w-4" />
-                                </motion.div>
+                                Browse Templates
                             </Button>
                         </motion.div>
                     </div>
