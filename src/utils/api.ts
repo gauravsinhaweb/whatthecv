@@ -350,14 +350,13 @@ export const createPaymentOrder = async (amount: number) => {
     }
 };
 
-export const verifyPayment = async (payment_id: string, order_id: string, signature: string, log_id: string) => {
-    console.log('verifyPayment called with:', { payment_id, order_id, signature, log_id })
+export const verifyPayment = async (payment_id: string, order_id: string, signature: string) => {
+    console.log('verifyPayment called with:', { payment_id, order_id, signature })
     try {
         const res = await api.post('/token/verify-payment', {
             payment_id,
             order_id,
-            signature,
-            log_id
+            signature
         })
         console.log('verifyPayment response:', res.data)
         return res.data

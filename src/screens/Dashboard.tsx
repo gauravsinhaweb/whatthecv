@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useResumeStore } from '../store/resumeStore'
 import { defaultCustomizationOptions, initialResumeData } from '../types/resume'
-import { FileText, Plus, Briefcase, Coins, History, RefreshCw } from 'lucide-react'
+import { FileText, Plus, Briefcase, Coins, History, RefreshCw, PiggyBank, FileSearch, FileEdit, FileCheck, Sparkles, Wand2, Lightbulb, MessageSquare, BookOpen, Target, GraduationCap, Wallet } from 'lucide-react'
 import { getResumeVersions, deleteResumeVersion, saveDraft } from '../utils/api'
 import { toast } from 'react-hot-toast'
 import type { EnhancedResumeData } from '../utils/types'
@@ -18,6 +18,88 @@ declare global {
         Razorpay: any;
     }
 }
+
+const getActionDetails = (actionId: string) => {
+    const formatActionText = (text: string) => {
+        return text
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
+    switch (actionId) {
+        case 'add_token':
+            return {
+                text: 'Credited',
+                icon: Wallet,
+                iconBgColor: 'bg-emerald-50',
+                iconColor: 'text-emerald-600'
+            };
+        case 'resume_enhancement':
+            return {
+                text: 'Resume Enhancement',
+                icon: Sparkles,
+                iconBgColor: 'bg-purple-50',
+                iconColor: 'text-purple-600'
+            };
+        case 'job_description_analysis':
+            return {
+                text: 'Job Description Analysis',
+                icon: Target,
+                iconBgColor: 'bg-blue-50',
+                iconColor: 'text-blue-600'
+            };
+        case 'career_advice':
+            return {
+                text: 'Career Advice',
+                icon: Lightbulb,
+                iconBgColor: 'bg-yellow-50',
+                iconColor: 'text-yellow-600'
+            };
+        case 'interview_prep':
+            return {
+                text: 'Interview Preparation',
+                icon: MessageSquare,
+                iconBgColor: 'bg-green-50',
+                iconColor: 'text-green-600'
+            };
+        case 'skill_development':
+            return {
+                text: 'Skill Development',
+                icon: GraduationCap,
+                iconBgColor: 'bg-indigo-50',
+                iconColor: 'text-indigo-600'
+            };
+        case 'resume_template':
+            return {
+                text: 'Resume Template',
+                icon: FileEdit,
+                iconBgColor: 'bg-pink-50',
+                iconColor: 'text-pink-600'
+            };
+        case 'job_search':
+            return {
+                text: 'Job Search',
+                icon: Briefcase,
+                iconBgColor: 'bg-cyan-50',
+                iconColor: 'text-cyan-600'
+            };
+        case 'resume_analysis':
+            return {
+                text: 'Resume Analysis',
+                icon: FileSearch,
+                iconBgColor: 'bg-orange-50',
+                iconColor: 'text-orange-600'
+            };
+        default:
+            return {
+                text: formatActionText(actionId),
+                icon: FileCheck,
+                iconBgColor: 'bg-slate-50',
+                iconColor: 'text-slate-600'
+            };
+    }
+};
 
 const Dashboard = () => {
     const navigate = useNavigate()
@@ -460,54 +542,75 @@ const Dashboard = () => {
 
             {/* Transaction History Modal */}
             {historyModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-slate-900">Transaction History</h3>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[64vh] flex flex-col">
+                        <div className="flex justify-between items-center p-5 border-b border-slate-100">
+                            <div className="flex items-center gap-2.5">
+                                <div className="flex-shrink-0 bg-blue-50 rounded-xl p-3">
+                                    <History className="h-6 w-6 text-blue-600" />
+                                </div>
+                                <h3 className="text-base font-semibold text-slate-900">Transaction History</h3>
+                            </div>
                             <button
                                 onClick={() => setHistoryModalOpen(false)}
-                                className="text-slate-400 hover:text-slate-500"
+                                className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-lg"
                             >
-                                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                 </svg>
                             </button>
                         </div>
-                        <div className="space-y-4">
+                        <div className="p-5 overflow-y-auto flex-1">
                             {historyLoading ? (
-                                <div className="flex justify-center py-8">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                <div className="flex justify-center items-center py-10">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                                 </div>
                             ) : transactions.length === 0 ? (
-                                <div className="text-center py-8">
-                                    <History className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                                    <p className="text-slate-500">No transactions yet</p>
+                                <div className="text-center py-10">
+                                    <div className="flex-shrink-0 bg-slate-50 rounded-xl p-3 inline-block mb-3">
+                                        <History className="h-6 w-6 text-slate-600" />
+                                    </div>
+                                    <p className="text-slate-500 text-base font-medium">No transactions yet</p>
                                 </div>
                             ) : (
-                                <div className="space-y-2">
-                                    {transactions.map((transaction) => (
-                                        <div
-                                            key={transaction.id}
-                                            className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
-                                        >
-                                            <div>
-                                                <p className="font-medium text-slate-900">{transaction.action_id}</p>
-                                                <p className="text-sm text-slate-500">
-                                                    {new Date(transaction.timestamp).toLocaleString()}
-                                                </p>
+                                <div className="space-y-2.5">
+                                    {transactions.map((transaction) => {
+                                        const actionDetails = getActionDetails(transaction.action_id);
+                                        const Icon = actionDetails.icon;
+                                        return (
+                                            <div
+                                                key={transaction.id}
+                                                className="flex items-center justify-between p-3.5 bg-slate-50/50 rounded-xl hover:bg-slate-100/50 transition-all duration-200 border border-slate-100 hover:border-slate-200 hover:shadow-sm"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`flex-shrink-0 ${actionDetails.iconBgColor} rounded-xl p-3`}>
+                                                        <Icon className={`h-6 w-6 ${actionDetails.iconColor}`} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-slate-900 text-base">{actionDetails.text}</p>
+                                                        <p className="text-sm text-slate-500 mt-0.5">
+                                                            {new Date(transaction.timestamp).toLocaleString()}
+                                                        </p>
+                                                        <p className="text-xs text-slate-400 mt-0.5">
+                                                            Balance: {transaction.available_token || '-'} {transaction.available_token && <Coins className="inline-block h-3 w-3" />}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <div className={`font-semibold text-base ${transaction.action_id === 'add_token' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                        {transaction.action_id === 'add_token' ? '+' : '-'}{Math.abs(transaction.token)} <Coins className="inline-block h-4 w-4" />
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className={`font-medium ${transaction.token > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                {transaction.token > 0 ? '+' : ''}{transaction.token}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+        </div >
     )
 }
 
