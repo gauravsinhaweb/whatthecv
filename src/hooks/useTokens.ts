@@ -47,7 +47,7 @@ export const useTokens = (): UseTokensReturn => {
             console.log('Token balance response:', balance)
             setTokenBalance(balance.available_token)
         } catch (e) {
-            setError('Failed to load token balance')
+            setError('-')
             console.error('Error fetching token balance:', e)
         } finally {
             setIsBalanceLoading(false)
