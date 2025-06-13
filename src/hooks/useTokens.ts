@@ -6,6 +6,7 @@ interface TokenTransaction {
     id: string
     action_id: string
     token: number
+    available_token: number
     timestamp: string
 }
 
@@ -67,7 +68,7 @@ export const useTokens = (): UseTokensReturn => {
         setBuyLoading(true)
         setError(null)
         try {
-            const { order, log_id } = await createPaymentOrder(buyAmount)
+            const { order } = await createPaymentOrder(buyAmount)
 
             // Load Razorpay SDK
             const script = document.createElement('script')
@@ -88,14 +89,12 @@ export const useTokens = (): UseTokensReturn => {
                             console.log('Calling verifyPayment with:', {
                                 payment_id: response.razorpay_payment_id,
                                 order_id: response.razorpay_order_id,
-                                signature: response.razorpay_signature,
-                                log_id: log_id
+                                signature: response.razorpay_signature
                             })
                             await verifyPayment(
                                 response.razorpay_payment_id,
                                 response.razorpay_order_id,
-                                response.razorpay_signature,
-                                log_id
+                                response.razorpay_signature
                             )
                             toast.success('Tokens credited successfully!')
                             setBuyModalOpen(false)
