@@ -46,9 +46,9 @@ export interface EnhancedResumeData {
         phone: string;
         location: string;
         summary: string;
-        profilePicture?: string | null;
-        socialLinks?: {
-            platform: 'linkedin' | 'github' | 'twitter' | 'leetcode' | 'medium' | 'stackoverflow' | 'other';
+        profilePicture: string | null;
+        socialLinks: {
+            platform: "linkedin" | "github" | "twitter" | "leetcode" | "medium" | "stackoverflow" | "peerlist" | "other";
             url: string;
             label?: string;
         }[];

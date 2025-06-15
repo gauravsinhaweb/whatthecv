@@ -3,10 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnalysisCategory, performDetailedAnalysis } from '../../services/analysisService';
 import { useResumeStore } from '../../store/resumeStore';
-import { enhanceResumeFromFile } from '../../utils/resumeService';
+import { enhanceResumeFromFile } from '../../utils/api';
 import Button from '../ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/Tabs';
 import EnhancingLoader from './EnhancingLoader';
+import { useTokens } from '../../hooks/useTokens';
+import { spendTokens } from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
 interface AnalysisDashboardProps {
     analysisResult: any;
@@ -23,8 +26,6 @@ interface CategoryAnalysis {
     isLoading: boolean;
 }
 
-type EnhancementStage = 'extracting' | 'enhancing' | 'finalizing' | 'error';
-
 const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     analysisResult,
     extractedText,
@@ -32,6 +33,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     clearFile
 }) => {
     const navigate = useNavigate();
+    const { tokenBalance, refreshBalance } = useTokens();
     const [activeTab, setActiveTab] = useState<AnalysisTab>('overview');
     const [analysisData, setAnalysisData] = useState<Record<AnalysisCategory, CategoryAnalysis>>({
         format: { score: null, details: [], isLoading: false },
@@ -42,6 +44,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     const [expandedSuggestions, setExpandedSuggestions] = useState<string[]>([]);
     const [goodPoints, setGoodPoints] = useState<string[]>([]);
     const [improvementPoints, setImprovementPoints] = useState<string[]>([]);
+    const [spendLoading, setSpendLoading] = useState(false)
 
     // Use Zustand store instead of local state
     const {
@@ -215,27 +218,37 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     const handleEnhanceResume = async () => {
         if (!file || isEnhancing) return;
 
-        setIsEnhancing(true);
-        setEnhancementStage('extracting');
         let errorMessage = '';
-
         try {
-            // Add a small delay to show the different stages for better UX
+            // Refresh token balance and wait for it to complete
+            await refreshBalance();
+            console.log('Current token balance after refresh:', tokenBalance);
+
+            if (tokenBalance < 19) {
+                toast.error(`Insufficient tokens. You have ${tokenBalance} tokens, but need 19 tokens to continue.`);
+                return;
+            }
+
+            setIsEnhancing(true);
+            setEnhancementStage('extracting');
+
+            setSpendLoading(true);
+            await spendTokens('resume_enhancement', 19);
+            await refreshBalance();
+            console.log('Token balance after spending:', tokenBalance);
+            setSpendLoading(false);
+
             await new Promise(resolve => setTimeout(resolve, 1000));
             setEnhancementStage('enhancing');
 
-            // Use the file directly instead of the extracted text
             const result = await enhanceResumeFromFile(file);
 
             setEnhancementStage('finalizing');
 
-            // Save enhanced resume data to Zustand store
             setEnhancedResumeData(result);
 
-            // Add a small delay before navigation for better UX
             await new Promise(resolve => setTimeout(resolve, 800));
 
-            // Navigate to create-resume route
             navigate('/create-resume');
         } catch (error) {
             console.error('Error enhancing resume:', error);
@@ -251,6 +264,8 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                     errorMessage = 'The file is too large. Please upload a smaller file (max 10MB).';
                 } else if (error.message.includes('Unsupported file type')) {
                     errorMessage = 'Please upload a PDF, DOCX, or TXT file.';
+                } else if (error.message.includes('Insufficient tokens')) {
+                    errorMessage = `Insufficient tokens. You have ${tokenBalance} tokens, but need 19 tokens to continue.`;
                 } else {
                     errorMessage = error.message;
                 }
@@ -262,10 +277,12 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
             setTimeout(() => {
                 setIsEnhancing(false);
                 setEnhancementStage('extracting');
+                setSpendLoading(false);
             }, 2000);
         } finally {
             if (!errorMessage) {
                 setIsEnhancing(false);
+                setSpendLoading(false);
             }
         }
     };
@@ -310,21 +327,12 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                         <Button
                             size="lg"
                             onClick={handleEnhanceResume}
-                            disabled={isEnhancing}
+                            disabled={isEnhancing || spendLoading}
                             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg flex-1 md:flex-auto md:min-w-[200px] relative overflow-hidden group"
+                            tokenAmount={19}
+                            leftIcon={<Sparkles className="h-5 w-5" />}
                         >
-                            <div className="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
-                            {isEnhancing ? (
-                                <div className="flex items-center">
-                                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                                    <span className="font-medium">Processing...</span>
-                                </div>
-                            ) : (
-                                <div className="flex items-center">
-                                    <Sparkles className="h-5 w-5 mr-2" />
-                                    <span className="font-medium">Create My Resume</span>
-                                </div>
-                            )}
+                            Create My Resume
                         </Button>
                     </div>
                 </div>
