@@ -1,18 +1,63 @@
 import axios from 'axios';
-import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult } from './types.ts';
+import { supabase } from '../lib/supabase';
+import { getToken, setToken } from './storage';
+import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult, ResumeResponse } from './types.ts';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+
 
 // Create axios instance with base configuration
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1',
+    baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Interceptor for handling common error patterns
+// Add request interceptor to include auth token
+api.interceptors.request.use(async (config) => {
+    const token = getToken();
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// Interceptor for handling common error patterns and token refresh
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+
+        // If the error is due to an expired token and we haven't tried to refresh yet
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                // Try to refresh the session
+                const { data: { session: newSession } } = await supabase.auth.refreshSession();
+
+                if (newSession) {
+                    // Update the authorization header with the new token
+                    originalRequest.headers.Authorization = `Bearer ${newSession.access_token}`;
+                    setToken(newSession.access_token);
+
+                    // Retry the original request
+                    return api(originalRequest);
+                } else {
+                    // If refresh fails, redirect to login
+                    window.location.href = '/auth/login';
+                    return Promise.reject(new Error('Session expired. Please login again.'));
+                }
+            } catch (refreshError) {
+                console.error('Token refresh failed:', refreshError);
+                // If refresh fails, redirect to login
+                window.location.href = '/auth/login';
+                return Promise.reject(new Error('Authentication failed. Please login again.'));
+            }
+        }
+
+        // Handle other errors
         const errorMessage = error.response?.data?.detail || 'An unexpected error occurred';
         console.error('API request failed:', errorMessage);
         return Promise.reject(new Error(errorMessage));
@@ -92,28 +137,6 @@ export async function getSectionSuggestions(
 /**
  * Enhance resume for ATS optimization
  */
-export async function enhanceResume(
-    resumeText: string,
-    includeExtractedText: boolean = false
-): Promise<EnhancedResumeData> {
-    try {
-        const response = await api.post('/resume/enhance', null, {
-            params: {
-                resume_text: resumeText,
-                include_extracted_text: includeExtractedText
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        console.error('Resume enhancement error:', error);
-        throw error;
-    }
-}
-
-/**
- * Enhance resume from file directly (newer approach that processes file on backend)
- */
 export async function enhanceResumeFromFile(
     file: File
 ): Promise<EnhancedResumeData> {
@@ -152,7 +175,7 @@ export async function enhanceResumeFromFile(
         }
 
         // Process and validate the response data
-        const processedData = processEnhancedResumeData(response.data);
+        const processedData = response.data;
 
         return processedData;
     } catch (error) {
@@ -188,127 +211,6 @@ export async function enhanceResumeFromFile(
     }
 }
 
-/**
- * Process and validate enhanced resume data from backend
- */
-function processEnhancedResumeData(data: any): EnhancedResumeData {
-    // Separate name from position if they're combined
-    let name = data.personalInfo?.name || '';
-    let position = data.personalInfo?.position || data.personalInfo?.title || '';
-
-    // Position keywords that might appear in the name field
-    const positionKeywords = [
-        "fullstack", "full stack", "full-stack",
-        "frontend", "front end", "front-end",
-        "backend", "back end", "back-end",
-        "software", "developer", "engineer",
-        "manager", "director", "lead",
-        "designer", "ui", "ux",
-        "data", "product", "analyst",
-        "senior", "junior", "architect"
-    ];
-
-    // Clean the name if it contains position keywords
-    if (name) {
-        const nameParts = name.split(' ');
-        const cleanNameParts = [];
-        const positionParts = [];
-
-        for (const part of nameParts) {
-            if (positionKeywords.some(keyword =>
-                part.toLowerCase().includes(keyword) ||
-                part.toLowerCase() === keyword
-            )) {
-                positionParts.push(part);
-            } else {
-                cleanNameParts.push(part);
-            }
-        }
-
-        if (positionParts.length > 0) {
-            name = cleanNameParts.join(' ');
-            const extractedPosition = positionParts.join(' ');
-
-            // Only update position if it would add new information
-            if (!position) {
-                position = extractedPosition;
-            } else if (!position.toLowerCase().includes(extractedPosition.toLowerCase())) {
-                position = `${extractedPosition} ${position}`;
-            }
-        }
-    }
-
-    // Ensure personal info has all required fields
-    const personalInfo = {
-        name: name || '',
-        position: position || '',
-        email: data.personalInfo?.email || '',
-        phone: data.personalInfo?.phone || '',
-        location: data.personalInfo?.location || '',
-        summary: data.personalInfo?.summary || '',
-        profilePicture: data.personalInfo?.profilePicture || null
-    };
-
-    // Process work experience
-    const workExperience = Array.isArray(data.workExperience)
-        ? data.workExperience.map((exp, index) => ({
-            id: exp.id || `work-${index + 1}`,
-            position: exp.position || exp.title || '',
-            company: exp.company || '',
-            location: exp.location || '',
-            startDate: exp.startDate || '',
-            endDate: exp.endDate || '',
-            current: !!exp.current,
-            description: exp.description || ''
-        }))
-        : [];
-
-    // Process education
-    const education = Array.isArray(data.education)
-        ? data.education.map((edu, index) => ({
-            id: edu.id || `edu-${index + 1}`,
-            degree: edu.degree || '',
-            institution: edu.institution || '',
-            location: edu.location || '',
-            startDate: edu.startDate || '',
-            endDate: edu.endDate || '',
-            description: edu.description || ''
-        }))
-        : [];
-
-    // Process skills (ensure it's an array of strings)
-    const skills = Array.isArray(data.skills)
-        ? data.skills
-            .filter(skill => typeof skill === 'string' && skill.trim() !== '')
-            .map(skill => skill.trim()) // Clean up skills
-        : [];
-
-    // Process projects
-    const projects = Array.isArray(data.projects)
-        ? data.projects.map((proj, index) => ({
-            id: proj.id || `proj-${index + 1}`,
-            name: proj.name || '',
-            description: proj.description || '',
-            technologies: proj.technologies || '',
-            link: proj.link || ''
-        }))
-        : [];
-
-    // Construct the validated data
-    const validatedData: EnhancedResumeData = {
-        personalInfo,
-        workExperience,
-        education,
-        skills,
-        projects
-    };
-
-    return validatedData;
-}
-
-/**
- * Process a resume file entirely on the backend - extraction and analysis
- */
 export async function processResumeFile(
     file: File,
     jobDescription?: string
@@ -365,5 +267,154 @@ export async function checkResumeFile(
         };
     }
 }
+
+/**
+ * Get all resume versions for the current user
+ */
+export async function getResumeVersions(): Promise<ResumeResponse[]> {
+    try {
+        const response = await api.get('/resume/versions');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching resume versions:', error);
+        throw error;
+    }
+}
+
+/**
+ * Update a specific resume version
+ */
+export async function updateResumeVersion(resumeId: string, file: File): Promise<ResumeResponse> {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await api.put(`/resume/versions/${resumeId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating resume version:', error);
+        throw error;
+    }
+}
+
+/**
+ * Delete a specific resume version
+ */
+export async function deleteResumeVersion(resumeId: string): Promise<void> {
+    try {
+        await api.delete(`/resume/versions/${resumeId}`);
+    } catch (error) {
+        console.error('Error deleting resume version:', error);
+        throw error;
+    }
+}
+
+export const saveDraft = async (resumeData: EnhancedResumeData, title: string, customizationOptions?: any, id?: string) => {
+    try {
+        const response = await api.post('/resume/save', {
+            resume_data: resumeData,
+            title,
+            customization_options: customizationOptions,
+            id
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error saving draft:', error);
+        throw error;
+    }
+};
+
+export const createPaymentOrder = async (amount: number) => {
+    try {
+        const res = await api.post('/token/create-payment-order', { amount });
+        return res.data;
+    } catch (error) {
+        console.error('Error creating payment order:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+                throw new Error('Invalid amount. Please enter a valid amount greater than 0.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+            if (error.response?.status === 500) {
+                throw new Error('Failed to create payment order. Please try again later.');
+            }
+        }
+        throw new Error('Failed to create payment order. Please try again.');
+    }
+};
+
+export const verifyPayment = async (payment_id: string, order_id: string, signature: string) => {
+    console.log('verifyPayment called with:', { payment_id, order_id, signature })
+    try {
+        const res = await api.post('/token/verify-payment', {
+            payment_id,
+            order_id,
+            signature
+        })
+        console.log('verifyPayment response:', res.data)
+        return res.data
+    } catch (error) {
+        console.error('verifyPayment error:', error)
+        throw error
+    }
+};
+
+export const getTokenBalance = async () => {
+    try {
+        const res = await api.get('/token/balance');
+        return res.data;
+    } catch (error) {
+        console.error('Error fetching token balance:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                throw new Error('Please login to view your token balance.');
+            }
+        }
+        throw new Error('Failed to fetch token balance. Please try again.');
+    }
+};
+
+export const getTokenTransactions = async () => {
+    try {
+        const res = await api.get('/token/transactions');
+        return res.data.items;
+    } catch (error) {
+        console.error('Error fetching token transactions:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                throw new Error('Please login to view your transaction history.');
+            }
+        }
+        throw new Error('Failed to fetch token transactions. Please try again.');
+    }
+};
+
+export const spendTokens = async (action_id: string, token: number) => {
+    try {
+        const res = await api.post(`/token/spend?action_id=${action_id}&token=${token}`);
+        return res.data;
+    } catch (error) {
+        console.error('Error spending tokens:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 402) {
+                throw new Error('Insufficient tokens. Please purchase more tokens to continue.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+            if (error.response?.status === 422) {
+                throw new Error('Invalid token amount or action. Please try again.');
+            }
+        }
+        throw new Error('Failed to spend tokens. Please try again.');
+    }
+};
 
 export default api; 

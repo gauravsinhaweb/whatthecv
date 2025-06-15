@@ -55,7 +55,7 @@ export interface Project {
 
 export interface ResumeCustomizationOptions {
     layout: {
-        columns: 'one' | 'two';
+        templates: 'one' | 'two';
         sectionOrder: string[];
         sectionTitles: Record<string, string>;
         visibleSections: Record<string, boolean>;
@@ -97,8 +97,8 @@ export interface ResumeCustomizationOptions {
         underline: boolean;
     };
     skills: {
-        format: 'pills' | 'comma' | 'bullets' | 'grid' | 'compact' | 'bubble' | 'pipe' | 'newline' | 'level';
-        columns: 1 | 2 | 3;
+        format: 'compact' | 'comma' | 'bullets' | 'pills' | 'bubble' | 'grid' | 'level' | 'pipe' | 'newline';
+        templates: 1 | 2 | 3;
     };
     links: {
         icon: 'external' | 'arrow' | 'chain' | 'none';
@@ -120,7 +120,7 @@ export interface ResumeCustomizationOptions {
 
 export const defaultCustomizationOptions: ResumeCustomizationOptions = {
     layout: {
-        columns: 'one',
+        templates: 'one',
         sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects'],
         sectionTitles: {
             personalInfo: 'Personal Info',
@@ -165,17 +165,17 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
         photoSize: 'medium',
         photoBorder: 'thin',
         photoStyle: 'accent',
-        alignment: 'left',
+        alignment: 'center',
     },
     sectionTitles: {
         size: 'l',
         style: 'uppercase',
-        bold: true,
+        bold: false,
         underline: true,
     },
     skills: {
         format: 'compact',
-        columns: 2
+        templates: 2
     },
     links: {
         icon: 'external',
@@ -199,41 +199,47 @@ export const initialResumeData: ResumeData = {
         location: 'San Francisco, CA',
         summary: 'Experienced software engineer with over 8 years of expertise in full-stack web development, specializing in React, Node.js, and cloud infrastructure. Passionate about creating scalable, user-friendly applications and mentoring junior developers.',
         profilePicture: '',
-        socialLinks: []
+        socialLinks: [
+            {
+                platform: 'linkedin',
+                url: 'https://www.linkedin.com/in/johnson',
+                label: 'linkedin.com/johnson'
+            }]
     },
     workExperience: [
         {
-            id: '1',
-            position: 'Senior Software Engineer',
-            company: 'TechCorp Inc.',
-            location: 'San Francisco, CA',
-            startDate: 'Jan 2020',
-            endDate: 'Present',
+            id: "work-1",
+            position: "Senior Software Engineer",
+            company: "TechCorp Inc.",
+            location: "San Francisco, CA",
+            startDate: "Jan 2020",
+            endDate: "Present",
             current: true,
-            description: '• Led a team of 5 developers to build and maintain a high-traffic SaaS platform\n• Redesigned authentication system, improving security and reducing login time by 40%\n• Implemented CI/CD pipeline using GitHub Actions, reducing deployment time by 60%\n• Mentored junior developers and conducted code reviews',
-            experienceLink: 'https://techcorp-example.com',
+            description: "<ul><li>Led a team of <strong>5</strong> developers to build and maintain a high-traffic SaaS platform.</li><li>Redesigned authentication system, improving security and reducing login time by <strong>40%</strong>.</li><li>Implemented CI/CD pipeline using GitHub Actions, reducing deployment time by <strong>60%</strong>.</li><li>Mentored junior developers and conducted code reviews.</li></ul>",
+            experienceLink: null
         },
         {
-            id: '2',
-            position: 'Software Engineer',
-            company: 'WebSolutions LLC',
-            location: 'Oakland, CA',
-            startDate: 'Mar 2017',
-            endDate: 'Dec 2019',
+            id: "work-2",
+            position: "Software Engineer",
+            company: "WebSolutions LLC",
+            location: "Oakland, CA",
+            startDate: "Mar 2017",
+            endDate: "Dec 2019",
             current: false,
-            description: '• Developed and maintained multiple client-facing web applications using React and Node.js\n• Optimized database queries, improving application performance by 35%\n• Collaborated with UX designers to implement responsive and accessible interfaces\n• Participated in agile development processes and daily scrums',
-            experienceLink: 'https://websolutions-example.com',
+            description: "<ul><li>Developed and maintained multiple client-facing web applications using React and Node.js.</li><li>Optimized database queries, improving application performance by <strong>35%</strong>.</li><li>Collaborated with UX designers to implement responsive and accessible interfaces.</li><li>Participated in agile development processes and daily scrums.</li></ul>",
+            experienceLink: null
         },
         {
-            id: '3',
-            position: 'Junior Developer',
-            company: 'StartUp Vision',
-            location: 'San Jose, CA',
-            startDate: 'Jun 2015',
-            endDate: 'Feb 2017',
+            id: "work-3",
+            position: "Junior Developer",
+            company: "StartUp Vision",
+            location: "San Jose, CA",
+            startDate: "Jun 2015",
+            endDate: "Feb 2017",
             current: false,
-            description: '• Built and maintained features for a customer-facing mobile app\n• Collaborated with the QA team to identify and fix bugs\n• Participated in code reviews and implemented feedback',
-        },
+            description: "<ul><li>Built and maintained features for a customer-facing mobile app.</li><li>Collaborated with the QA team to identify and fix bugs.</li><li>Participated in code reviews and implemented feedback.</li></ul>",
+            experienceLink: null
+        }
     ],
     education: [
         {

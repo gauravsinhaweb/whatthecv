@@ -13,7 +13,7 @@ import {
     ThumbsUp,
     Twitter
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FaqSection from '../../components/landing/FaqSection';
 import Button from '../../components/ui/Button';
@@ -21,10 +21,12 @@ import PrivacyPolicyModal from '../../components/modals/PrivacyPolicyModal';
 import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
 import './landing.css';
 import resumeBuilderImg from '/assets/create-resume.png';
+import { useUserStore } from '../../store/userStore';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { scrollYProgress } = useScroll();
+    const { isAuthenticated, user } = useUserStore();
     const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 1]);
     const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.85]);
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -32,6 +34,14 @@ const LandingPage: React.FC = () => {
     const handleNavigate = (path: string) => {
         navigate(path);
     };
+
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            navigate('/dashboard');
+        } else {
+            navigate('/');
+        }
+    }, [isAuthenticated]);
 
     const footerLinks = [
         {
@@ -144,28 +154,32 @@ const LandingPage: React.FC = () => {
                                 size="lg"
                                 onClick={() => handleNavigate('/analyze')}
                                 className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg group"
+                                rightIcon={
+                                    <motion.div
+                                        whileHover={{ rotate: 45 }}
+                                        transition={{ type: "spring", stiffness: 200 }}
+                                    >
+                                        <ArrowUpRight className="h-4 w-4" />
+                                    </motion.div>
+                                }
                             >
-                                <span>Analyze Your Resume</span>
-                                <motion.div
-                                    whileHover={{ rotate: 45 }}
-                                    transition={{ type: "spring", stiffness: 200 }}
-                                >
-                                    <ArrowUpRight className="ml-2 h-4 w-4" />
-                                </motion.div>
+                                Analyze Your Resume
                             </Button>
                             <Button
                                 variant="outline"
                                 size="lg"
                                 onClick={() => handleNavigate('/templates')}
                                 className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:border-blue-400 group"
+                                rightIcon={
+                                    <motion.div
+                                        whileHover={{ x: 5 }}
+                                        transition={{ type: "spring", stiffness: 400 }}
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </motion.div>
+                                }
                             >
-                                <span>Browse Templates</span>
-                                <motion.div
-                                    whileHover={{ x: 5 }}
-                                    transition={{ type: "spring", stiffness: 400 }}
-                                >
-                                    <ChevronRight className="ml-2 h-4 w-4" />
-                                </motion.div>
+                                Browse Templates
                             </Button>
                         </motion.div>
                     </div>

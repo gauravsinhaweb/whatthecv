@@ -1,14 +1,13 @@
 import {
-    AlignLeft,
     AlignCenter,
-    ArrowDownUp,
+    AlignLeft,
     Award,
     BoldIcon,
     Briefcase,
-    Check,
+    Link as ChainLink,
     CircleUser,
     Columns,
-    Download,
+    ExternalLink,
     Eye,
     EyeOff,
     FileText,
@@ -16,25 +15,23 @@ import {
     GripVertical,
     LayoutGrid,
     Lightbulb,
+    Lock,
     Maximize,
     Move,
-    PaintBucket,
     Palette,
     Ruler,
     SlidersHorizontal,
     SquareDot,
     Text,
     TextCursorInput,
-    Type,
-    ExternalLink,
-    ArrowUpRight,
-    Link as ChainLink,
-    Lock
+    Type
 } from 'lucide-react';
-import React, { useEffect, useState, ChangeEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import RadioGroup from '../../../../components/ui/RadioGroup';
 import Slider from '../../../../components/ui/Slider';
 import { ResumeCustomizationOptions } from '../../../../types/resume';
+import ClassicSingleColumnTemplate from '../../../../assets/single-column.png';
+import ClassicDoubleColumnTemplate from '../../../../assets/double-column.png';
 
 export interface SectionInfo {
     id: string;
@@ -102,8 +99,8 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
         field: keyof ResumeCustomizationOptions[T],
         value: any
     ) => {
-        // Special case for columns layout change - adjust font size and line height
-        if (section === 'layout' && field === 'columns') {
+        // Special case for templates layout change - adjust font size and line height
+        if (section === 'layout' && field === 'templates') {
             const newOptions = {
                 ...options,
                 [section]: {
@@ -117,15 +114,15 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                 // Two-column layout - increase font size and line height
                 newOptions.spacing = {
                     ...options.spacing,
-                    fontSize: 11.5,
+                    fontSize: 11,
                     lineHeight: 1.5
                 };
             } else {
                 // One-column layout - use default font size and line height
                 newOptions.spacing = {
                     ...options.spacing,
-                    fontSize: 10.5,
-                    lineHeight: 1.2
+                    fontSize: 11,
+                    lineHeight: 1.3
                 };
             }
 
@@ -362,18 +359,55 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                         <div className="bg-slate-50 p-4 rounded-lg">
                             <h3 className="text-lg font-medium text-slate-800 mb-3 flex items-center gap-2">
                                 <Columns className="w-4 h-4 text-blue-600" />
-                                Columns
+                                Templates
                             </h3>
-                            <RadioGroup
-                                name="columns"
-                                options={[
-                                    { value: 'one', label: 'One Column', icon: <AlignLeft className="w-4 h-4" /> },
-                                    { value: 'two', label: 'Two Columns', icon: <Columns className="w-4 h-4" /> },
-                                ]}
-                                value={options.layout.columns}
-                                onChange={(value) => handleChange('layout', 'columns', value)}
-                                variant="button"
-                            />
+                            <div className="relative">
+                                <div className="flex gap-4 overflow-x-auto p-4 hide-scrollbar">
+                                    <button
+                                        onClick={() => handleChange('layout', 'templates', 'one')}
+                                        className={`relative flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'one'
+                                            ? 'border-blue-200 shadow-lg'
+                                            : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
+                                            }`}
+                                    >
+                                        <div className="h-full flex flex-col">
+                                            <div className="flex items-center justify-between p-2 border-b border-slate-100">
+                                                <AlignLeft className="w-4 h-4 text-slate-600" />
+                                                <span className="text-xs font-medium text-slate-700">Single Column</span>
+                                            </div>
+                                            <div className="flex-1 relative">
+                                                <img
+                                                    src={ClassicSingleColumnTemplate}
+                                                    alt="Single Column Template"
+                                                    className="w-full h-full  aspect-[210/297]  object-cover rounded-b"
+                                                />
+                                            </div>
+                                        </div>
+                                        <span className="absolute bottom-2 right-2 bg-gradient-to-r from-pink-400 to-purple-600 text-white text-[10px] font-semibold px-3 py-1 shadow-md z-10" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 80%)' }}>Most popular</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleChange('layout', 'templates', 'two')}
+                                        className={`flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'two'
+                                            ? 'border-blue-200 shadow-lg'
+                                            : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
+                                            }`}
+                                    >
+                                        <div className="h-full flex flex-col">
+                                            <div className="flex items-center justify-between p-2 border-b border-slate-100">
+                                                <Columns className="w-4 h-4 text-slate-600" />
+                                                <span className="text-xs font-medium text-slate-700">Double Column</span>
+                                            </div>
+                                            <div className="flex-1 relative">
+                                                <img
+                                                    src={ClassicDoubleColumnTemplate}
+                                                    alt="Double Column Template"
+                                                    className="w-full h-full  aspect-[210/297] object-cover rounded-b"
+                                                />
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="bg-slate-50 p-4 rounded-lg">
@@ -766,15 +800,15 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
 
                         <div className="mt-4">
                             <RadioGroup
-                                name="skillsColumns"
-                                label="Columns"
+                                name="skillsTemplates"
+                                label="Templates"
                                 options={[
                                     { value: '1', label: '1' },
                                     { value: '2', label: '2' },
                                     { value: '3', label: '3' },
                                 ]}
-                                value={String(options.skills.columns)}
-                                onChange={(value) => handleChange('skills', 'columns', parseInt(value, 10) as 1 | 2 | 3)}
+                                value={String(options.skills.templates)}
+                                onChange={(value) => handleChange('skills', 'templates', parseInt(value, 10) as 1 | 2 | 3)}
                                 orientation="horizontal"
                                 variant="segmented"
                                 size="sm"
@@ -865,38 +899,14 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                     {
                                         name: 'Professional Blue',
                                         accent: '#000000',   // Rich Navy Blue
-                                        headings: '#1C4ED8', // Deep Blue
+                                        headings: '#1c398e', // Deep Blue
                                         text: '#2E3A59'      // Slate Gray-Blue
-                                    },
-                                    {
-                                        name: 'Modern Teal',
-                                        accent: '#128C7E',   // Vibrant Teal
-                                        headings: '#035E5B', // Dark Teal
-                                        text: '#2F3E46'      // Charcoal Gray
-                                    },
-                                    {
-                                        name: 'Creative Purple',
-                                        accent: '#7C3AED',   // Bright Orchid
-                                        headings: '#4C1D95', // Royal Purple
-                                        text: '#383342'      // Dark Slate
                                     },
                                     {
                                         name: 'Classic Black',
                                         accent: '#222222',   // Soft Black
                                         headings: '#1A1A1A', // Off-Black
                                         text: '#333333'      // Dark Gray
-                                    },
-                                    {
-                                        name: 'Bold Red',
-                                        accent: '#B91C1C',   // True Crimson
-                                        headings: '#7F1D1D', // Deep Maroon
-                                        text: '#3C3434'      // Warm Graphite
-                                    },
-                                    {
-                                        name: 'Earthy Green',
-                                        accent: '#587047',   // Olive Green
-                                        headings: '#3E5A36', // Forest Green
-                                        text: '#3B3F32'      // Brownish Gray
                                     }
                                 ]
                                     .map((theme) => (

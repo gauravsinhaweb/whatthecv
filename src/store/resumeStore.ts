@@ -1,8 +1,28 @@
 import { create } from 'zustand';
 import type { EnhancedResumeData } from '../utils/types';
 import { ResumeData, initialResumeData, ResumeCustomizationOptions, defaultCustomizationOptions } from '../types/resume';
+import { saveDraft } from '../utils/api';
+
+interface Document {
+    id: string;
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+    template: string;
+    type: 'resume' | 'coverLetter';
+    resumeData: ResumeData;
+    customizationOptions: ResumeCustomizationOptions;
+}
 
 interface ResumeStore {
+    documents: Document[];
+    selectedDocument: Document | null;
+    setDocuments: (documents: Document[]) => void;
+    setSelectedDocument: (document: Document | null) => void;
+    addDocument: (document: Document) => void;
+    updateDocument: (id: string, document: Partial<Document>) => void;
+    deleteDocument: (id: string) => void;
+
     // Resume data
     resumeData: ResumeData;
     setResumeData: (data: ResumeData) => void;
@@ -44,9 +64,30 @@ interface ResumeStore {
     setPreviewScale: (scale: number) => void;
     handleZoomIn: () => void;
     handleZoomOut: () => void;
+
+    // Draft saving state
+    isSavingDraft: boolean;
+    lastSavedDraftId: string | null;
+    saveAsDraft: () => Promise<void>;
+
+    resetStore: () => void;
 }
 
-export const useResumeStore = create<ResumeStore>((set) => ({
+export const useResumeStore = create<ResumeStore>((set, get) => ({
+    documents: [],
+    selectedDocument: null,
+    setDocuments: (documents) => set({ documents }),
+    setSelectedDocument: (document) => set({ selectedDocument: document }),
+    addDocument: (document) => set((state) => ({ documents: [...state.documents, document] })),
+    updateDocument: (id, document) =>
+        set((state) => ({
+            documents: state.documents.map((d) => (d.id === id ? { ...d, ...document } : d)),
+        })),
+    deleteDocument: (id) =>
+        set((state) => ({
+            documents: state.documents.filter((d) => d.id !== id),
+        })),
+
     // Initial resume data
     resumeData: initialResumeData,
     setResumeData: (data) => set({ resumeData: data }),
@@ -214,11 +255,11 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     isEnhancing: false,
     setIsEnhancing: (isEnhancing) => set({ isEnhancing }),
     enhancementStage: 'extracting',
-    setEnhancementStage: (enhancementStage) => set({ enhancementStage }),
+    setEnhancementStage: (stage: 'extracting' | 'enhancing' | 'finalizing' | 'error') => set({ enhancementStage: stage }),
 
     // UI state previously in useResumeState
     activeSection: 'personalInfo',
-    setActiveSection: (activeSection) => set({ activeSection }),
+    setActiveSection: (section: string) => set({ activeSection: section }),
 
     expandedSections: {
         personalInfo: true,
@@ -227,9 +268,9 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         skills: false,
         projects: false,
     },
-    setExpandedSections: (expandedSections) => set({ expandedSections }),
+    setExpandedSections: (sections: Record<string, boolean>) => set({ expandedSections: sections }),
 
-    toggleSection: (section) => set((state) => {
+    toggleSection: (section: string) => set((state) => {
         const newExpandedSections = {
             ...state.expandedSections,
             [section]: !state.expandedSections[section]
@@ -242,7 +283,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         };
     }),
 
-    editSection: (section) => set((state) => ({
+    editSection: (section: string) => set((state) => ({
         activeSection: section,
         expandedSections: {
             ...state.expandedSections,
@@ -251,7 +292,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     })),
 
     previewScale: 70,
-    setPreviewScale: (previewScale) => set({ previewScale }),
+    setPreviewScale: (scale: number) => set({ previewScale: scale }),
 
     handleZoomIn: () => set((state) => ({
         previewScale: Math.min(state.previewScale + 10, 150)
@@ -260,4 +301,62 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     handleZoomOut: () => set((state) => ({
         previewScale: Math.max(state.previewScale - 10, 50)
     })),
+
+    // Draft saving state
+    isSavingDraft: false,
+    lastSavedDraftId: null,
+    saveAsDraft: async () => {
+        const { resumeData, selectedDocument } = get();
+        set({ isSavingDraft: true });
+        try {
+            // Convert ResumeData to EnhancedResumeData format
+            const enhancedData: EnhancedResumeData = {
+                personalInfo: {
+                    ...resumeData.personalInfo,
+                    summary: resumeData.personalInfo.summary || '',
+                    profilePicture: resumeData.personalInfo.profilePicture || null,
+                    socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
+                        ...link,
+                        platform: link.platform === 'peerlist' ? 'other' : link.platform
+                    })) as EnhancedResumeData['personalInfo']['socialLinks']
+                },
+                workExperience: resumeData.workExperience,
+                education: resumeData.education,
+                skills: resumeData.skills,
+                projects: resumeData.projects
+            };
+
+            // Generate a title based on the current date and time
+            const title = `Draft ${new Date().toLocaleString()}`;
+
+            const response = await saveDraft(enhancedData, title, get().customizationOptions, selectedDocument?.id);
+            set({ lastSavedDraftId: response.id });
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            throw error;
+        } finally {
+            set({ isSavingDraft: false });
+        }
+    },
+
+    resetStore: () => set({
+        documents: [],
+        selectedDocument: null,
+        resumeData: initialResumeData,
+        enhancedResumeData: null,
+        customizationOptions: defaultCustomizationOptions,
+        isEnhancing: false,
+        enhancementStage: 'extracting',
+        activeSection: 'personalInfo',
+        expandedSections: {
+            personalInfo: true,
+            workExperience: false,
+            education: false,
+            skills: false,
+            projects: false,
+        },
+        previewScale: 70,
+        isSavingDraft: false,
+        lastSavedDraftId: null
+    }),
 })); 
