@@ -1,52 +1,45 @@
-import { Briefcase, ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X } from 'lucide-react';
+import { ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getSession, getUser, signInWithGoogle, signOut } from '../lib/supabase';
 import { getPageFromPath } from '../routes';
-import { User as UserType } from '../types';
-import { signInWithGoogle, signOut, getSession, getUser } from '../lib/supabase';
+import { useResumeStore } from '../store/resumeStore';
+import { useUserStore } from '../store/userStore';
+import { removeToken } from '../utils/storage';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserType | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = getPageFromPath(location.pathname);
+  const { user, isAuthenticated, setUser, setIsAuthenticated, setLoginError } = useUserStore();
+  const { resetStore } = useResumeStore();
 
   useEffect(() => {
-    checkAuth();
-  }, [location]);
-  const checkAuth = async () => {
-    try {
-      const session = await getSession();
-      setIsAuthenticated(!!session);
-
+    const checkAuth = async () => {
+      const { session } = await getSession();
       if (session) {
         const user = await getUser();
-        if (user) {
-          setUserProfile({
-            id: user.id,
-            email: user.email || '',
-            name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
-            isVerified: user.email_confirmed_at !== null,
-            picture: user.user_metadata?.picture || user.user_metadata?.avatar_url || ''
-          });
-        }
+        setUser({
+          id: user.id,
+          email: user.email || '',
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+          avatar_url: user.user_metadata?.picture || user.user_metadata?.avatar_url || '',
+          created_at: user.created_at,
+          updated_at: user.updated_at
+        });
+        setIsAuthenticated(true);
       } else {
-        setUserProfile(null);
+        setUser(null);
+        setIsAuthenticated(false);
       }
-    } catch (error) {
-      console.error('Auth check error:', error);
-      setLoginError('Failed to check authentication status');
-      setIsAuthenticated(false);
-      setUserProfile(null);
-    }
-  };
+    };
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -69,9 +62,12 @@ const Navigation: React.FC = () => {
     try {
       await signOut();
       setIsAuthenticated(false);
-      setUserProfile(null);
+      setUser(null);
       setShowUserMenu(false);
+      removeToken();
+      setLoginError(null);
       navigate('/');
+      resetStore();
     } catch (error) {
       console.error('Logout error:', error);
       setLoginError('Failed to logout');
@@ -91,6 +87,12 @@ const Navigation: React.FC = () => {
   };
 
   const navItems = [
+    ...(isAuthenticated && user ? [{
+      name: 'Dashboard',
+      icon: <Upload className="w-5 h-5" />,
+      path: '/dashboard',
+      page: 'dashboard',
+    }] : []),
     {
       name: 'Analyze',
       icon: <Upload className="w-5 h-5" />,
@@ -117,6 +119,10 @@ const Navigation: React.FC = () => {
   };
 
   const goToHome = () => {
+    if (isAuthenticated && user) {
+      navigate('/dashboard');
+      return;
+    }
     navigate('/');
   };
 
@@ -154,18 +160,23 @@ const Navigation: React.FC = () => {
           </div>
 
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {isAuthenticated && userProfile ? (
+            {isAuthenticated && user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={toggleUserMenu}
                   className="flex items-center space-x-2 p-1 rounded-full hover:bg-slate-100 focus:outline-none transition"
                 >
                   <div className="relative">
-                    {userProfile.picture ? (
+                    {user.avatar_url ? (
                       <img
-                        src={userProfile.picture}
-                        alt={userProfile.name || 'User'}
-                        className="h-8 w-8 rounded-full object-cover"
+                        src={user.avatar_url}
+                        alt={user.name || 'User'}
+                        className="h-8 w-8 rounded-xl object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email.split('@')[0])}&background=3B82F6&color=fff`;
+                        }}
                       />
                     ) : (
                       <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -173,15 +184,15 @@ const Navigation: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <span className="text-sm font-medium text-slate-700">{userProfile.name || userProfile.email.split('@')[0]}</span>
+                  <span className="text-sm font-medium text-slate-700">{user.name || user.email.split('@')[0]}</span>
                   <ChevronDown className="h-4 w-4 text-slate-400" />
                 </button>
 
                 {showUserMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-slate-200">
                     <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-sm font-medium text-slate-900 truncate">{userProfile.name || userProfile.email.split('@')[0]}</p>
-                      <p className="text-xs text-slate-500 truncate">{userProfile.email}</p>
+                      <p className="text-sm font-medium text-slate-900 truncate">{user.name || user.email.split('@')[0]}</p>
+                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     </div>
                     <button
                       onClick={handleLogout}
@@ -226,13 +237,13 @@ const Navigation: React.FC = () => {
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
             {/* User profile for mobile */}
-            {isAuthenticated && userProfile && (
+            {isAuthenticated && user && (
               <div className="px-4 py-3 border-b border-slate-200">
                 <div className="flex items-center">
-                  {userProfile.picture ? (
+                  {user.avatar_url ? (
                     <img
-                      src={userProfile.picture}
-                      alt={userProfile.name || 'User'}
+                      src={user.avatar_url}
+                      alt={user.name || 'User'}
                       className="h-10 w-10 rounded-full object-cover mr-3"
                     />
                   ) : (
@@ -242,10 +253,10 @@ const Navigation: React.FC = () => {
                   )}
                   <div>
                     <div className="text-base font-medium text-slate-800">
-                      {userProfile.name || userProfile.email.split('@')[0]}
+                      {user.name || user.email.split('@')[0]}
                     </div>
                     <div className="text-sm text-slate-500 truncate max-w-[200px]">
-                      {userProfile.email}
+                      {user.email}
                     </div>
                   </div>
                 </div>

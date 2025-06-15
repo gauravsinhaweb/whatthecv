@@ -1,5 +1,7 @@
 import { lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
+import Dashboard from './screens/Dashboard';
+import { useUserStore } from './store/userStore';
 
 const LandingPage = lazy(() => import('./screens/Landing/LandingPage.tsx'));
 const TemplateGallery = lazy(() => import('./screens/Candidate/gallery/TemplateGallery.tsx'));
@@ -9,10 +11,16 @@ const CreateResume = lazy(() => import('./screens/Candidate/create/CreateResume.
 const GoogleCallback = lazy(() => import('./screens/Auth/GoogleCallback.tsx'));
 const LoginFailure = lazy(() => import('./screens/Auth/LoginFailure.tsx'));
 
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+    const { user, isAuthenticated } = useUserStore();
+    const token = user && isAuthenticated;
+    return token ? <>{children}</> : <LandingPage />;
+};
+
 export const routes: RouteObject[] = [
     {
-        path: '/',
-        element: <LandingPage />,
+        path: '/dashboard',
+        element: <PrivateRoute><Dashboard /></PrivateRoute>,
     },
     {
         path: '/templates',
@@ -31,6 +39,10 @@ export const routes: RouteObject[] = [
         element: <CreateResume />,
     },
     {
+        path: '/auth/callback',
+        element: <GoogleCallback />,
+    },
+    {
         path: '/auth/login/success',
         element: <GoogleCallback />,
     },
@@ -46,6 +58,7 @@ export const routes: RouteObject[] = [
 
 export const getPageFromPath = (path: string): string => {
     if (path === '/') return 'landing';
+    if (path === '/dashboard') return 'dashboard';
     if (path === '/templates') return 'templates';
     if (path === '/analyze') return 'upload';
     if (path === '/recruiter-coming-soon') return 'recruiter-coming-soon';

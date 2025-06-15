@@ -1,7 +1,8 @@
-import { ArrowUpRight, BookOpen, Link as ChainLink, ExternalLink, FileCode, Github, Linkedin, Mail, MapPin, MessageSquare, Phone, Twitter } from 'lucide-react';
-import React, { useEffect, useMemo } from 'react';
-import { ResumeCustomizationOptions, ResumeData } from '../../../../types/resume';
-import { SafeHTML } from '../../../../utils/html';
+import React, { useMemo, useEffect } from 'react';
+import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
+import { MapPin, Mail, Phone, User, ExternalLink, ArrowUpRight, Link as ChainLink, Linkedin, Github, Twitter, FileCode, BookOpen, MessageSquare } from 'lucide-react';
+import { createMarkup, SafeHTML } from '../../../../utils/html';
+import { formatBulletPoints } from '../../../../utils/resumeFormatUtils';
 
 interface ResumePreviewProps {
     resumeData: ResumeData;
@@ -667,43 +668,39 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                     <div key={exp.id || index} className="mb-4">
                                                         <div className={`${customizationOptions.layout.templates === 'one' ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
-                                                                <div className="flex flex-col">
-                                                                    <div className="flex items-baseline">
-                                                                        <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
-                                                                            {exp.company || 'Company'}
-                                                                        </h3>
-                                                                        {exp.experienceLink && exp.experienceLink.startsWith('http') && (
-                                                                            <a
-                                                                                href={exp.experienceLink}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="flex items-center ml-2 hover:text-blue-600 transition-colors"
-                                                                                style={{ color: getAccentColor(0.9) }}
-                                                                                onClick={(e) => e.stopPropagation()}
-                                                                            >
-                                                                                {renderLinkIcon()}
-                                                                            </a>
-                                                                        )}
-                                                                    </div>
-                                                                    <div>
-                                                                        {exp.company && (
-                                                                            <span className="text-base italic text-gray-700">
-                                                                                {exp.position}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
+                                                                <div className="flex flex-wrap items-baseline">
+                                                                    <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
+                                                                        {exp.position || 'Position'}
+                                                                    </h3>
+                                                                    {exp.company && (
+                                                                        <span className="text-base ml-1.5 text-gray-700">
+                                                                            at {exp.company}
+                                                                        </span>
+                                                                    )}
+                                                                    {exp.experienceLink && exp.experienceLink.startsWith('http') && (
+                                                                        <a
+                                                                            href={exp.experienceLink}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
                                                                 </div>
 
                                                                 {customizationOptions.layout.templates !== 'one' && (exp.startDate || exp.endDate || exp.location) && (
                                                                     <div className="flex items-center text-sm opacity-80 mb-1">
                                                                         {exp.startDate && (
-                                                                            <span className="italic">
+                                                                            <span>
                                                                                 {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
                                                                             </span>
                                                                         )}
                                                                         {exp.location && <span className='px-1'>{"|"}</span>}
                                                                         {exp.location && (
-                                                                            <span className="italic">{exp.location || ''}</span>
+                                                                            <span>{exp.location || ''}</span>
                                                                         )}
                                                                     </div>
                                                                 )}
@@ -730,12 +727,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                             {customizationOptions.layout.templates === 'one' && (exp.startDate || exp.endDate || exp.location) && (
                                                                 <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
                                                                     {exp.startDate && (
-                                                                        <div className="italic">
+                                                                        <div>
                                                                             {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
                                                                         </div>
                                                                     )}
                                                                     {exp.location && (
-                                                                        <div className="mt-0.5 italic">{exp.location}</div>
+                                                                        <div className="mt-0.5">{exp.location}</div>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -778,14 +775,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                         )}
                                                                 </h3>
                                                                 {edu.institution && (
-                                                                    <div className="text-base italic text-gray-700">
+                                                                    <div className="text-base text-gray-700">
                                                                         {edu.institution}
                                                                     </div>
                                                                 )}
                                                                 {customizationOptions.layout.templates !== 'one' && (edu.startDate || edu.endDate || edu.location) && (
                                                                     <div className="flex items-center text-sm opacity-80">
                                                                         {edu.startDate && edu.endDate && (
-                                                                            <span className="italic">
+                                                                            <span>
                                                                                 {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
                                                                             </span>
                                                                         )}
@@ -793,7 +790,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                             <span className='px-1'>{"|"}</span>
                                                                         )}
                                                                         {edu.location && (
-                                                                            <span className="italic">{edu.location}</span>
+                                                                            <span>{edu.location}</span>
                                                                         )}
                                                                     </div>
                                                                 )}
@@ -802,12 +799,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                             {customizationOptions.layout.templates === 'one' && (edu.startDate || edu.endDate || edu.location) && (
                                                                 <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
                                                                     {edu.startDate && edu.endDate && (
-                                                                        <div className="italic">
+                                                                        <div>
                                                                             {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
                                                                         </div>
                                                                     )}
                                                                     {edu.location && (
-                                                                        <div className="mt-0.5 italic">{edu.location}</div>
+                                                                        <div className="mt-0.5">{edu.location}</div>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -991,6 +988,17 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                 </a>
                                                             )}
                                                         </h3>
+                                                        {(project.startDate || project.endDate) && (
+                                                            <div className="text-sm opacity-80 mb-1">
+                                                                {project.startDate && project.endDate && (
+                                                                    <span>{formatDate(project.startDate)} - {formatDate(project.endDate)}</span>
+                                                                )}
+                                                                {project.startDate && !project.endDate && (
+                                                                    <span>{formatDate(project.startDate)}</span>
+                                                                )}
+                                                            </div>
+                                                        )}
+
                                                         {project.description && (
                                                             <SafeHTML
                                                                 html={project.description}
@@ -998,7 +1006,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                             />
                                                         )}
                                                         {project.technologies && (
-                                                            <div className="text-sm mt-1 italic text-gray-600">
+                                                            <div className="text-sm mt-1 text-gray-600">
                                                                 {project.technologies}
                                                             </div>
                                                         )}
@@ -1210,6 +1218,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                 )}
                                                                 {project.startDate && !project.endDate && (
                                                                     <span>{formatDate(project.startDate)}</span>
+                                                                )}
+                                                                {!project.startDate && project.endDate && (
+                                                                    <span>{formatDate(project.endDate)}</span>
                                                                 )}
                                                             </div>
                                                         )}
