@@ -173,7 +173,6 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                 : [...prev, section]
         );
     };
-
     const renderScoreMeter = (score: number, size: 'sm' | 'md' | 'lg' = 'md') => {
         const dimensions = {
             sm: 'w-16 h-16',
@@ -318,14 +317,6 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                     </div>
 
                     <div className="flex gap-3 w-full md:w-auto">
-                        <Button
-                            variant="outline"
-                            size="lg"
-                            onClick={clearFile}
-                            className="border-slate-300 text-slate-700 hover:bg-slate-100 flex-1 md:flex-auto"
-                        >
-                            Upload Another
-                        </Button>
                         <Button
                             size="lg"
                             onClick={handleEnhanceResume}

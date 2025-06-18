@@ -69,8 +69,6 @@ export const useTokenActions = (): UseTokenActionsReturn => {
 
             // Phase 3: Confirm token usage
             await confirmTokenUsage(reservationId);
-
-            toast.success(`${action.name} completed successfully!`);
             return result;
 
         } catch (error) {

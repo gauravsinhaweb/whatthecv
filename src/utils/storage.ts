@@ -1,101 +1,66 @@
-import { UserProfile } from './types';
+import { COOKIE_KEYS, getCookie, removeCookie, setCookie } from './cookies';
 
-const TOKEN_KEY = 'auth-token';
-const PROFILE_KEY = 'user-profile';
-
-export function setToken(token: string): void {
+export const setToken = (token: string) => {
     try {
-        if (token.length === 0) return;
-
-        const cookieOptions = [
-            `${TOKEN_KEY}=${encodeURIComponent(token)}`,
-            'path=/',
-            'secure',
-            'samesite=lax'
-        ];
-
-        // Add domain for non-localhost environments
-        const domain = window.location.hostname;
-        const isLocalhost = domain === 'localhost' || domain === '127.0.0.1';
-        if (!isLocalhost) {
-            cookieOptions.push(`domain=.${domain}`);
-        }
-
-        document.cookie = cookieOptions.join('; ');
+        setCookie(COOKIE_KEYS.AUTH_TOKEN, token);
     } catch (error) {
         console.error('Error setting token:', error);
     }
-}
+};
 
-export function getToken(): string | null {
+/**
+ * Get the auth token
+ */
+export const getToken = () => {
     try {
-        const cookies = document.cookie.split(';');
-        const tokenCookie = cookies.find(cookie => cookie.trim().startsWith(`${TOKEN_KEY}=`));
-
-        if (tokenCookie) {
-            const token = decodeURIComponent(tokenCookie.split('=')[1]);
-            return token;
-        }
-
-        console.warn('No token found in cookies');
-        return null;
+        return getCookie(COOKIE_KEYS.AUTH_TOKEN);
     } catch (error) {
         console.error('Error getting token:', error);
         return null;
     }
-}
+};
 
-export function removeToken(): void {
+/**
+ * Remove the auth token
+ */
+export const removeToken = () => {
     try {
-        const domain = window.location.hostname;
-        const isLocalhost = domain === 'localhost' || domain === '127.0.0.1';
-
-        // Remove cookie with proper domain
-        const cookieOptions = [
-            `${TOKEN_KEY}=`,
-            'path=/',
-            'expires=Thu, 01 Jan 1970 00:00:00 GMT',
-            'secure',
-            'samesite=lax'
-        ];
-
-        if (!isLocalhost) {
-            cookieOptions.push(`domain=.${domain}`);
-        }
-
-        document.cookie = cookieOptions.join('; ');
+        removeCookie(COOKIE_KEYS.AUTH_TOKEN);
     } catch (error) {
         console.error('Error removing token:', error);
     }
-}
+};
 
-export function setUserProfile(profile: UserProfile): void {
+/**
+ * Set the user profile
+ */
+export const setUserProfile = (profile: any) => {
     try {
-        localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-        console.log('User profile stored:', !!profile);
+        setCookie(COOKIE_KEYS.PROFILE, profile);
     } catch (error) {
-        console.error('Error storing user profile:', error);
+        console.error('Error setting profile:', error);
     }
-}
+};
 
-export function getUserProfile(): UserProfile | null {
+/**
+ * Get the user profile
+ */
+export const getUserProfile = () => {
     try {
-        const profile = localStorage.getItem(PROFILE_KEY);
-        if (profile) {
-            return JSON.parse(profile);
-        }
+        return getCookie(COOKIE_KEYS.PROFILE);
+    } catch (error) {
+        console.error('Error getting profile:', error);
         return null;
-    } catch (error) {
-        console.error('Error retrieving user profile:', error);
-        return null;
     }
-}
+};
 
-export function removeUserProfile(): void {
+/**
+ * Remove the user profile
+ */
+export const removeUserProfile = () => {
     try {
-        localStorage.removeItem(PROFILE_KEY);
-        console.log('User profile removed');
+        removeCookie(COOKIE_KEYS.PROFILE);
     } catch (error) {
-        console.error('Error removing user profile:', error);
+        console.error('Error removing profile:', error);
     }
-} 
+}; 

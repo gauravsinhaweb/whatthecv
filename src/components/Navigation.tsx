@@ -106,12 +106,6 @@ const Navigation: React.FC = () => {
       path: '/create-resume',
       page: 'create-resume',
     },
-    ...(isAuthenticated && user && isSuperUser(user.email) ? [{
-      name: 'Admin',
-      icon: <Settings className="w-5 h-5" />,
-      path: '/admin',
-      page: 'admin',
-    }] : []),
     // {
     //   name: "I'm a Recruiter",
     //   icon: <Briefcase className="w-5 h-5" />,

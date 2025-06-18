@@ -17,7 +17,6 @@ export default function GoogleCallback() {
             try {
                 setIsProcessing(true);
                 setError(null);
-                console.log('dddsdsdsdsd')
                 // Get Supabase session
                 const { session } = await getSession();
                 if (!session) {
@@ -32,8 +31,6 @@ export default function GoogleCallback() {
 
                 // Store FastAPI token
                 setToken(session.access_token);
-                console.log('FastAPI token stored');
-
                 // Create user profile
                 const profile: UserProfile = {
                     id: userData.id,
@@ -47,8 +44,6 @@ export default function GoogleCallback() {
                 // Store user profile
                 setUserProfile(profile);
                 setUser(profile);
-
-                console.log('Authentication successful');
                 navigate('/dashboard');
             } catch (err) {
                 console.error('Authentication error:', err);

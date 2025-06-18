@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { supabase } from '../lib/supabase';
+import supabase from '../lib/supabase';
 import { getToken, setToken } from './storage';
 import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult, ResumeResponse } from './types.ts';
 
@@ -350,15 +350,13 @@ export const createPaymentOrder = async (amount: number) => {
     }
 };
 
-export const verifyPayment = async (payment_id: string, order_id: string, signature: string) => {
-    console.log('verifyPayment called with:', { payment_id, order_id, signature })
+export const verifyPayment = async ({ razorpay_payment_id, razorpay_order_id, razorpay_signature }: { razorpay_payment_id: string, razorpay_order_id: string, razorpay_signature: string }) => {
     try {
         const res = await api.post('/token/verify-payment', {
-            payment_id,
-            order_id,
-            signature
+            payment_id: razorpay_payment_id,
+            order_id: razorpay_order_id,
+            signature: razorpay_signature
         })
-        console.log('verifyPayment response:', res.data)
         return res.data
     } catch (error) {
         console.error('verifyPayment error:', error)
