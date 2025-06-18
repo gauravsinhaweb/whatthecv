@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { MoreVertical, Edit2, Trash2, ArrowRight } from 'lucide-react'
 import { format } from 'date-fns'
-import DashboardResumePreview from '../../screens/Candidate/create/components/DashboardResumePreview'
+import { ArrowRight, Edit2, MoreVertical, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import ResumePreview from '../../screens/Candidate/create/components/ResumePreview'
 import type { EnhancedResumeData } from '../../utils/types'
 
 interface ResumeCardProps {
@@ -76,7 +76,7 @@ export const ResumeCard = ({
                         transformOrigin: '4px center',
                     }}
                 >
-                    <DashboardResumePreview
+                    <ResumePreview
                         resumeData={resumeData}
                         customizationOptions={customizationOptions}
                         previewScale={100}
