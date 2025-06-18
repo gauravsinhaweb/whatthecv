@@ -3,7 +3,7 @@ import Button from '../ui/Button';
 import { useTokenActions } from '../../hooks/useTokenActions';
 import { updateTokenAmount, deleteTokenAction, toggleActionLock } from '../../utils/api';
 import { toast } from 'react-hot-toast';
-import { Edit, Save, X, Plus, Trash2, Lock, Unlock, Settings, AlertTriangle } from 'lucide-react';
+import { Edit, Save, X, Plus, Trash2, Lock, Unlock, Settings, AlertTriangle, Coins } from 'lucide-react';
 import CreateTokenActionModal from './CreateTokenActionModal';
 import { TokenAction } from '../../types/token';
 
@@ -276,7 +276,7 @@ const TokenAdminPanel: React.FC = () => {
                             </div>
 
                             {/* Action Controls */}
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-start space-x-3">
                                 {editingAction === actionId ? (
                                     <div className="flex items-center space-x-3">
                                         <div className="text-center">
@@ -312,14 +312,12 @@ const TokenAdminPanel: React.FC = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        {/* Token Amount Display */}
-                                        <div className="text-center bg-white rounded-lg p-3 border border-slate-200 min-w-[80px]">
-                                            <div className="text-lg font-bold text-slate-900">₹{action.amount}</div>
-                                            <div className="text-xs text-slate-500">tokens</div>
+                                        <div className="flex gap-2 items-center rounded-lg p-3">
+                                            <div className="text-lg font-bold text-blue-600">{action.amount}</div>
+                                            <Coins className="h-6 w-6 text-blue-600" />
                                         </div>
-
                                         {/* Action Buttons */}
-                                        <div className="flex items-center space-x-2">
+                                        <div className="flex mt-2 items-start space-x-2">
                                             {!action.locked && (
                                                 <Button
                                                     onClick={() => handleEdit(actionId, action.amount)}

@@ -11,8 +11,10 @@ import ResumeEditor from './components/ResumeEditor';
 import ResumeFullScreenModal from './components/ResumeFullScreenModal';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const CreateResume: React.FC = () => {
+    const navigate = useNavigate();
     const {
         resumeData,
         skillInput,
@@ -31,6 +33,7 @@ const CreateResume: React.FC = () => {
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -40,6 +43,60 @@ const CreateResume: React.FC = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Track unsaved changes when resume data changes
+    useEffect(() => {
+        if (resumeData) {
+            setHasUnsavedChanges(true);
+        }
+    }, [resumeData]);
+
+    // Push a dummy state to the history when component mounts
+    useEffect(() => {
+        window.history.pushState(null, '', window.location.pathname);
+    }, []);
+
+    // Handle back button and history navigation
+    useEffect(() => {
+        const handlePopState = (event: PopStateEvent) => {
+            if (hasUnsavedChanges && !isSavingDraft) {
+                // Prevent the default back action
+                event.preventDefault();
+                // Push another state to prevent back navigation
+                window.history.pushState(null, '', window.location.pathname);
+
+                // Show confirmation dialog
+                const shouldLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+
+                if (shouldLeave) {
+                    setHasUnsavedChanges(false);
+                    navigate(-1); // Navigate back if user confirms
+                }
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [hasUnsavedChanges, isSavingDraft, navigate]);
+
+    // Handle beforeunload event to show confirmation dialog
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasUnsavedChanges && !isSavingDraft) {
+                const message = 'You have unsaved changes. Are you sure you want to leave?';
+                e.preventDefault();
+                e.returnValue = message;
+                return message;
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [hasUnsavedChanges, isSavingDraft]);
 
     useEffect(() => {
         // Check for enhanced resume data in the store
@@ -119,6 +176,7 @@ const CreateResume: React.FC = () => {
     const handleSaveDraft = async () => {
         try {
             await saveAsDraft();
+            setHasUnsavedChanges(false);
             toast.success('Draft saved successfully');
         } catch (error) {
             toast.error('Failed to save draft');
