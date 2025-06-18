@@ -1,15 +1,15 @@
 import { Award, BarChart2, Check, ChevronDown, ChevronUp, FileText, KeyRound, Layers, Lightbulb, Loader2, Plus, Rocket, Sparkles, Target, Zap } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { useTokenActions } from '../../hooks/useTokenActions';
+import { useTokens } from '../../hooks/useTokens';
 import { AnalysisCategory, performDetailedAnalysis } from '../../services/analysisService';
 import { useResumeStore } from '../../store/resumeStore';
 import { enhanceResumeFromFile } from '../../utils/api';
 import Button from '../ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/Tabs';
 import EnhancingLoader from './EnhancingLoader';
-import { useTokens } from '../../hooks/useTokens';
-import { spendTokens } from '../../utils/api';
-import { toast } from 'react-hot-toast';
 
 interface AnalysisDashboardProps {
     analysisResult: any;
@@ -34,6 +34,8 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
 }) => {
     const navigate = useNavigate();
     const { tokenBalance, refreshBalance } = useTokens();
+    const { getAmount, hasSufficientTokens, executeAction, actions, isLoading: actionsLoading, refreshActions } = useTokenActions();
+    const tokenAmount = getAmount('resume_enhancement');
     const [activeTab, setActiveTab] = useState<AnalysisTab>('overview');
     const [analysisData, setAnalysisData] = useState<Record<AnalysisCategory, CategoryAnalysis>>({
         format: { score: null, details: [], isLoading: false },
@@ -218,43 +220,45 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     const handleEnhanceResume = async () => {
         if (!file || isEnhancing) return;
 
-        let errorMessage = '';
         try {
-            // Refresh token balance and wait for it to complete
-            await refreshBalance();
-            console.log('Current token balance after refresh:', tokenBalance);
+            // Refresh token actions to ensure we have the latest values from admin panel
+            await refreshActions();
 
-            if (tokenBalance < 19) {
-                toast.error(`Insufficient tokens. You have ${tokenBalance} tokens, but need 19 tokens to continue.`);
+            // Refresh token balance and check if sufficient
+            await refreshBalance();
+
+            if (!hasSufficientTokens('resume_enhancement', tokenBalance)) {
+                toast.error(`Insufficient tokens. You have ₹${tokenBalance}, but need ₹${tokenAmount} to continue.`);
                 return;
             }
 
             setIsEnhancing(true);
             setEnhancementStage('extracting');
 
-            setSpendLoading(true);
-            await spendTokens('resume_enhancement', 19);
-            await refreshBalance();
-            console.log('Token balance after spending:', tokenBalance);
-            setSpendLoading(false);
+            // Execute the action using the new system
+            const result = await executeAction('resume_enhancement', async () => {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                setEnhancementStage('enhancing');
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setEnhancementStage('enhancing');
+                const enhanceResult = await enhanceResumeFromFile(file);
 
-            const result = await enhanceResumeFromFile(file);
+                setEnhancementStage('finalizing');
+                await new Promise(resolve => setTimeout(resolve, 800));
 
-            setEnhancementStage('finalizing');
+                return enhanceResult;
+            });
 
             setEnhancedResumeData(result);
-
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await refreshBalance();
 
             navigate('/create-resume');
+
         } catch (error) {
             console.error('Error enhancing resume:', error);
             setEnhancementStage('error');
 
             // Handle specific error cases
+            let errorMessage = '';
             if (error instanceof Error) {
                 if (error.message.includes('cancelled') || error.message.includes('aborted')) {
                     errorMessage = 'The enhancement process was interrupted. Please try again.';
@@ -265,7 +269,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                 } else if (error.message.includes('Unsupported file type')) {
                     errorMessage = 'Please upload a PDF, DOCX, or TXT file.';
                 } else if (error.message.includes('Insufficient tokens')) {
-                    errorMessage = `Insufficient tokens. You have ${tokenBalance} tokens, but need 19 tokens to continue.`;
+                    errorMessage = `Insufficient tokens. You have ₹${tokenBalance}, but need ₹${tokenAmount} to continue.`;
                 } else {
                     errorMessage = error.message;
                 }
@@ -273,17 +277,15 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                 errorMessage = 'Failed to enhance resume. Please try again.';
             }
 
+            toast.error(errorMessage);
+
             // Reset states after error
             setTimeout(() => {
                 setIsEnhancing(false);
                 setEnhancementStage('extracting');
-                setSpendLoading(false);
             }, 2000);
         } finally {
-            if (!errorMessage) {
-                setIsEnhancing(false);
-                setSpendLoading(false);
-            }
+            setIsEnhancing(false);
         }
     };
 
@@ -329,7 +331,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                             onClick={handleEnhanceResume}
                             disabled={isEnhancing || spendLoading}
                             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg flex-1 md:flex-auto md:min-w-[200px] relative overflow-hidden group"
-                            tokenAmount={19}
+                            tokenAmount={tokenAmount}
                             leftIcon={<Sparkles className="h-5 w-5" />}
                         >
                             Create My Resume

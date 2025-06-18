@@ -1,4 +1,4 @@
-import { ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X } from 'lucide-react';
+import { ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X, Settings } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getSession, getUser, signInWithGoogle, signOut } from '../lib/supabase';
@@ -6,6 +6,7 @@ import { getPageFromPath } from '../routes';
 import { useResumeStore } from '../store/resumeStore';
 import { useUserStore } from '../store/userStore';
 import { removeToken } from '../utils/storage';
+import { isSuperUser } from '../utils/superuser';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -105,6 +106,12 @@ const Navigation: React.FC = () => {
       path: '/create-resume',
       page: 'create-resume',
     },
+    ...(isAuthenticated && user && isSuperUser(user.email) ? [{
+      name: 'Admin',
+      icon: <Settings className="w-5 h-5" />,
+      path: '/admin',
+      page: 'admin',
+    }] : []),
     // {
     //   name: "I'm a Recruiter",
     //   icon: <Briefcase className="w-5 h-5" />,
@@ -194,6 +201,18 @@ const Navigation: React.FC = () => {
                       <p className="text-sm font-medium text-slate-900 truncate">{user.name || user.email.split('@')[0]}</p>
                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     </div>
+                    {isSuperUser(user.email) && (
+                      <button
+                        onClick={() => {
+                          handleNavigation('/admin');
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center"
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </button>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center"
@@ -278,6 +297,21 @@ const Navigation: React.FC = () => {
                 </div>
               </button>
             ))}
+
+            {isAuthenticated && user && isSuperUser(user.email) && (
+              <button
+                onClick={() => handleNavigation('/admin')}
+                className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left ${currentPage === 'admin'
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  : 'border-transparent text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700'
+                  }`}
+              >
+                <div className="flex items-center">
+                  <Settings className="h-5 w-5 text-slate-400" />
+                  <span className="ml-3">Admin Panel</span>
+                </div>
+              </button>
+            )}
 
             {isAuthenticated ? (
               <button
