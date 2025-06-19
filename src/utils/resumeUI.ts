@@ -72,7 +72,6 @@ export const renderPreviewContainer = (
             className: "transform origin-top transition-transform duration-200 ease-in-out print-container",
             onClick: () => setIsFullScreenPreview(true),
             style: {
-                transform: `scale(${previewScale / 100})`,
                 maxWidth: '210mm',
                 minHeight: '297mm',
                 aspectRatio: '1 / 1.414',

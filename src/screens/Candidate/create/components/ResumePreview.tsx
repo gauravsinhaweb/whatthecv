@@ -176,7 +176,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     // Get section title style classes
     const getSectionTitleClasses = () => {
         const sizeClass = getSectionTitleSize();
-        const weightClass = customizationOptions.sectionTitles.bold ? 'font-bold' : 'font-normal';
+        const weightClass = customizationOptions.sectionTitles.bold ? 'font-semibold' : 'font-normal';
         const caseClass =
             customizationOptions.sectionTitles.style === 'uppercase' ? 'uppercase' :
                 customizationOptions.sectionTitles.style === 'lowercase' ? 'lowercase' :
@@ -279,7 +279,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     
                     /* Header-specific styling */
                     [data-id="resume-header"] h1 {
-                        font-weight: ${customizationOptions.header.nameBold ? '700' : '500'} !important;
+                        font-weight: ${customizationOptions.header.nameBold ? '600' : '500'} !important;
                     }
                     
                     /* Header name size */
@@ -296,7 +296,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     /* Section title styling */
                     .section-title {
                         transition: all 0.2s ease-in-out;
-                        font-weight: ${customizationOptions.sectionTitles.bold ? '700' : '400'} !important;
+                        font-weight: ${customizationOptions.sectionTitles.bold ? '600' : '400'} !important;
                         text-transform: ${customizationOptions.sectionTitles.style} !important;
                     }
                     .section-title.text-sm { font-size: 0.875rem !important; }
@@ -617,7 +617,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             </div>
                         ) : (
                             <div
-                                className={`flex items-center justify-center mt-4 md:mt-0 text-white font-bold ${customizationOptions.header.photoSize === 'small' ? 'w-16 h-16 text-xl' :
+                                className={`flex items-center justify-center mt-4 md:mt-0 text-white font-semibold ${customizationOptions.header.photoSize === 'small' ? 'w-16 h-16 text-xl' :
                                     customizationOptions.header.photoSize === 'large' ? 'w-32 h-32 text-4xl' :
                                         'w-24 h-24 text-3xl'
                                     } rounded-full ${customizationOptions.header.photoBorder === 'none' ? '' : 'shadow-md border'
@@ -679,7 +679,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                             <div className="flex-1">
                                                                 <div className="flex flex-col">
                                                                     <div className="flex items-baseline">
-                                                                        <h3 className="font-bold text-base">
+                                                                        <h3 className="font-semibold text-base">
                                                                             {exp.company || 'Company'}
                                                                         </h3>
                                                                         {exp.experienceLink && exp.experienceLink.startsWith('http') && (
@@ -771,7 +771,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                     <div key={index} className="mb-3">
                                                         <div className={`${customizationOptions.layout.templates === 'one' ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
-                                                                <h3 className="font-bold text-base">
+                                                                <h3 className="font-semibold text-base">
                                                                     {edu.degree || 'Degree'}
                                                                     {(edu.institutionLink || edu.degreeLink) &&
                                                                         (edu.institutionLink?.startsWith('http') || edu.degreeLink?.startsWith('http')) && (
@@ -986,7 +986,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                             {resumeData.projects?.slice(0, 3)
                                                 .map((project, index) => (
                                                     <div key={index} className="mb-3">
-                                                        <h3 className="font-bold text-base">
+                                                        <h3 className="font-semibold text-base">
                                                             {project.name || 'Project Name'}
                                                             {project.link && project.link.startsWith('http') && (
                                                                 <a
@@ -1203,7 +1203,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                     .filter((project) => project.name || project.description)
                                                     .map((project, index) => (
                                                         <div key={index} className="mb-3">
-                                                            <h3 className="font-bold text-base">
+                                                            <h3 className="font-semibold text-base">
                                                                 {project.name || 'Project Name'}
                                                                 {project.link && project.link.startsWith('http') && (
                                                                     <a

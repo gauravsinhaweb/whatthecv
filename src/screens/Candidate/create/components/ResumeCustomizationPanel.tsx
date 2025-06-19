@@ -243,12 +243,12 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
 
     return (
         <div className="bg-white rounded-lg shadow-md border border-slate-200">
-            <div className="flex justify-between items-center p-4 border-b border-slate-200">
+            {/* <div className="flex justify-between items-center p-4 border-b border-slate-200">
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                     <SlidersHorizontal className="w-5 h-5 text-blue-600" />
                     Customize
                 </h2>
-            </div>
+            </div> */}
 
             <div className="sticky top-0 z-10 bg-white border-b border-slate-200 p-2">
                 <div className="flex flex-wrap gap-1 justify-between sm:justify-center bg-slate-100 rounded-md p-1 overflow-x-auto hide-scrollbar">
@@ -353,7 +353,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                 </div>
             </div>
 
-            <div className="p-4 space-y-8 max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div className="p-4 space-y-8 hide-scrollbar overflow-y-auto">
                 <div id="layout" className="scroll-mt-16">
                     <div className="space-y-6">
                         <div className="bg-slate-50 p-4 rounded-lg">
