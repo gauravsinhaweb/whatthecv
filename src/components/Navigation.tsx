@@ -1,24 +1,31 @@
-import { ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X, Settings } from 'lucide-react';
+import { ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X, Settings, FileDown, Save } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { getSession, getUser, signInWithGoogle, signOut } from '../lib/supabase';
 import { getPageFromPath } from '../routes';
 import { useResumeStore } from '../store/resumeStore';
 import { useUserStore } from '../store/userStore';
 import { removeToken } from '../utils/storage';
 import { isSuperUser } from '../utils/superuser';
+import { exportResumeToPDF } from '../utils/resumeExport';
+import ExportConfirmationModal from './ui/ExportConfirmationModal';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [resumeTitle, setResumeTitle] = useState('');
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = getPageFromPath(location.pathname);
+  const isCreateResumePage = location.pathname === '/create-resume';
   const { user, isAuthenticated, setUser, setIsAuthenticated, setLoginError } = useUserStore();
-  const { resetStore } = useResumeStore();
+  const { resetStore, resumeData, isSavingDraft, saveAsDraft, selectedDocument, lastSavedDraftId } = useResumeStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -87,6 +94,74 @@ const Navigation: React.FC = () => {
     }
   };
 
+  const handleExportPDF = () => {
+    setIsExportModalOpen(true);
+  };
+
+  const handleConfirmExport = () => {
+    setIsExportModalOpen(false);
+    if (resumeData) {
+      exportResumeToPDF(resumeData);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (!resumeTitle.trim()) {
+      toast.error('Please enter a resume title');
+      return;
+    }
+
+    try {
+      await saveAsDraft(resumeTitle);
+      setIsSaveModalOpen(false);
+      setResumeTitle('');
+      toast.success('Draft saved successfully');
+    } catch (error) {
+      toast.error('Failed to save draft');
+      console.error('Failed to save draft:', error);
+    }
+  };
+
+  const handleSaveDraftWithTitle = async () => {
+    if (!resumeTitle.trim()) {
+      toast.error('Please enter a resume title');
+      return;
+    }
+
+    try {
+      await saveAsDraft(resumeTitle);
+      setIsSaveModalOpen(false);
+      setResumeTitle('');
+      toast.success('Draft saved successfully');
+    } catch (error) {
+      toast.error('Failed to save draft');
+      console.error('Failed to save draft:', error);
+    }
+  };
+
+  const handleSaveClick = () => {
+    const { selectedDocument, lastSavedDraftId } = useResumeStore.getState();
+
+    // If we have a lastSavedDraftId, it means this resume has been saved before
+    // or if we have a selected document with a meaningful title
+    if (lastSavedDraftId || (selectedDocument?.title && selectedDocument.title !== 'Untitled')) {
+      handleSaveDraftDirect();
+    } else {
+      // For new resumes or untitled resumes, show the modal
+      setIsSaveModalOpen(true);
+    }
+  };
+
+  const handleSaveDraftDirect = async () => {
+    try {
+      await saveAsDraft();
+      toast.success('Draft saved successfully');
+    } catch (error) {
+      toast.error('Failed to save draft');
+      console.error('Failed to save draft:', error);
+    }
+  };
+
   const navItems = [
     ...(isAuthenticated && user ? [{
       name: 'Dashboard',
@@ -133,6 +208,72 @@ const Navigation: React.FC = () => {
 
   return (
     <nav className="bg-white shadow-sm">
+      <ExportConfirmationModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onConfirm={handleConfirmExport}
+      />
+
+      {/* Save Draft Modal */}
+      {isSaveModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-slate-900">Save Resume</h3>
+              <button
+                onClick={() => {
+                  setIsSaveModalOpen(false);
+                  setResumeTitle('');
+                }}
+                className="text-slate-400 hover:text-slate-500"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Resume Title</label>
+                <input
+                  type="text"
+                  value={resumeTitle}
+                  onChange={(e) => setResumeTitle((e.target as HTMLInputElement).value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && resumeTitle.trim() && !isSavingDraft) {
+                      handleSaveDraftWithTitle();
+                    } else if (e.key === 'Escape') {
+                      setIsSaveModalOpen(false);
+                      setResumeTitle('');
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., Google Software Engineer, Microsoft Frontend Developer"
+                  autoFocus
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Give your resume a meaningful name like company name or target position
+                </p>
+              </div>
+              <button
+                onClick={handleSaveDraftWithTitle}
+                disabled={isSavingDraft || !resumeTitle.trim()}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {isSavingDraft ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <Save className="h-5 w-5 mr-2" />
+                    Save Draft
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -161,7 +302,25 @@ const Navigation: React.FC = () => {
           </div>
 
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {isAuthenticated && user ? (
+            {isCreateResumePage ? (
+              <div className="flex items-center space-x-3">
+                <button
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  onClick={handleExportPDF}
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  <span>Export</span>
+                </button>
+                <button
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  onClick={handleSaveClick}
+                  disabled={isSavingDraft}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  <span>{isSavingDraft ? 'Saving...' : 'Save'}</span>
+                </button>
+              </div>
+            ) : isAuthenticated && user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={toggleUserMenu}
@@ -249,8 +408,8 @@ const Navigation: React.FC = () => {
       {isMobileMenuOpen && (
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
-            {/* User profile for mobile */}
-            {isAuthenticated && user && (
+            {/* User profile for mobile - only show when not on create-resume page */}
+            {!isCreateResumePage && isAuthenticated && user && (
               <div className="px-4 py-3 border-b border-slate-200">
                 <div className="flex items-center">
                   {user.avatar_url ? (
@@ -276,6 +435,31 @@ const Navigation: React.FC = () => {
               </div>
             )}
 
+            {/* Export and Save buttons for mobile - only show on create-resume page */}
+            {isCreateResumePage && (
+              <>
+                <button
+                  onClick={handleExportPDF}
+                  className="block w-full pl-3 pr-4 py-3 border-l-4 border-transparent text-base font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all duration-200"
+                >
+                  <div className="flex items-center">
+                    <FileDown className="h-5 w-5 text-slate-500 mr-3" />
+                    <span>Export PDF</span>
+                  </div>
+                </button>
+                <button
+                  onClick={handleSaveClick}
+                  disabled={isSavingDraft}
+                  className="block w-full pl-3 pr-4 py-3 border-l-4 border-transparent text-base font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  <div className="flex items-center">
+                    <Save className="h-5 w-5 text-slate-500 mr-3" />
+                    <span>{isSavingDraft ? 'Saving...' : 'Save Draft'}</span>
+                  </div>
+                </button>
+              </>
+            )}
+
             {navItems.map((item) => (
               <button
                 key={item.page}
@@ -292,7 +476,7 @@ const Navigation: React.FC = () => {
               </button>
             ))}
 
-            {isAuthenticated && user && isSuperUser(user.email) && (
+            {!isCreateResumePage && isAuthenticated && user && isSuperUser(user.email) && (
               <button
                 onClick={() => handleNavigation('/admin')}
                 className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left ${currentPage === 'admin'
@@ -307,37 +491,41 @@ const Navigation: React.FC = () => {
               </button>
             )}
 
-            {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 w-full text-left"
-              >
-                <div className="flex items-center">
-                  <LogOut className="h-5 w-5 text-slate-400" />
-                  <span className="ml-3">Logout</span>
-                </div>
-              </button>
-            ) : (
-              <button
-                onClick={handleLogin}
-                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 w-full text-left"
-              >
-                <div className="flex items-center">
-                  <LogIn className="h-5 w-5 text-slate-400" />
-                  <span className="ml-3">Login</span>
-                </div>
-              </button>
-            )}
+            {!isCreateResumePage && (
+              <>
+                {isAuthenticated ? (
+                  <button
+                    onClick={handleLogout}
+                    className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 w-full text-left"
+                  >
+                    <div className="flex items-center">
+                      <LogOut className="h-5 w-5 text-slate-400" />
+                      <span className="ml-3">Logout</span>
+                    </div>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleLogin}
+                    className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 w-full text-left"
+                  >
+                    <div className="flex items-center">
+                      <LogIn className="h-5 w-5 text-slate-400" />
+                      <span className="ml-3">Login</span>
+                    </div>
+                  </button>
+                )}
 
-            <a
-              href="https://buymeacoffee.com/gauravsinha"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 w-full text-left"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style={{ height: '2rem', width: 'auto' }} />
-            </a>
+                <a
+                  href="https://buymeacoffee.com/gauravsinha"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 w-full text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style={{ height: '2rem', width: 'auto' }} />
+                </a>
+              </>
+            )}
           </div>
         </div>
       )}

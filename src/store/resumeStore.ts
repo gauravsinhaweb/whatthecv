@@ -68,7 +68,7 @@ interface ResumeStore {
     // Draft saving state
     isSavingDraft: boolean;
     lastSavedDraftId: string | null;
-    saveAsDraft: () => Promise<void>;
+    saveAsDraft: (title?: string) => Promise<void>;
 
     resetStore: () => void;
 }
@@ -305,7 +305,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     // Draft saving state
     isSavingDraft: false,
     lastSavedDraftId: null,
-    saveAsDraft: async () => {
+    saveAsDraft: async (title?: string) => {
         const { resumeData, selectedDocument } = get();
         set({ isSavingDraft: true });
         try {
@@ -326,10 +326,10 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 projects: resumeData.projects
             };
 
-            // Generate a title based on the current date and time
-            const title = `Draft ${new Date().toLocaleString()}`;
+            // Use provided title or generate a default one
+            const resumeTitle = title || `Draft ${new Date().toLocaleString()}`;
 
-            const response = await saveDraft(enhancedData, title, get().customizationOptions, selectedDocument?.id);
+            const response = await saveDraft(enhancedData, resumeTitle, get().customizationOptions, selectedDocument?.id);
             set({ lastSavedDraftId: response.id });
         } catch (error) {
             console.error('Error saving draft:', error);

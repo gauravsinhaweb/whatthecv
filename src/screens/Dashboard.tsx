@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useResumeStore } from '../store/resumeStore'
-import { defaultCustomizationOptions, initialResumeData } from '../types/resume'
+import { defaultCustomizationOptions, initialResumeData, ResumeData } from '../types/resume'
 import { FileText, Plus, Briefcase, Coins, History, RefreshCw, PiggyBank, FileSearch, FileEdit, FileCheck, Sparkles, Wand2, Lightbulb, MessageSquare, BookOpen, Target, GraduationCap, Wallet } from 'lucide-react'
 import { getResumeVersions, deleteResumeVersion, saveDraft } from '../utils/api'
 import { toast } from 'react-hot-toast'
@@ -208,7 +208,56 @@ const Dashboard = () => {
     const handleResumeClick = (resumeId: string) => {
         const resume = resumes.find(r => r.id === resumeId)
         if (!resume) return
-        setResumeData(resume.resumeData)
+
+        // Convert EnhancedResumeData to ResumeData format
+        const resumeData: ResumeData = {
+            personalInfo: {
+                name: resume.resumeData.personalInfo.name,
+                position: resume.resumeData.personalInfo.position,
+                email: resume.resumeData.personalInfo.email,
+                phone: resume.resumeData.personalInfo.phone,
+                location: resume.resumeData.personalInfo.location,
+                summary: resume.resumeData.personalInfo.summary,
+                profilePicture: resume.resumeData.personalInfo.profilePicture,
+                socialLinks: resume.resumeData.personalInfo.socialLinks?.map(link => ({
+                    platform: link.platform === 'peerlist' ? 'peerlist' : link.platform,
+                    url: link.url,
+                    label: link.label
+                }))
+            },
+            workExperience: resume.resumeData.workExperience.map(exp => ({
+                id: exp.id,
+                position: exp.position,
+                company: exp.company,
+                location: exp.location,
+                startDate: exp.startDate,
+                endDate: exp.endDate,
+                current: exp.current,
+                description: exp.description,
+                experienceLink: exp.experienceLink
+            })),
+            education: resume.resumeData.education.map(edu => ({
+                id: edu.id,
+                degree: edu.degree,
+                institution: edu.institution,
+                location: edu.location,
+                startDate: edu.startDate,
+                endDate: edu.endDate,
+                description: edu.description,
+                degreeLink: edu.degreeLink,
+                institutionLink: edu.institutionLink
+            })),
+            skills: resume.resumeData.skills,
+            projects: resume.resumeData.projects.map(proj => ({
+                id: proj.id,
+                name: proj.name,
+                description: proj.description,
+                technologies: proj.technologies,
+                link: proj.link
+            }))
+        }
+
+        setResumeData(resumeData)
         setCustomizationOptions(resume.customizationOptions)
         setSelectedDocument(resume)
         navigate('/create-resume')
