@@ -14,7 +14,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     resumeData,
     customizationOptions,
     fullScreen = false,
-    previewScale = 100,
 }) => {
     const fontStack = 'Inter, Arial, Helvetica, "Noto Sans Devanagari", "Noto Sans CJK SC Thin", "Noto Sans SC", "Noto Sans Hebrew", "Noto Sans Bengali", sans-serif';
 

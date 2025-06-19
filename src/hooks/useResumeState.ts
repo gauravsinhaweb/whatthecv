@@ -119,7 +119,24 @@ export const useResumeState = () => {
     const handleSaveAsDraft = useCallback(() => {
         // Format all descriptions before saving
         const formattedData = formatAllDescriptions(resumeData);
-        saveResumeDraft(formattedData, customizationOptions);
+
+        // Convert ResumeData to EnhancedResumeData format
+        const enhancedData = {
+            personalInfo: {
+                ...formattedData.personalInfo,
+                profilePicture: formattedData.personalInfo.profilePicture || null,
+                socialLinks: formattedData.personalInfo.socialLinks?.map(link => ({
+                    ...link,
+                    platform: link.platform === 'peerlist' ? 'other' : link.platform
+                })) || []
+            },
+            workExperience: formattedData.workExperience,
+            education: formattedData.education,
+            skills: formattedData.skills,
+            projects: formattedData.projects
+        };
+
+        saveDraft(enhancedData, `Draft ${new Date().toLocaleString()}`, customizationOptions);
         alert('Resume saved as draft');
     }, [resumeData, customizationOptions]);
 

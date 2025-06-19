@@ -75,7 +75,7 @@ export const renderPreviewContainer = (
                 maxWidth: '210mm',
                 minHeight: '297mm',
                 aspectRatio: '1 / 1.414',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                transform: `scale(${previewScale})`,
             }
         },
         React.createElement(ResumePreview, {
