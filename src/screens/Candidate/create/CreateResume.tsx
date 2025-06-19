@@ -54,7 +54,6 @@ const CreateResume: React.FC = () => {
                 newScale = Math.max(minScale, Math.min(maxScale, (width * 0.67) / baseWidth));
             }
 
-            console.log(`Window width: ${width}px, Final scale: ${newScale.toFixed(3)}`);
             setPreviewScaleRef.current(newScale);
         };
 
