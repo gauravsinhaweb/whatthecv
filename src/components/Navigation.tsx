@@ -10,6 +10,7 @@ import { removeToken } from '../utils/storage';
 import { isSuperUser } from '../utils/superuser';
 import { exportResumeToPDF } from '../utils/resumeExport';
 import ExportConfirmationModal from './ui/ExportConfirmationModal';
+import AutoSaveIndicator from './ui/AutoSaveIndicator';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -25,7 +26,7 @@ const Navigation: React.FC = () => {
   const currentPage = getPageFromPath(location.pathname);
   const isCreateResumePage = location.pathname === '/create-resume';
   const { user, isAuthenticated, setUser, setIsAuthenticated, setLoginError } = useUserStore();
-  const { resetStore, resumeData, isSavingDraft, saveAsDraft, selectedDocument, lastSavedDraftId } = useResumeStore();
+  const { resetStore, resumeData, isSavingDraft, saveAsDraft, selectedDocument, lastSavedDraftId, isAutoSaving, lastSavedTime } = useResumeStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -304,6 +305,10 @@ const Navigation: React.FC = () => {
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {isCreateResumePage ? (
               <div className="flex items-center space-x-3">
+                <AutoSaveIndicator
+                  isAutoSaving={isAutoSaving}
+                  lastSavedTime={lastSavedTime}
+                />
                 <button
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   onClick={handleExportPDF}
@@ -438,6 +443,12 @@ const Navigation: React.FC = () => {
             {/* Export and Save buttons for mobile - only show on create-resume page */}
             {isCreateResumePage && (
               <>
+                <div className="px-4 py-3 border-b border-slate-200">
+                  <AutoSaveIndicator
+                    isAutoSaving={isAutoSaving}
+                    lastSavedTime={lastSavedTime}
+                  />
+                </div>
                 <button
                   onClick={handleExportPDF}
                   className="block w-full pl-3 pr-4 py-3 border-l-4 border-transparent text-base font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all duration-200"
