@@ -291,7 +291,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         }
     })),
 
-    previewScale: 70,
+    previewScale: 0.75,
     setPreviewScale: (scale: number) => set({ previewScale: scale }),
 
     handleZoomIn: () => set((state) => ({

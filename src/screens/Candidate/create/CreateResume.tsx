@@ -1,5 +1,5 @@
 import { Brush, Eye, EyeOff, Laptop, Pen } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
@@ -21,26 +21,41 @@ const CreateResume: React.FC = () => {
         activeSection,
         expandedSections,
         customizationOptions,
-        previewScale,
-        handlers
+        handlers,
+        previewScale
     } = useResumeState();
-
-    // Get enhanced resume data and setResumeData from Zustand store
     const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft } = useResumeStore();
-
-    const [isMobilePreviewVisible, setIsMobilePreviewVisible] = useState(false);
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+    const setPreviewScaleRef = useRef(handlers.setPreviewScale);
+    setPreviewScaleRef.current = handlers.setPreviewScale;
+
     useEffect(() => {
         const handleResize = () => {
-            setScreenWidth(window.innerWidth);
+            const width = window.innerWidth;
+            setScreenWidth(width);
+
+            const baseWidth = 1200;
+            const maxScale = 1;
+
+            let newScale;
+            if (width < 768) {
+                const minScale = 0.8;
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.85) / baseWidth));
+            } else {
+                const minScale = 0.4;
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.67) / baseWidth));
+            }
+
+            setPreviewScaleRef.current(newScale);
         };
 
         window.addEventListener('resize', handleResize);
+        handleResize();
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
@@ -207,7 +222,7 @@ const CreateResume: React.FC = () => {
     }
 
     return (
-        <div className="h-screen overflow-hidden flex flex-col">
+        <div className="h-screen overflow-visible md:overflow-hidden flex flex-col">
             <ResumeFullScreenModal
                 isOpen={isFullScreenPreview}
                 onClose={() => setIsFullScreenPreview(false)}
@@ -223,9 +238,9 @@ const CreateResume: React.FC = () => {
                 onConfirm={handleConfirmExport}
             />
 
-            <div className="flex-1 p-6 overflow-hidden">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 h-full overflow-hidden">
-                    <div className="flex flex-col h-full max-h-[calc(100dvh-6rem)] overflow-y-scroll">
+            <div className="flex-1 p-6 overflow-visible md:overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-12 h-full overflow-hidden">
+                    <div className="md:col-span-6 flex flex-col h-full max-h-[calc(100dvh-6rem)] overflow-scroll">
                         <div className="flex-shrink-0 mb-4">
                             <div className="flex bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                                 <button
@@ -275,8 +290,8 @@ const CreateResume: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="hidden lg:flex flex-col h-full">
-                        <div className="h-full max-h-[calc(100dvh-6rem)] overflow-y-scroll bg-slate-200 shadow-sm border border-slate-200">
+                    <div className="md:col-span-6 flex flex-col h-full">
+                        <div className="h-full max-h-[calc(100dvh-6rem)] hide-scrollbar overflow-y-scroll overflow-x-hidden bg-slate-200 border border-slate-200 flex justify-center">
                             {renderPreviewContainer(
                                 resumeData,
                                 customizationOptions,
