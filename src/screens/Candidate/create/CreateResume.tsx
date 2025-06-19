@@ -40,22 +40,36 @@ const CreateResume: React.FC = () => {
 
             const baseWidth = 1200;
             const maxScale = 1;
+            const minScale = 0.3;
 
             let newScale;
-            if (width < 768) {
-                const minScale = 0.8;
-                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.85) / baseWidth));
+
+            if (width < 480) {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.45) / 480));
+            } else if (width < 640) {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.75) / 640));
+            } else if (width < 768) {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.85) / 768));
             } else {
-                const minScale = 0.4;
                 newScale = Math.max(minScale, Math.min(maxScale, (width * 0.67) / baseWidth));
             }
 
+            console.log(`Window width: ${width}px, Final scale: ${newScale.toFixed(3)}`);
             setPreviewScaleRef.current(newScale);
         };
 
-        window.addEventListener('resize', handleResize);
+        const debouncedHandleResize = () => {
+            clearTimeout((window as any).resizeTimeout);
+            (window as any).resizeTimeout = setTimeout(handleResize, 30);
+        };
+
+        window.addEventListener('resize', debouncedHandleResize);
         handleResize();
-        return () => window.removeEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', debouncedHandleResize);
+            clearTimeout((window as any).resizeTimeout);
+        };
     }, []);
 
     // Track unsaved changes when resume data changes
@@ -196,29 +210,6 @@ const CreateResume: React.FC = () => {
             toast.error('Failed to save draft');
         }
     };
-
-    // Screen too small message
-    if (screenWidth < 450) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-                    <div className="flex justify-center mb-6">
-                        <Laptop className="w-16 h-16 text-blue-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-4 text-gray-800">Screen Too Small</h2>
-                    <p className="text-gray-600 mb-6">
-                        The resume builder requires a minimum screen width of 450px for the best experience.
-                        Please use a larger device or rotate your device to landscape mode.
-                    </p>
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                        <p className="text-sm text-blue-700">
-                            For the best experience, we recommend using a desktop or tablet device with a screen width of at least 768px.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="h-screen overflow-visible md:overflow-hidden flex flex-col">

@@ -107,3 +107,13 @@ body.print-mode .printable-content {
         margin-right: 0;
     }
 }
+
+.preview-scale-container {
+    transform-origin: top center !important;
+    transition: transform 0.2s ease-in-out;
+    will-change: transform;
+}
+
+.preview-scale-container:hover {
+    cursor: pointer;
+}

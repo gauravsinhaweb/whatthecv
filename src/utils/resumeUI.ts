@@ -54,10 +54,8 @@ export const renderPreviewContainer = (
     previewScale: number,
     setIsFullScreenPreview: (isFullScreen: boolean) => void
 ) => {
-    // Create a more specific key for header-related options to ensure re-renders
     const customizationKey = JSON.stringify({
         ...customizationOptions,
-        // Explicitly include header options to ensure they trigger re-renders
         header: {
             nameSize: customizationOptions.header.nameSize,
             nameBold: customizationOptions.header.nameBold,
@@ -69,17 +67,19 @@ export const renderPreviewContainer = (
     return React.createElement(
         'div',
         {
-            className: "transform origin-top transition-transform duration-200 ease-in-out print-container",
+            className: "transform origin-top transition-transform duration-200 ease-in-out print-container preview-scale-container",
             onClick: () => setIsFullScreenPreview(true),
             style: {
                 maxWidth: '210mm',
                 minHeight: '297mm',
                 aspectRatio: '1 / 1.414',
                 transform: `scale(${previewScale})`,
+                transformOrigin: 'top center',
+                willChange: 'transform',
             }
         },
         React.createElement(ResumePreview, {
-            key: customizationKey, // Force re-render when any customization option changes
+            key: customizationKey,
             resumeData,
             customizationOptions,
             previewScale
