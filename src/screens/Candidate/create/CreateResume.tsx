@@ -1,8 +1,7 @@
-import { Brush, Eye, EyeOff, Laptop, Pen } from 'lucide-react';
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { Brush, Laptop, Pen } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import Button from '../../../components/ui/Button';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { useResumeStore } from '../../../store/resumeStore';
