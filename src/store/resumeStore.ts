@@ -70,6 +70,12 @@ interface ResumeStore {
     lastSavedDraftId: string | null;
     saveAsDraft: (title?: string) => Promise<void>;
 
+    // Auto-save state
+    isAutoSaving: boolean;
+    lastSavedTime: Date | null;
+    autoSaveDraft: () => Promise<void>;
+    setLastSavedTime: (time: Date | null) => void;
+
     resetStore: () => void;
 }
 
@@ -339,6 +345,48 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         }
     },
 
+    // Auto-save state
+    isAutoSaving: false,
+    lastSavedTime: null,
+    autoSaveDraft: async () => {
+        const { resumeData, selectedDocument, lastSavedDraftId } = get();
+        set({ isAutoSaving: true });
+        try {
+            // Convert ResumeData to EnhancedResumeData format
+            const enhancedData: EnhancedResumeData = {
+                personalInfo: {
+                    ...resumeData.personalInfo,
+                    summary: resumeData.personalInfo.summary || '',
+                    profilePicture: resumeData.personalInfo.profilePicture || null,
+                    socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
+                        ...link,
+                        platform: link.platform === 'peerlist' ? 'other' : link.platform
+                    })) as EnhancedResumeData['personalInfo']['socialLinks']
+                },
+                workExperience: resumeData.workExperience,
+                education: resumeData.education,
+                skills: resumeData.skills,
+                projects: resumeData.projects
+            };
+
+            // Use existing document ID for auto-save (update existing resume)
+            const documentId = selectedDocument?.id || lastSavedDraftId;
+
+            // Use existing title or create a simple auto-save title
+            const resumeTitle = selectedDocument?.title || `Auto-saved ${new Date().toLocaleString()}`;
+
+            const response = await saveDraft(enhancedData, resumeTitle, get().customizationOptions, documentId);
+            set({ lastSavedDraftId: response.id, lastSavedTime: new Date() });
+        } catch (error) {
+            console.error('Error auto-saving draft:', error);
+            throw error;
+        } finally {
+            set({ isAutoSaving: false });
+        }
+    },
+
+    setLastSavedTime: (time: Date | null) => set({ lastSavedTime: time }),
+
     resetStore: () => set({
         documents: [],
         selectedDocument: null,
@@ -357,6 +405,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         },
         previewScale: 70,
         isSavingDraft: false,
-        lastSavedDraftId: null
+        lastSavedDraftId: null,
+        isAutoSaving: false,
+        lastSavedTime: null
     }),
 })); 

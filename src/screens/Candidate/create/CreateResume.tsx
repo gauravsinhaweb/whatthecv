@@ -21,7 +21,9 @@ const CreateResume: React.FC = () => {
         expandedSections,
         customizationOptions,
         handlers,
-        previewScale
+        previewScale,
+        isAutoSaving,
+        lastSavedTime
     } = useResumeState();
     const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft } = useResumeStore();
     const [activeTab, setActiveTab] = useState<string>('content');
@@ -78,6 +80,17 @@ const CreateResume: React.FC = () => {
         }
     }, [resumeData]);
 
+    // Reset unsaved changes when auto-save occurs
+    useEffect(() => {
+        if (lastSavedTime) {
+            setHasUnsavedChanges(false);
+        }
+    }, [lastSavedTime]);
+
+    // Check if there are actually unsaved changes (more recent than last save)
+    const hasActualUnsavedChanges = hasUnsavedChanges && (!lastSavedTime ||
+        new Date().getTime() - lastSavedTime.getTime() > 5000); // 5 seconds buffer
+
     // Push a dummy state to the history when component mounts
     useEffect(() => {
         window.history.pushState(null, '', window.location.pathname);
@@ -86,7 +99,7 @@ const CreateResume: React.FC = () => {
     // Handle back button and history navigation
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
-            if (hasUnsavedChanges && !isSavingDraft) {
+            if (hasActualUnsavedChanges && !isSavingDraft) {
                 // Prevent the default back action
                 event.preventDefault();
                 // Push another state to prevent back navigation
@@ -106,12 +119,12 @@ const CreateResume: React.FC = () => {
         return () => {
             window.removeEventListener('popstate', handlePopState);
         };
-    }, [hasUnsavedChanges, isSavingDraft, navigate]);
+    }, [hasActualUnsavedChanges, isSavingDraft, navigate]);
 
     // Handle beforeunload event to show confirmation dialog
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (hasUnsavedChanges && !isSavingDraft) {
+            if (hasActualUnsavedChanges && !isSavingDraft) {
                 const message = 'You have unsaved changes. Are you sure you want to leave?';
                 e.preventDefault();
                 e.returnValue = message;
@@ -123,7 +136,7 @@ const CreateResume: React.FC = () => {
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-    }, [hasUnsavedChanges, isSavingDraft]);
+    }, [hasActualUnsavedChanges, isSavingDraft]);
 
     useEffect(() => {
         // Check for enhanced resume data in the store

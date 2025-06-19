@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useResumeStore } from '../store/resumeStore';
 import { saveResumeData, saveCompleteResumeData } from '../utils/resumeSaveUtils';
 import { formatBulletPoints, formatAllDescriptions } from '../utils/resumeFormatUtils';
@@ -38,10 +38,41 @@ export const useResumeState = () => {
         // Customization
         customizationOptions,
         setCustomizationOptions,
+
+        // Auto-save state
+        isAutoSaving,
+        lastSavedTime,
+        autoSaveDraft,
+        setLastSavedTime,
+
+        // Draft state
+        selectedDocument,
+        lastSavedDraftId,
     } = useResumeStore();
 
     // Local state for skill input (keep this in component level as it's purely UI input state)
     const [skillInput, setSkillInput] = useState('');
+    const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Auto-save functionality
+    const triggerAutoSave = useCallback(() => {
+        if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current);
+        }
+
+        autoSaveTimeoutRef.current = setTimeout(async () => {
+            try {
+                // Only auto-save existing resumes (not new ones)
+                const isExistingResume = selectedDocument || lastSavedDraftId;
+
+                if (isExistingResume) {
+                    await autoSaveDraft();
+                }
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }, 2000);
+    }, [autoSaveDraft, selectedDocument, lastSavedDraftId]);
 
     // Auto-format bullet points when editing descriptions
     useEffect(() => {
@@ -50,6 +81,22 @@ export const useResumeState = () => {
             setResumeData(formattedData);
         }
     }, [resumeData, setResumeData]);
+
+    // Trigger auto-save when resume data changes (but only for existing resumes)
+    useEffect(() => {
+        // Only trigger auto-save for existing resumes
+        const isExistingResume = selectedDocument || lastSavedDraftId;
+
+        if (isExistingResume && resumeData && Object.keys(resumeData).length > 0) {
+            triggerAutoSave();
+        }
+
+        return () => {
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current);
+            }
+        };
+    }, [resumeData, triggerAutoSave, selectedDocument, lastSavedDraftId]);
 
     const handleSkillInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
@@ -153,6 +200,8 @@ export const useResumeState = () => {
         expandedSections,
         customizationOptions,
         previewScale,
+        isAutoSaving,
+        lastSavedTime,
         handlers: {
             setResumeData,
             setSkillInput,
