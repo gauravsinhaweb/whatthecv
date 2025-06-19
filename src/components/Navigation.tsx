@@ -208,7 +208,7 @@ const Navigation: React.FC = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm h-16 flex-shrink-0">
       <ExportConfirmationModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}

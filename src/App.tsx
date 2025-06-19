@@ -7,10 +7,10 @@ import { routes } from './routes';
 
 function App() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col overflow-visible md:overflow-hidden">
+    <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
       <Toaster position="top-center" />
       <Navigation />
-      <main className="flex-1 overflow-visible md:overflow-hidden">
+      <main className="flex-1 overflow-auto">
         <Suspense fallback={<Loading />}>
           <Routes>
             {routes.map((route) => (

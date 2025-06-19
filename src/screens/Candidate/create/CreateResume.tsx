@@ -224,7 +224,7 @@ const CreateResume: React.FC = () => {
     };
 
     return (
-        <div className="h-screen overflow-visible md:overflow-hidden flex flex-col">
+        <div className="h-full flex flex-col overflow-hidden">
             <ResumeFullScreenModal
                 isOpen={isFullScreenPreview}
                 onClose={() => setIsFullScreenPreview(false)}
@@ -240,9 +240,9 @@ const CreateResume: React.FC = () => {
                 onConfirm={handleConfirmExport}
             />
 
-            <div className="flex-1 p-6 overflow-visible md:overflow-hidden">
+            <div className="flex-1 p-6 overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-12 h-full overflow-hidden">
-                    <div className="md:col-span-6 flex flex-col h-full max-h-[calc(100dvh-6rem)] overflow-scroll">
+                    <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
                         <div className="flex-shrink-0 mb-4">
                             <div className="flex bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                                 <button
@@ -292,8 +292,8 @@ const CreateResume: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="md:col-span-6 flex flex-col h-full">
-                        <div className="h-full max-h-[calc(100dvh-6rem)] hide-scrollbar overflow-y-scroll overflow-x-hidden bg-slate-200 border border-slate-200 flex justify-center">
+                    <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
+                        <div className="h-full hide-scrollbar overflow-y-scroll overflow-x-hidden bg-slate-200 border border-slate-200 flex justify-center">
                             {renderPreviewContainer(
                                 resumeData,
                                 customizationOptions,
