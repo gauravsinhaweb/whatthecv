@@ -462,7 +462,7 @@ const Dashboard = () => {
                     {activeTab === 'resumes' ? (
                         isLoading ? (
                             <div className="flex justify-start items-center flex-wrap gap-6">
-                                {[1, 2, 3].map((index) => (
+                                {Array.apply(null, Array(3)).map((index) => (
                                     <ResumeCardSkeleton key={index} />
                                 ))}
                             </div>
