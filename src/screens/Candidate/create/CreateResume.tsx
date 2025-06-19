@@ -1,6 +1,9 @@
-import { Eye, EyeOff, FileDown, Layout, Palette, Laptop, Save } from 'lucide-react';
+import { Brush, Eye, EyeOff, Laptop, Pen } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
+import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { useResumeStore } from '../../../store/resumeStore';
 import { ResumeData } from '../../../types/resume';
@@ -9,9 +12,6 @@ import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../.
 import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
 import ResumeEditor from './components/ResumeEditor';
 import ResumeFullScreenModal from './components/ResumeFullScreenModal';
-import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
-import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 
 const CreateResume: React.FC = () => {
     const navigate = useNavigate();
@@ -207,7 +207,7 @@ const CreateResume: React.FC = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="h-screen overflow-hidden flex flex-col">
             <ResumeFullScreenModal
                 isOpen={isFullScreenPreview}
                 onClose={() => setIsFullScreenPreview(false)}
@@ -223,117 +223,67 @@ const CreateResume: React.FC = () => {
                 onConfirm={handleConfirmExport}
             />
 
-            <div className="flex">
-                {/* Vertical tab navigation */}
-                <div className="bg-white rounded-l-lg shadow-md border border-slate-200 mr-6 flex-shrink-0 self-start sticky top-6">
-                    <div className="flex flex-col border-r border-slate-200">
-                        <button
-                            className={`p-4 font-medium transition-colors relative ${activeTab === 'content'
-                                ? 'text-blue-600 border-r-2 border-blue-600 bg-white'
-                                : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                                }`}
-                            onClick={() => setActiveTab('content')}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Layout className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Content</span>
+            <div className="flex-1 p-6 overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 h-full overflow-hidden">
+                    <div className="flex flex-col h-full max-h-[calc(100dvh-6rem)] overflow-y-scroll">
+                        <div className="flex-shrink-0 mb-4">
+                            <div className="flex bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                <button
+                                    className={`flex-1 px-4 py-3 font-medium transition-colors relative ${activeTab === 'content'
+                                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                                        }`}
+                                    onClick={() => setActiveTab('content')}
+                                >
+                                    <div className="flex items-center justify-center gap-2">
+                                        <Pen className="w-4 h-4" />
+                                        <span className="text-sm">Content</span>
+                                    </div>
+                                </button>
+                                <button
+                                    className={`flex-1 px-4 py-3 font-medium transition-colors relative ${activeTab === 'customization'
+                                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                                        }`}
+                                    onClick={() => setActiveTab('customization')}
+                                >
+                                    <div className="flex items-center justify-center gap-2">
+                                        <Brush className="w-4 h-4" />
+                                        <span className="text-sm">Customize</span>
+                                    </div>
+                                </button>
                             </div>
-                        </button>
-                        <button
-                            className={`p-4 font-medium transition-colors relative ${activeTab === 'customization'
-                                ? 'text-blue-600 border-r-2 border-blue-600 bg-white'
-                                : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                                }`}
-                            onClick={() => setActiveTab('customization')}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Palette className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Design</span>
+                        </div>
+
+                        <div className="flex-1 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="h-full overflow-y-auto">
+                                {activeTab === 'content' ? (
+                                    <ResumeEditor
+                                        {...editorProps}
+                                        customizationOptions={customizationOptions}
+                                        onCustomizationChange={handlers.setCustomizationOptions}
+                                    />
+                                ) : (
+                                    <ResumeCustomizationPanel
+                                        options={customizationOptions}
+                                        onChange={handlers.setCustomizationOptions}
+                                        onSave={handlers.saveResumeWithOptions}
+                                        onSaveAsDraft={handlers.saveAsDraft}
+                                    />
+                                )}
                             </div>
-                        </button>
-                        <button
-                            className="p-4 font-medium transition-colors relative text-slate-600 hover:text-slate-800 hover:bg-slate-50"
-                            onClick={handleExportPDF}
-                        >
-                            <div className="flex flex-col items-center">
-                                <FileDown className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Export</span>
-                            </div>
-                        </button>
-                        <button
-                            className="p-4 font-medium transition-colors relative text-slate-600 hover:text-slate-800 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={handleSaveDraft}
-                            disabled={isSavingDraft}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Save className="w-5 h-5 mb-1" />
-                                <span className="text-xs">{isSavingDraft ? 'Saving...' : 'Save'}</span>
-                            </div>
-                        </button>
+                        </div>
                     </div>
-                </div>
 
-                {/* Content area */}
-                <div className="flex-1">
-                    {activeTab === 'content' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
-                            <div className={`${isMobilePreviewVisible ? 'hidden' : 'block'} sm:block`}>
-                                <ResumeEditor
-                                    {...editorProps}
-                                    customizationOptions={customizationOptions}
-                                    onCustomizationChange={handlers.setCustomizationOptions}
-                                />
-                            </div>
-                            <div className={`${isMobilePreviewVisible ? 'block' : 'hidden'} sm:block`}>
-                                <div className="lg:sticky top-20 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
-                                    <div className="flex justify-center items-center">
-                                        {renderPreviewContainer(
-                                            resumeData,
-                                            customizationOptions,
-                                            previewScale,
-                                            setIsFullScreenPreview
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="hidden lg:flex flex-col h-full">
+                        <div className="h-full max-h-[calc(100dvh-6rem)] overflow-y-scroll bg-slate-200 shadow-sm border border-slate-200">
+                            {renderPreviewContainer(
+                                resumeData,
+                                customizationOptions,
+                                previewScale,
+                                setIsFullScreenPreview
+                            )}
                         </div>
-                    )}
-
-                    {activeTab === 'customization' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
-                            <div>
-                                <ResumeCustomizationPanel
-                                    options={customizationOptions}
-                                    onChange={handlers.setCustomizationOptions}
-                                    onSave={handlers.saveResumeWithOptions}
-                                    onSaveAsDraft={handlers.saveAsDraft}
-                                />
-                            </div>
-                            <div>
-                                <div className="lg:sticky top-24 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
-                                    <div className="flex justify-center items-center">
-                                        {renderPreviewContainer(
-                                            resumeData,
-                                            customizationOptions,
-                                            previewScale,
-                                            setIsFullScreenPreview
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="mt-6 sm:hidden flex justify-center items-center">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsMobilePreviewVisible(!isMobilePreviewVisible)}
-                            leftIcon={isMobilePreviewVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            className="w-full max-w-xs"
-                        >
-                            {isMobilePreviewVisible ? 'Edit Content' : 'Show Preview'}
-                        </Button>
                     </div>
                 </div>
             </div>
