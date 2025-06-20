@@ -240,7 +240,7 @@ const CreateResume: React.FC = () => {
                 onConfirm={handleConfirmExport}
             />
 
-            <div className="flex-1 p-6 overflow-hidden">
+            <div className="flex-1 p-6 pb-0 overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-12 h-full overflow-hidden">
                     <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
                         <div className="flex-shrink-0 mb-4">
