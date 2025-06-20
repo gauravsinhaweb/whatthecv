@@ -56,6 +56,11 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                 <meta name="pdfkit-margin-right" content="0">
                 <meta name="pdfkit-margin-bottom" content="0">
                 <meta name="pdfkit-margin-left" content="0">
+                <meta name="format-detection" content="telephone=no">
+                <meta name="format-detection" content="date=no">
+                <meta name="format-detection" content="address=no">
+                <meta name="format-detection" content="email=no">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
                     @page {
                         size: 210mm 297mm;
@@ -74,6 +79,10 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                         color: ${customizationOptions?.colors?.text || '#000000'} !important;
                         font-size: ${customizationOptions?.spacing?.fontSize || 11.5}pt !important;
                         line-height: ${customizationOptions?.spacing?.lineHeight || 1.2} !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
                     }
                     .print-container {
                         position: relative;
@@ -115,18 +124,36 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                         padding-right: ${customizationOptions?.spacing?.margins?.right || 10}mm !important;
                         padding-top: ${customizationOptions?.spacing?.margins?.top || 10}mm !important;
                         padding-bottom: ${customizationOptions?.spacing?.margins?.bottom || 10}mm !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
                     }
                     p, div {
                         text-overflow: ellipsis !important;
                         overflow: hidden !important;
                         -webkit-user-select: text !important;
                         user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
                     }
                     h1, h2, h3, h4, h5, h6 {
                         font-weight: inherit !important;
                         -webkit-user-select: text !important;
                         user-select: text !important;
                         color: ${customizationOptions?.colors?.headings || '#000000'} !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
+                    }
+                    span, a, li, td, th {
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
                     }
                     .font-black {
                         font-weight: 800 !important;
@@ -322,6 +349,30 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                     .skills-level .level-dot {
                         background-color: ${customizationOptions?.colors?.accent || '#000000'} !important;
                     }
+                    
+                    /* Ensure text remains selectable in PDF */
+                    * {
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }
+                    
+                    /* Prevent text from being treated as image */
+                    .printable-content {
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }
                 </style>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
             </head>
@@ -378,6 +429,9 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
         printContent.style.color = customizationOptions?.colors?.text || '#000000';
         printContent.style.fontSize = `${customizationOptions?.spacing?.fontSize || 11.5}pt`;
         printContent.style.lineHeight = `${customizationOptions?.spacing?.lineHeight || 1.2}`;
+        printContent.style.userSelect = 'text';
+        printContent.style.webkitUserSelect = 'text';
+        printContent.style.pointerEvents = 'auto';
 
         // Fix bullet points styling
         const ulElements = printContent.querySelectorAll('ul');
@@ -400,6 +454,16 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
         liElements.forEach(li => {
             (li as HTMLElement).style.display = 'list-item';
             (li as HTMLElement).style.marginBottom = '0.25em';
+        });
+
+        // Ensure all text elements are selectable
+        const textElements = printContent.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, span, a, li, td, th');
+        textElements.forEach(element => {
+            (element as HTMLElement).style.userSelect = 'text';
+            (element as HTMLElement).style.webkitUserSelect = 'text';
+            (element as HTMLElement).style.pointerEvents = 'auto';
+            (element as HTMLElement).style.webkitTextSizeAdjust = 'none';
+            (element as HTMLElement).style.setProperty('text-size-adjust', 'none');
         });
 
         // Process description elements to ensure bullet points are properly formatted
@@ -594,6 +658,16 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                 educationItems.forEach(item => {
                     item.style.marginBottom = '1rem';
                 });
+                
+                // Ensure all text elements are selectable
+                const textElements = document.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, span, a, li, td, th');
+                textElements.forEach(element => {
+                    element.style.userSelect = 'text';
+                    element.style.webkitUserSelect = 'text';
+                    element.style.pointerEvents = 'auto';
+                    element.style.webkitTextSizeAdjust = 'none';
+                    element.style.setProperty('text-size-adjust', 'none');
+                });
             });
         `;
         frameDoc.body.appendChild(fixScript);
@@ -695,6 +769,16 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                 const educationItems = frameDoc.querySelectorAll('.mb-5');
                 educationItems.forEach(item => {
                     (item as HTMLElement).style.marginBottom = '1rem';
+                });
+
+                // Ensure all text elements are selectable
+                const textElements = frameDoc.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, span, a, li, td, th');
+                textElements.forEach(element => {
+                    (element as HTMLElement).style.userSelect = 'text';
+                    (element as HTMLElement).style.webkitUserSelect = 'text';
+                    (element as HTMLElement).style.pointerEvents = 'auto';
+                    (element as HTMLElement).style.webkitTextSizeAdjust = 'none';
+                    (element as HTMLElement).style.setProperty('text-size-adjust', 'none');
                 });
 
                 printFrame.contentWindow?.focus();
