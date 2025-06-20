@@ -293,7 +293,7 @@ const CreateResume: React.FC = () => {
                     </div>
 
                     <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
-                        <div className="h-full hide-scrollbar overflow-y-scroll overflow-x-hidden bg-slate-200 border border-slate-200 flex justify-center">
+                        <div className="h-full pt-4 hide-scrollbar overflow-y-scroll overflow-x-hidden bg-slate-200 border border-slate-200 flex justify-center">
                             {renderPreviewContainer(
                                 resumeData,
                                 customizationOptions,
