@@ -36,8 +36,6 @@ interface ResumeStore {
     removeWorkExperience: (id: string) => void;
     removeEducation: (id: string) => void;
     removeProject: (id: string) => void;
-    addSkill: (skill: string) => void;
-    removeSkill: (skill: string) => void;
 
     // Enhanced resume data
     enhancedResumeData: EnhancedResumeData | null;
@@ -77,6 +75,12 @@ interface ResumeStore {
     setLastSavedTime: (time: Date | null) => void;
 
     resetStore: () => void;
+
+    addSkillCategory: (name: string) => void;
+    removeSkillCategory: (id: string) => void;
+    addSkillToCategory: (categoryId: string, skill: string) => void;
+    removeSkillFromCategory: (categoryId: string, skill: string) => void;
+    updateSkillCategoryName: (id: string, name: string) => void;
 }
 
 export const useResumeStore = create<ResumeStore>((set, get) => ({
@@ -96,7 +100,17 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
     // Initial resume data
     resumeData: initialResumeData,
-    setResumeData: (data) => set({ resumeData: data }),
+    setResumeData: (data) => {
+        // Prevent setting default "Alex Johnson" data if we have enhanced data
+        const currentState = get();
+        if (data?.personalInfo?.name === 'Alex Johnson' &&
+            data?.personalInfo?.email === 'alex.johnson@example.com' &&
+            currentState.enhancedResumeData) {
+            console.log('Preventing resume data reset to default values - enhanced data exists');
+            return;
+        }
+        set({ resumeData: data });
+    },
 
     updatePersonalInfo: (field, value) => set((state) => ({
         resumeData: {
@@ -221,34 +235,6 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         },
     })),
 
-    addSkill: (skill) => set((state) => {
-        // Extract the first word only
-        const firstWord = skill.trim().split(/\s+/)[0];
-
-        // Enforce max 16 skills limit
-        if (state.resumeData.skills.length >= 16) {
-            return state;
-        }
-
-        // Only add if it's not empty and not already in the skills list
-        if (firstWord && !state.resumeData.skills.includes(firstWord)) {
-            return {
-                resumeData: {
-                    ...state.resumeData,
-                    skills: [...state.resumeData.skills, firstWord],
-                }
-            };
-        }
-        return state;
-    }),
-
-    removeSkill: (skill) => set((state) => ({
-        resumeData: {
-            ...state.resumeData,
-            skills: state.resumeData.skills.filter((s) => s !== skill),
-        },
-    })),
-
     // Enhanced resume data
     enhancedResumeData: null,
     setEnhancedResumeData: (data) => set({ enhancedResumeData: data }),
@@ -328,7 +314,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 },
                 workExperience: resumeData.workExperience,
                 education: resumeData.education,
-                skills: resumeData.skills,
+                skills: resumeData.skills.flatMap(category => category.skills),
                 projects: resumeData.projects
             };
 
@@ -365,7 +351,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 },
                 workExperience: resumeData.workExperience,
                 education: resumeData.education,
-                skills: resumeData.skills,
+                skills: resumeData.skills.flatMap(category => category.skills),
                 projects: resumeData.projects
             };
 
@@ -390,7 +376,14 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     resetStore: () => set({
         documents: [],
         selectedDocument: null,
-        resumeData: initialResumeData,
+        resumeData: {
+            ...initialResumeData,
+            skills: (initialResumeData.skills as any[]).map((cat) => ({
+                id: cat.id,
+                name: cat.name,
+                skills: [...cat.skills]
+            }))
+        },
         enhancedResumeData: null,
         customizationOptions: defaultCustomizationOptions,
         isEnhancing: false,
@@ -409,4 +402,55 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         isAutoSaving: false,
         lastSavedTime: null
     }),
+
+    addSkillCategory: (name) => set((state) => {
+        const newId = (Date.now() + Math.random()).toString();
+        return {
+            resumeData: {
+                ...state.resumeData,
+                skills: [
+                    ...state.resumeData.skills,
+                    { id: newId, name, skills: [] }
+                ]
+            }
+        };
+    }),
+
+    removeSkillCategory: (id) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            skills: state.resumeData.skills.filter((cat) => cat.id !== id)
+        }
+    })),
+
+    addSkillToCategory: (categoryId, skill) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            skills: state.resumeData.skills.map((cat) =>
+                cat.id === categoryId && !cat.skills.includes(skill)
+                    ? { ...cat, skills: [...cat.skills, skill] }
+                    : cat
+            )
+        }
+    })),
+
+    removeSkillFromCategory: (categoryId, skill) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            skills: state.resumeData.skills.map((cat) =>
+                cat.id === categoryId
+                    ? { ...cat, skills: cat.skills.filter((s) => s !== skill) }
+                    : cat
+            )
+        }
+    })),
+
+    updateSkillCategoryName: (id, name) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            skills: state.resumeData.skills.map((cat) =>
+                cat.id === id ? { ...cat, name } : cat
+            )
+        }
+    })),
 })); 

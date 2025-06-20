@@ -76,7 +76,7 @@ const PersonalInfoSection = ({
                         if (onCustomizationChange && customizationOptions) {
                             onCustomizationChange({
                                 ...customizationOptions,
-                                showSummary: e.target.checked
+                                showSummary: (e.target as HTMLInputElement).checked
                             });
                         }
                     }}
@@ -115,7 +115,7 @@ const PersonalInfoSection = ({
                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">Full Name</label>
                     <input
                         type="text"
-                        className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                        className="w-full p-2.5 border border-slate-300  bg-white"
                         value={resumeData.personalInfo.name}
                         onChange={(e) => onPersonalInfoChange('name', e.currentTarget.value)}
                         placeholder="John Doe"
@@ -125,7 +125,7 @@ const PersonalInfoSection = ({
                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">Position</label>
                     <input
                         type="text"
-                        className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                        className="w-full p-2.5 border border-slate-300  bg-white"
                         value={resumeData.personalInfo.position}
                         onChange={(e) => onPersonalInfoChange('position', e.currentTarget.value)}
                         placeholder="Senior Software Engineer"
@@ -137,7 +137,7 @@ const PersonalInfoSection = ({
                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">Email</label>
                     <input
                         type="email"
-                        className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                        className="w-full p-2.5 border border-slate-300  bg-white"
                         value={resumeData.personalInfo.email}
                         onChange={(e) => onPersonalInfoChange('email', e.currentTarget.value)}
                         placeholder="john.doe@example.com"
@@ -147,7 +147,7 @@ const PersonalInfoSection = ({
                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">Phone</label>
                     <input
                         type="tel"
-                        className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                        className="w-full p-2.5 border border-slate-300  bg-white"
                         value={resumeData.personalInfo.phone}
                         onChange={(e) => onPersonalInfoChange('phone', e.currentTarget.value)}
                         placeholder="(123) 456-7890"
@@ -158,7 +158,7 @@ const PersonalInfoSection = ({
                 <label className="block text-sm font-medium text-indigo-700 mb-1.5">Location</label>
                 <input
                     type="text"
-                    className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                    className="w-full p-2.5 border border-slate-300  bg-white"
                     value={resumeData.personalInfo.location}
                     onChange={(e) => onPersonalInfoChange('location', e.currentTarget.value)}
                     placeholder="Country (e.g., United States)"
@@ -188,7 +188,7 @@ const PersonalInfoSection = ({
                         {resumeData.personalInfo.socialLinks.map((link, index) => (
                             <div key={index} className="flex items-center space-x-2">
                                 <select
-                                    className={`p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white${socialLinkErrors[index]?.label && link.platform === 'other' ? ' border-red-500' : ''}`}
+                                    className={`p-2.5 border  bg-white${socialLinkErrors[index]?.label && link.platform === 'other' ? ' border-red-500' : ''}`}
                                     value={link.platform}
                                     onChange={(e) => {
                                         const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
@@ -207,7 +207,7 @@ const PersonalInfoSection = ({
                                 </select>
                                 <input
                                     type="url"
-                                    className={`flex-1 p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white${socialLinkErrors[index]?.url && socialLinkTouched[index]?.url ? ' border-red-500' : ''}`}
+                                    className={`flex-1 p-2.5 border  bg-white${socialLinkErrors[index]?.url && socialLinkTouched[index]?.url ? ' border-red-500' : ''}`}
                                     value={link.url}
                                     onChange={(e) => {
                                         const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
@@ -226,7 +226,7 @@ const PersonalInfoSection = ({
                                 {link.platform === 'other' && (
                                     <input
                                         type="text"
-                                        className={`w-24 p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white${socialLinkErrors[index]?.label && socialLinkTouched[index]?.label ? ' border-red-500' : ''}`}
+                                        className={`w-24 p-2.5 border  bg-white${socialLinkErrors[index]?.label && socialLinkTouched[index]?.label ? ' border-red-500' : ''}`}
                                         value={link.label || ''}
                                         onChange={(e) => {
                                             const newLinks = [...(resumeData.personalInfo.socialLinks || [])];

@@ -16,7 +16,6 @@ const CreateResume: React.FC = () => {
     const navigate = useNavigate();
     const {
         resumeData,
-        skillInput,
         activeSection,
         expandedSections,
         customizationOptions,
@@ -152,7 +151,21 @@ const CreateResume: React.FC = () => {
                 },
                 workExperience: enhancedResumeData.workExperience,
                 education: enhancedResumeData.education,
-                skills: enhancedResumeData.skills,
+                skills: (() => {
+                    if (!enhancedResumeData.skills || enhancedResumeData.skills.length === 0) {
+                        return [];
+                    }
+
+                    // Check if skills is already in the new categorized format
+                    const firstSkill = enhancedResumeData.skills[0];
+                    if (firstSkill !== null && firstSkill !== undefined && typeof firstSkill === 'object' && 'skills' in (firstSkill as object) && Array.isArray((firstSkill as any).skills)) {
+                        // Already in categorized format, use as is
+                        return enhancedResumeData.skills as unknown as { id: string; name: string; skills: string[] }[];
+                    } else {
+                        // Convert from flat list to categorized format
+                        return [{ id: '1', name: 'Technical Skills', skills: enhancedResumeData.skills as unknown as string[] }];
+                    }
+                })(),
                 projects: enhancedResumeData.projects,
             };
 
@@ -198,10 +211,9 @@ const CreateResume: React.FC = () => {
             expandedSections,
             {
                 ...handlers,
-                skillInput
             }
         ),
-        [resumeData, activeSection, expandedSections, handlers, skillInput]
+        [resumeData, activeSection, expandedSections, handlers]
     );
 
     const handleExportPDF = () => {

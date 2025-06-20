@@ -26,11 +26,12 @@ export const getEditorProps = (
         onWorkExperienceChange: handlers.handleWorkExperienceChange,
         onEducationChange: handlers.handleEducationChange,
         onProjectChange: handlers.handleProjectChange,
-        onSkillChange: {
-            addSkill: handlers.addSkill,
-            removeSkill: handlers.removeSkill,
-            setSkillInput: handlers.setSkillInput,
-            skillInput: handlers.skillInput,
+        onSkillCategoryChange: {
+            addCategory: handlers.addSkillCategory,
+            removeCategory: handlers.removeSkillCategory,
+            addSkill: handlers.addSkillToCategory,
+            removeSkill: handlers.removeSkillFromCategory,
+            renameCategory: handlers.updateSkillCategoryName,
         },
         onSectionToggle: handlers.toggleSection,
         onSectionEdit: handlers.editSection,
@@ -44,7 +45,6 @@ export const getEditorProps = (
             removeEducation: handlers.removeEducation,
             removeProject: handlers.removeProject,
         },
-        onSkillInputKeyDown: handlers.handleSkillInputKeyDown,
     };
 };
 
