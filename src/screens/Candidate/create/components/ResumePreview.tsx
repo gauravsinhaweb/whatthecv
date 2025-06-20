@@ -246,7 +246,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
     return (
         <div
-            className="bg-white rounded mx-auto border overflow-hidden shadow-lg transition-all w-full print:shadow-none print:border-0 printable-content"
+            className="bg-white mx-auto border overflow-hidden shadow-lg transition-all w-full print:shadow-none print:border-0 printable-content"
             data-id="resume-root"
             style={{
                 maxHeight: fullScreen ? '297mm' : '100%',
