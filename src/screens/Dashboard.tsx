@@ -483,7 +483,12 @@ const Dashboard = () => {
             <DeleteConfirmModal
                 isOpen={deleteConfirmModal.isOpen}
                 onClose={() => setDeleteConfirmModal({ isOpen: false, resumeId: null })}
-                onConfirm={() => deleteConfirmModal.resumeId && handleDeleteResume(deleteConfirmModal.resumeId)}
+                onConfirm={async () => {
+                    if (deleteConfirmModal.resumeId) {
+                        await handleDeleteResume(deleteConfirmModal.resumeId);
+                        setDeleteConfirmModal({ isOpen: false, resumeId: null });
+                    }
+                }}
             />
 
             {/* Buy Tokens Modal */}

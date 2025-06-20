@@ -8,7 +8,7 @@
                             http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
   <url>
     <loc>https://www.whatthecv.com/</loc>
-    <lastmod>2024-03-20</lastmod>
+    <lastmod>2025-03-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -24,7 +24,7 @@
   </url>
   <url>
     <loc>https://www.whatthecv.com/create</loc>
-    <lastmod>2024-03-20</lastmod>
+    <lastmod>2025-03-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <image:image>
@@ -33,51 +33,93 @@
     </image:image>
   </url>
   <url>
+    <loc>https://www.whatthecv.com/compare</loc>
+    <lastmod>2025-03-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.whatthecv.com/examples</loc>
+    <lastmod>2025-03-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://www.whatthecv.com/analyze</loc>
-    <lastmod>2024-03-20</lastmod>
+    <lastmod>2025-03-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.whatthecv.com/templates</loc>
-    <lastmod>2024-03-20</lastmod>
+    <lastmod>2025-03-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.whatthecv.com/templates/tech-resume</loc>
+    <lastmod>2025-03-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.whatthecv.com/examples/technology/software-engineer</loc>
+    <lastmod>2025-03-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.whatthecv.com/blog/how-to-create-ats-friendly-resume</loc>
+    <lastmod>2025-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.whatthecv.com/blog/best-resume-format-2025</loc>
+    <lastmod>2025-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.whatthecv.com/faq</loc>
+    <lastmod>2025-03-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.whatthecv.com/pricing</loc>
-    <lastmod>2024-03-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.whatthecv.com/about</loc>
-    <lastmod>2024-03-20</lastmod>
+    <lastmod>2025-03-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.whatthecv.com/privacy</loc>
-    <lastmod>2024-03-20</lastmod>
+    <loc>https://www.whatthecv.com/about</loc>
+    <lastmod>2025-03-21</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.whatthecv.com/terms</loc>
-    <lastmod>2024-03-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.whatthecv.com/blog</loc>
-    <lastmod>2024-03-20</lastmod>
+    <lastmod>2025-03-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.whatthecv.com/contact</loc>
-    <lastmod>2024-03-20</lastmod>
+    <lastmod>2025-03-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.whatthecv.com/privacy</loc>
+    <lastmod>2025-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.whatthecv.com/terms</loc>
+    <lastmod>2025-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
 </urlset> 

@@ -1,5 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
-import { removeToken, setToken, setUserProfile, removeUserProfile } from '../utils/storage';
+import { createClient } from '@supabase/supabase-js';
+import { getCookie, removeCookie, setCookie } from '../utils/cookies';
+import { removeToken, removeUserProfile, setToken, setUserProfile } from '../utils/storage';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -8,31 +9,25 @@ if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing Supabase environment variables')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storageKey: 'whatthecv-auth-token',
         storage: {
             getItem: (key) => {
-                const value = localStorage.getItem(key);
-                return value ? JSON.parse(value) : null;
+                return getCookie(key);
             },
             setItem: (key, value) => {
-                localStorage.setItem(key, JSON.stringify(value));
-                const parsedValue = typeof value === 'string' ? JSON.parse(value) : value;
-                if (parsedValue?.session?.access_token) {
-                    setToken(parsedValue.session.access_token);
-                }
+                setCookie(key, value);
             },
             removeItem: (key) => {
-                localStorage.removeItem(key);
-                removeToken();
-            }
-        }
-    }
-})
+                removeCookie(key);
+            },
+        },
+        persistSession: true,
+        autoRefreshToken: true,
+    },
+});
+
+export default supabase;
 
 // Set up auth state change listener
 supabase.auth.onAuthStateChange((event, session) => {

@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
-import { createPaymentOrder, verifyPayment, getTokenBalance, getTokenTransactions } from '../utils/api'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
+import { createPaymentOrder, getTokenBalance, getTokenTransactions, verifyPayment } from '../utils/api'
+import { COOKIE_KEYS, getCookie } from '../utils/cookies'
 
 interface TokenTransaction {
     id: string
@@ -44,7 +45,6 @@ export const useTokens = (): UseTokensReturn => {
             setIsBalanceLoading(true)
             setError(null)
             const balance = await getTokenBalance()
-            console.log('Token balance response:', balance)
             setTokenBalance(balance.available_token)
         } catch (e) {
             setError('-')
@@ -65,51 +65,44 @@ export const useTokens = (): UseTokensReturn => {
             return
         }
 
-        setBuyLoading(true)
         setError(null)
         try {
+            setBuyLoading(true)
             const { order } = await createPaymentOrder(buyAmount)
 
             // Load Razorpay SDK
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: order.amount,
+                currency: order.currency,
+                order_id: order.id,
+                name: "WhatTheCV",
+                description: "Token Purchase",
+                handler: async function (response: any) {
+                    try {
+                        await verifyPayment({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+                        await refreshBalance()
+                        setBuyModalOpen(false)
+                        toast.success('Payment successful! Tokens added to your account.')
+                    } catch (error) {
+                        console.error('Payment verification failed:', error)
+                        toast.error('Payment verification failed. Please contact support.')
+                    }
+                },
+                prefill: {
+                    email: getCookie(COOKIE_KEYS.USER_EMAIL) || '',
+                },
+                theme: { color: '#fbbf24' }
+            }
+
             const script = document.createElement('script')
             script.src = 'https://checkout.razorpay.com/v1/checkout.js'
             script.async = true
             script.onload = () => {
-                const options = {
-                    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                    amount: order.amount,
-                    currency: order.currency,
-                    order_id: order.id,
-                    name: "WhatTheCV",
-                    description: "Token Purchase",
-                    image: "https://pbs.twimg.com/profile_images/1932405175387598849/nF4oOesm_400x400.jpg",
-                    handler: async function (response: any) {
-                        console.log('Razorpay handler called', response)
-                        try {
-                            console.log('Calling verifyPayment with:', {
-                                payment_id: response.razorpay_payment_id,
-                                order_id: response.razorpay_order_id,
-                                signature: response.razorpay_signature
-                            })
-                            await verifyPayment(
-                                response.razorpay_payment_id,
-                                response.razorpay_order_id,
-                                response.razorpay_signature
-                            )
-                            toast.success('Tokens credited successfully!')
-                            setBuyModalOpen(false)
-                            // Refresh balance
-                            await refreshBalance()
-                        } catch (e) {
-                            console.error('Payment verification error:', e)
-                        }
-                    },
-                    prefill: {
-                        email: localStorage.getItem('user_email') || '',
-                    },
-                    theme: { color: '#fbbf24' }
-                }
-                console.log('Opening Razorpay modal')
                 const rzp = new window.Razorpay(options)
                 rzp.open()
             }

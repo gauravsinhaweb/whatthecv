@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { supabase } from '../lib/supabase';
+import supabase from '../lib/supabase';
 import { getToken, setToken } from './storage';
 import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult, ResumeResponse } from './types.ts';
 
@@ -350,15 +350,13 @@ export const createPaymentOrder = async (amount: number) => {
     }
 };
 
-export const verifyPayment = async (payment_id: string, order_id: string, signature: string) => {
-    console.log('verifyPayment called with:', { payment_id, order_id, signature })
+export const verifyPayment = async ({ razorpay_payment_id, razorpay_order_id, razorpay_signature }: { razorpay_payment_id: string, razorpay_order_id: string, razorpay_signature: string }) => {
     try {
         const res = await api.post('/token/verify-payment', {
-            payment_id,
-            order_id,
-            signature
+            payment_id: razorpay_payment_id,
+            order_id: razorpay_order_id,
+            signature: razorpay_signature
         })
-        console.log('verifyPayment response:', res.data)
         return res.data
     } catch (error) {
         console.error('verifyPayment error:', error)
@@ -414,6 +412,139 @@ export const spendTokens = async (action_id: string, token: number) => {
             }
         }
         throw new Error('Failed to spend tokens. Please try again.');
+    }
+};
+
+export const reserveTokens = async (action_id: string, token_amount: number) => {
+    try {
+        const res = await api.post('/token/reserve', null, {
+            params: { action_id, token_amount }
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error reserving tokens:', error);
+        throw new Error('Failed to reserve tokens. Please try again.');
+    }
+};
+
+export const confirmTokenUsage = async (reservation_id: string) => {
+    try {
+        const res = await api.post('/token/confirm', {}, {
+            params: { reservation_id }
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            const message = error.response?.data?.detail || 'Failed to confirm token usage';
+            throw new Error(message);
+        }
+        throw new Error('Failed to confirm token usage. Please try again.');
+    }
+};
+
+export const releaseTokens = async (reservation_id: string) => {
+    try {
+        const res = await api.post('/token/release', null, {
+            params: { reservation_id }
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error releasing tokens:', error);
+        throw new Error('Failed to release tokens. Please try again.');
+    }
+};
+
+export const getTokenActions = async () => {
+    try {
+        const res = await api.get('/token/actions');
+        return res.data;
+    } catch (error) {
+        console.error('Error fetching token actions:', error);
+        throw new Error('Failed to fetch token actions. Please try again.');
+    }
+};
+
+export const updateTokenAmount = async (action_id: string, amount: number) => {
+    try {
+        const res = await api.put(`/token/actions/${action_id}/amount`, null, {
+            params: { amount }
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error updating token amount:', error);
+        throw new Error('Failed to update token amount. Please try again.');
+    }
+};
+
+export const createTokenAction = async (action_id: string, amount: number, name: string, description: string, category: string, locked: boolean = true) => {
+    try {
+        const res = await api.post('/token/actions', null, {
+            params: { action_id, amount, name, description, category, locked }
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error creating token action:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+                throw new Error(error.response.data.detail || 'Invalid token action data.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+        }
+        throw new Error('Failed to create token action. Please try again.');
+    }
+};
+
+export const deleteTokenAction = async (action_id: string) => {
+    try {
+        const res = await api.delete(`/token/actions/${action_id}`);
+        return res.data;
+    } catch (error) {
+        console.error('Error deleting token action:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+                throw new Error(error.response.data.detail || 'Cannot delete this token action.');
+            }
+            if (error.response?.status === 404) {
+                throw new Error('Token action not found.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+        }
+        throw new Error('Failed to delete token action. Please try again.');
+    }
+};
+
+export const toggleActionLock = async (action_id: string) => {
+    try {
+        const res = await api.post(`/token/actions/${action_id}/toggle-lock`);
+        return res.data;
+    } catch (error) {
+        console.error('Error toggling action lock:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+                throw new Error(error.response.data.detail || 'Cannot toggle lock for this action.');
+            }
+            if (error.response?.status === 404) {
+                throw new Error('Token action not found.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+        }
+        throw new Error('Failed to toggle action lock. Please try again.');
+    }
+};
+
+export const getActionLockStatus = async (action_id: string) => {
+    try {
+        const res = await api.get(`/token/actions/${action_id}/lock-status`);
+        return res.data;
+    } catch (error) {
+        console.error('Error getting action lock status:', error);
+        throw new Error('Failed to get action lock status. Please try again.');
     }
 };
 
