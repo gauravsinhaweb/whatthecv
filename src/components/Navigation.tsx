@@ -26,7 +26,7 @@ const Navigation: React.FC = () => {
   const currentPage = getPageFromPath(location.pathname);
   const isCreateResumePage = location.pathname === '/create-resume';
   const { user, isAuthenticated, setUser, setIsAuthenticated, setLoginError } = useUserStore();
-  const { resetStore, resumeData, isSavingDraft, saveAsDraft, selectedDocument, lastSavedDraftId, isAutoSaving, lastSavedTime } = useResumeStore();
+  const { resetStore, resumeData, isSavingDraft, saveAsDraft, selectedDocument, lastSavedDraftId, isAutoSaving, lastSavedTime, customizationOptions } = useResumeStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -102,7 +102,7 @@ const Navigation: React.FC = () => {
   const handleConfirmExport = () => {
     setIsExportModalOpen(false);
     if (resumeData) {
-      exportResumeToPDF(resumeData);
+      exportResumeToPDF(resumeData, customizationOptions);
     }
   };
 
