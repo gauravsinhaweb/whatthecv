@@ -410,12 +410,6 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                                 </div>
                                 <p className="text-xs text-slate-500 mt-1">Improving content quality and formatting</p>
 
-                                {stage === 'enhancing' && (
-                                    <div className="mt-2 text-xs text-blue-600 bg-blue-50 p-2 rounded-md flex items-center">
-                                        <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
-                                        {getDetailMessage()}
-                                    </div>
-                                )}
                             </div>
                         </div>
 

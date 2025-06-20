@@ -28,11 +28,12 @@ interface ResumeEditorProps {
     onWorkExperienceChange: (id: string, field: string, value: string | boolean) => void;
     onEducationChange: (id: string, field: string, value: string) => void;
     onProjectChange: (id: string, field: string, value: string) => void;
-    onSkillChange: {
-        addSkill: () => void;
-        removeSkill: (skill: string) => void;
-        setSkillInput: (value: string) => void;
-        skillInput: string;
+    onSkillCategoryChange: {
+        addCategory: (name: string) => void;
+        removeCategory: (id: string) => void;
+        addSkill: (categoryId: string, skill: string) => void;
+        removeSkill: (categoryId: string, skill: string) => void;
+        renameCategory: (id: string, name: string) => void;
     };
     onSectionToggle: (section: string) => void;
     onSectionEdit: (section: string) => void;
@@ -46,7 +47,6 @@ interface ResumeEditorProps {
         removeEducation: (id: string) => void;
         removeProject: (id: string) => void;
     };
-    onSkillInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     customizationOptions?: ResumeCustomizationOptions;
     onCustomizationChange?: (options: ResumeCustomizationOptions) => void;
 }
@@ -59,12 +59,11 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     onWorkExperienceChange,
     onEducationChange,
     onProjectChange,
-    onSkillChange,
+    onSkillCategoryChange,
     onSectionToggle,
     onSectionEdit,
     onAdd,
     onRemove,
-    onSkillInputKeyDown,
     customizationOptions,
     onCustomizationChange,
 }) => {
@@ -293,8 +292,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                         <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
                             <SkillsSection
                                 resumeData={resumeData}
-                                onSkillChange={onSkillChange}
-                                onSkillInputKeyDown={onSkillInputKeyDown}
+                                onSkillCategoryChange={onSkillCategoryChange}
                             />
                         </div>
                     )}

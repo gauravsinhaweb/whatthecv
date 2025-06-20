@@ -23,7 +23,7 @@ const EducationSection = ({ resumeData, onEducationChange, onRemove, onAdd }) =>
                             <label className="block text-sm font-medium text-emerald-700 mb-1.5">Degree</label>
                             <input
                                 type="text"
-                                className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
+                                className="w-full p-2.5 border border-slate-300 rounded-md  transition-all bg-white"
                                 value={edu.degree}
                                 onChange={(e) => onEducationChange(edu.id, 'degree', e.currentTarget.value)}
                                 placeholder="Bachelor of Science in Computer Science"
@@ -33,7 +33,7 @@ const EducationSection = ({ resumeData, onEducationChange, onRemove, onAdd }) =>
                             <label className="block text-sm font-medium text-emerald-700 mb-1.5">Institution</label>
                             <input
                                 type="text"
-                                className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
+                                className="w-full p-2.5 border border-slate-300 rounded-md  transition-all bg-white"
                                 value={edu.institution}
                                 onChange={(e) => onEducationChange(edu.id, 'institution', e.currentTarget.value)}
                                 placeholder="Stanford University"
@@ -44,7 +44,7 @@ const EducationSection = ({ resumeData, onEducationChange, onRemove, onAdd }) =>
                         <label className="block text-sm font-medium text-emerald-700 mb-1.5">Education Link (optional)</label>
                         <input
                             type="url"
-                            className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
+                            className="w-full p-2.5 border border-slate-300 rounded-md  transition-all bg-white"
                             value={edu.institutionLink || edu.degreeLink || ''}
                             onChange={(e) => {
                                 onEducationChange(edu.id, 'institutionLink', e.currentTarget.value);
@@ -57,7 +57,7 @@ const EducationSection = ({ resumeData, onEducationChange, onRemove, onAdd }) =>
                         <label className="block text-sm font-medium text-emerald-700 mb-1.5">Location</label>
                         <input
                             type="text"
-                            className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
+                            className="w-full p-2.5 border border-slate-300 rounded-md  transition-all bg-white"
                             value={edu.location}
                             onChange={(e) => onEducationChange(edu.id, 'location', e.currentTarget.value)}
                             placeholder="Country (e.g., United States)"

@@ -23,7 +23,7 @@ const ProjectsSection = ({ resumeData, onProjectChange, onRemove, onAdd }) => (
                         <label className="block text-sm font-medium text-purple-700 mb-1.5">Project Name</label>
                         <input
                             type="text"
-                            className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white"
+                            className="w-full p-2.5 border border-slate-300 rounded-md  bg-white"
                             value={project.name}
                             onChange={(e) => onProjectChange(project.id, 'name', e.currentTarget.value)}
                             placeholder="E-commerce Website"
@@ -45,7 +45,7 @@ const ProjectsSection = ({ resumeData, onProjectChange, onRemove, onAdd }) => (
                         <label className="block text-sm font-medium text-purple-700 mb-1.5">Technologies Used</label>
                         <input
                             type="text"
-                            className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white"
+                            className="w-full p-2.5 border border-slate-300 rounded-md  bg-white"
                             value={project.technologies}
                             onChange={(e) => onProjectChange(project.id, 'technologies', e.currentTarget.value)}
                             placeholder="React, Node.js, MongoDB"
@@ -74,7 +74,7 @@ const ProjectsSection = ({ resumeData, onProjectChange, onRemove, onAdd }) => (
                         <label className="block text-sm font-medium text-purple-700 mb-1.5">Project Link</label>
                         <input
                             type="url"
-                            className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white"
+                            className="w-full p-2.5 border border-slate-300 rounded-md  bg-white"
                             value={project.link}
                             onChange={(e) => onProjectChange(project.id, 'link', e.currentTarget.value)}
                             placeholder="https://github.com/yourusername/project"

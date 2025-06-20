@@ -20,8 +20,11 @@ export const useResumeState = () => {
         removeWorkExperience,
         removeEducation,
         removeProject,
-        addSkill,
-        removeSkill,
+        addSkillCategory,
+        removeSkillCategory,
+        addSkillToCategory,
+        removeSkillFromCategory,
+        updateSkillCategoryName,
 
         // UI state
         activeSection,
@@ -51,7 +54,6 @@ export const useResumeState = () => {
     } = useResumeStore();
 
     // Local state for skill input (keep this in component level as it's purely UI input state)
-    const [skillInput, setSkillInput] = useState('');
     const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Auto-save functionality
@@ -98,14 +100,6 @@ export const useResumeState = () => {
         };
     }, [resumeData, triggerAutoSave, selectedDocument, lastSavedDraftId]);
 
-    const handleSkillInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addSkill(skillInput);
-            setSkillInput('');
-        }
-    }, [addSkill, skillInput]);
-
     const handlePersonalInfoChange = useCallback((field: string, value: string) => {
         // Handle socialLinks as a special case since it comes as a JSON string
         if (field === 'socialLinks') {
@@ -144,13 +138,6 @@ export const useResumeState = () => {
         updateProject(id, field, value);
     }, [updateProject]);
 
-    const handleAddSkill = useCallback(() => {
-        if (skillInput.trim()) {
-            addSkill(skillInput);
-            setSkillInput('');
-        }
-    }, [skillInput, addSkill]);
-
     const saveResume = useCallback(() => {
         // Format all descriptions before saving
         const formattedData = formatAllDescriptions(resumeData);
@@ -179,7 +166,7 @@ export const useResumeState = () => {
             },
             workExperience: formattedData.workExperience,
             education: formattedData.education,
-            skills: formattedData.skills,
+            skills: formattedData.skills.flatMap(category => category.skills), // Convert SkillCategory[] to string[]
             projects: formattedData.projects
         };
 
@@ -195,7 +182,6 @@ export const useResumeState = () => {
 
     return {
         resumeData,
-        skillInput,
         activeSection,
         expandedSections,
         customizationOptions,
@@ -204,7 +190,6 @@ export const useResumeState = () => {
         lastSavedTime,
         handlers: {
             setResumeData,
-            setSkillInput,
             setActiveSection,
             setExpandedSections,
             setCustomizationOptions: handleCustomizationChange,
@@ -221,9 +206,11 @@ export const useResumeState = () => {
             removeWorkExperience,
             removeEducation,
             removeProject,
-            addSkill: handleAddSkill,
-            removeSkill,
-            handleSkillInputKeyDown,
+            addSkillCategory,
+            removeSkillCategory,
+            addSkillToCategory,
+            removeSkillFromCategory,
+            updateSkillCategoryName,
             saveResume,
             saveResumeWithOptions,
             saveAsDraft: handleSaveAsDraft,

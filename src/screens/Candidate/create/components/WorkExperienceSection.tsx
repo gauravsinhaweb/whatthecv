@@ -24,7 +24,7 @@ const WorkExperienceSection = ({ resumeData, onWorkExperienceChange, onRemove, o
                             <label className="block text-sm font-medium text-indigo-700 mb-1.5">Job Title</label>
                             <input
                                 type="text"
-                                className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                className="w-full p-2.5 border border-slate-300  bg-white"
                                 value={exp.position}
                                 onChange={(e) => onWorkExperienceChange(exp.id, 'position', e.currentTarget.value)}
                                 placeholder="Software Engineer"
@@ -34,7 +34,7 @@ const WorkExperienceSection = ({ resumeData, onWorkExperienceChange, onRemove, o
                             <label className="block text-sm font-medium text-indigo-700 mb-1.5">Company</label>
                             <input
                                 type="text"
-                                className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                                className="w-full p-2.5 border border-slate-300  bg-white"
                                 value={exp.company}
                                 onChange={(e) => onWorkExperienceChange(exp.id, 'company', e.currentTarget.value)}
                                 placeholder="Company Name"
@@ -45,7 +45,7 @@ const WorkExperienceSection = ({ resumeData, onWorkExperienceChange, onRemove, o
                         <label className="block text-sm font-medium text-indigo-700 mb-1.5">Experience Link (optional)</label>
                         <input
                             type="url"
-                            className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                            className="w-full p-2.5 border border-slate-300  bg-white"
                             value={exp.experienceLink || ''}
                             onChange={(e) => onWorkExperienceChange(exp.id, 'experienceLink', e.currentTarget.value)}
                             placeholder="https://company-website.com or https://example.com/job-position"
@@ -55,7 +55,7 @@ const WorkExperienceSection = ({ resumeData, onWorkExperienceChange, onRemove, o
                         <label className="block text-sm font-medium text-indigo-700 mb-1.5">Location</label>
                         <input
                             type="text"
-                            className="w-full p-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                            className="w-full p-2.5 border border-slate-300  bg-white"
                             value={exp.location}
                             onChange={(e) => onWorkExperienceChange(exp.id, 'location', e.currentTarget.value)}
                             placeholder="Country (e.g., United States)"
