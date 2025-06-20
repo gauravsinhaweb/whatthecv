@@ -210,7 +210,7 @@ const CreateResume: React.FC = () => {
 
     const handleConfirmExport = () => {
         setIsExportModalOpen(false);
-        exportResumeToPDF(resumeData);
+        exportResumeToPDF(resumeData, customizationOptions);
     };
 
     const handleSaveDraft = async () => {
