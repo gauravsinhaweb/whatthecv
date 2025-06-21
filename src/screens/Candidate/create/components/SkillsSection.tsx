@@ -35,19 +35,21 @@ const SkillsSection = ({ resumeData, onSkillCategoryChange }) => {
                 <div className="space-y-6">
                     {resumeData.skills.length > 0 ? (
                         resumeData.skills.map((cat) => (
-                            <div key={cat.id} className="p-4 bg-amber-50/30 rounded-md border border-amber-100">
+                            <div key={cat.id} className="p-4 bg-amber-50/30 rounded-md border border-amber-100 relative">
+                                {resumeData.skills.length > 1 && (
+                                    <button
+                                        className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors text-sm"
+                                        onClick={() => onSkillCategoryChange.removeCategory(cat.id)}
+                                    >
+                                        Remove
+                                    </button>
+                                )}
                                 <div className="flex items-center mb-2">
                                     <input
                                         className="font-semibold text-amber-800 text-base bg-transparent border-b border-dashed border-amber-400 focus:outline-none mr-2"
                                         value={cat.name}
                                         onChange={e => onSkillCategoryChange.renameCategory(cat.id, (e.target as HTMLInputElement).value)}
                                     />
-                                    <button
-                                        className="ml-2 text-amber-600 hover:text-amber-800 transition-colors"
-                                        onClick={() => onSkillCategoryChange.removeCategory(cat.id)}
-                                    >
-                                        &times;
-                                    </button>
                                 </div>
                                 <div className="flex flex-wrap gap-2 mb-2">
                                     {cat.skills.map(skill => (

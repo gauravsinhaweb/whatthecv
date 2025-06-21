@@ -17,6 +17,9 @@ export interface ResumeData {
     education: Education[];
     skills: SkillCategory[];
     projects: Project[];
+    achievements: Achievement[];
+    publications: Publication[];
+    certifications: Certification[];
 }
 
 export interface WorkExperience {
@@ -24,9 +27,13 @@ export interface WorkExperience {
     position: string;
     company: string;
     location: string;
-    startDate: string;
-    endDate: string;
+    startMonth: string;
+    startYear: string;
+    endMonth: string;
+    endYear: string;
     current: boolean;
+    showStartMonth: boolean;
+    showEndMonth: boolean;
     description: string;
     experienceLink?: string;
 }
@@ -36,8 +43,13 @@ export interface Education {
     degree: string;
     institution: string;
     location: string;
-    startDate: string;
-    endDate: string;
+    startMonth: string;
+    startYear: string;
+    endMonth: string;
+    endYear: string;
+    current: boolean;
+    showStartMonth: boolean;
+    showEndMonth: boolean;
     description: string;
     degreeLink?: string;
     institutionLink?: string;
@@ -49,14 +61,73 @@ export interface Project {
     description: string;
     technologies: string;
     link: string;
-    startDate?: string;
-    endDate?: string;
+    startMonth?: string;
+    startYear?: string;
+    endMonth?: string;
+    endYear?: string;
+    current?: boolean;
+    showStartMonth?: boolean;
+    showEndMonth?: boolean;
 }
 
 export interface SkillCategory {
     id: string;
     name: string;
     skills: string[];
+}
+
+export interface Achievement {
+    id: string;
+    title: string;
+    description: string;
+    month: string;
+    year: string;
+    current?: boolean;
+    showMonth?: boolean;
+    organization?: string;
+    link?: string;
+    showOrganization?: boolean;
+    showDescription?: boolean;
+    showLink?: boolean;
+}
+
+export interface Publication {
+    id: string;
+    title: string;
+    authors: string;
+    journal: string;
+    month: string;
+    year: string;
+    current?: boolean;
+    showMonth?: boolean;
+    doi?: string;
+    link?: string;
+    description?: string;
+    showAuthors?: boolean;
+    showJournal?: boolean;
+    showDoi?: boolean;
+    showLink?: boolean;
+    showDescription?: boolean;
+}
+
+export interface Certification {
+    id: string;
+    name: string;
+    issuer: string;
+    month: string;
+    year: string;
+    current?: boolean;
+    showMonth?: boolean;
+    expiryMonth?: string;
+    expiryYear?: string;
+    showExpiryMonth?: boolean;
+    credentialId?: string;
+    link?: string;
+    description?: string;
+    showIssuer?: boolean;
+    showCredentialId?: boolean;
+    showLink?: boolean;
+    showDescription?: boolean;
 }
 
 export interface ResumeCustomizationOptions {
@@ -128,26 +199,32 @@ export interface ResumeCustomizationOptions {
 export const defaultCustomizationOptions: ResumeCustomizationOptions = {
     layout: {
         templates: 'classic',
-        sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects'],
+        sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
         sectionTitles: {
             personalInfo: 'Personal Info',
             workExperience: 'Work Experience',
             education: 'Education',
             skills: 'Technical Skills',
-            projects: 'Projects'
+            projects: 'Projects',
+            achievements: 'Achievements',
+            publications: 'Publications',
+            certifications: 'Certifications'
         },
         visibleSections: {
             personalInfo: true,
             workExperience: true,
             education: true,
             skills: true,
-            projects: true
+            projects: true,
+            achievements: false,
+            publications: false,
+            certifications: false
         }
     },
     colors: {
         accent: '#000000',
         text: '#000000',
-        headings: '#000000',
+        headings: '#0074E3',
     },
     spacing: {
         fontSize: 10.5,
@@ -220,9 +297,13 @@ export const initialResumeData: ResumeData = {
             position: "Senior Software Engineer",
             company: "TechCorp Inc.",
             location: "San Francisco, CA",
-            startDate: "Jan 2020",
-            endDate: "Present",
+            startMonth: "Jan",
+            startYear: "2020",
+            endMonth: "Present",
+            endYear: "",
             current: true,
+            showStartMonth: true,
+            showEndMonth: false,
             description: "<p>StartUp Vision is a fast-paced mobile-first startup delivering innovative digital tools for small businesses and entrepreneurs.</p><ul><li>Built cross-platform features using <strong>React Native</strong> and Firebase, increasing user engagement by over <strong>20%</strong>.</li><li>Resolved 100+ bugs through rigorous testing and debugging, enhancing app stability and user experience.</li><li>Implemented A/B testing strategies that improved feature adoption rates by <strong>15%</strong>.</li></ul>",
             experienceLink: null
         },
@@ -231,9 +312,13 @@ export const initialResumeData: ResumeData = {
             position: "Software Engineer",
             company: "WebSolutions LLC",
             location: "Oakland, CA",
-            startDate: "Mar 2017",
-            endDate: "Dec 2019",
+            startMonth: "Mar",
+            startYear: "2017",
+            endMonth: "Dec",
+            endYear: "2019",
             current: false,
+            showStartMonth: true,
+            showEndMonth: true,
             description: "<p>A boutique development agency delivering responsive, high-performance web applications for mid-sized businesses.</p><ul><li>Developed scalable web apps using <strong>React</strong> and <strong>Node.js</strong> for over <strong>10 enterprise clients</strong>, ensuring responsive performance and clean architecture.</li><li>Optimized complex database queries, boosting overall app performance by <strong>35%</strong> and reducing server load.</li><li>Worked closely with designers to deliver <strong>accessible, WCAG-compliant interfaces</strong>, improving usability and client satisfaction.</li></ul>",
             experienceLink: null
         }
@@ -244,8 +329,13 @@ export const initialResumeData: ResumeData = {
             degree: 'Master of Science in Computer Science',
             institution: 'Stanford University',
             location: 'Stanford, CA',
-            startDate: 'Aug 2013',
-            endDate: 'May 2015',
+            startMonth: 'Aug',
+            startYear: '2013',
+            endMonth: 'May',
+            endYear: '2015',
+            current: true,
+            showStartMonth: true,
+            showEndMonth: true,
             description: 'Specialized in Human-Computer Interaction and Machine Learning. GPA: 3.85',
         },
         {
@@ -253,8 +343,13 @@ export const initialResumeData: ResumeData = {
             degree: 'Bachelor of Science in Computer Engineering',
             institution: 'University of California, Berkeley',
             location: 'Berkeley, CA',
-            startDate: 'Aug 2009',
-            endDate: 'May 2013',
+            startMonth: 'Aug',
+            startYear: '2009',
+            endMonth: 'May',
+            endYear: '2013',
+            current: true,
+            showStartMonth: true,
+            showEndMonth: true,
             description: 'Minor in Mathematics. Dean\'s List for 6 semesters. GPA: 3.7',
         },
     ],
@@ -292,6 +387,9 @@ export const initialResumeData: ResumeData = {
             description: 'Built a full-stack e-commerce platform with React frontend and Node.js backend. Implemented user authentication, payment processing, and inventory management.',
             technologies: 'React, Node.js, MongoDB, Stripe',
             link: 'https://github.com/example/ecommerce',
+            current: true,
+            showStartMonth: true,
+            showEndMonth: true,
         },
         {
             id: '2',
@@ -299,6 +397,59 @@ export const initialResumeData: ResumeData = {
             description: 'Developed a collaborative task management application with real-time updates and team collaboration features.',
             technologies: 'React, Socket.io, Express.js',
             link: 'https://github.com/example/taskapp',
+            current: true,
+            showStartMonth: true,
+            showEndMonth: true,
+        },
+    ],
+    achievements: [
+        {
+            id: '1',
+            title: 'Employee of the Month',
+            description: 'Awarded for outstanding performance and dedication.',
+            month: 'May',
+            year: '2022',
+            current: false,
+            showMonth: true,
+            organization: 'Innovate Corp',
+            link: '',
+        },
+    ],
+    publications: [
+        {
+            id: '1',
+            title: 'The Rise of AI in Modern Software',
+            authors: 'John Doe',
+            journal: 'Tech Journal Quarterly',
+            month: 'Sep',
+            year: '2021',
+            current: false,
+            showMonth: true,
+            doi: '10.1234/tps.5678',
+            link: 'https://example.com/publication1',
+            description: 'A deep dive into the integration of AI in software engineering.',
+            showAuthors: true,
+            showJournal: true,
+            showDoi: true,
+            showLink: true,
+            showDescription: true,
+        },
+    ],
+    certifications: [
+        {
+            id: '1',
+            name: 'Certified JavaScript Developer',
+            issuer: 'FreeCodeCamp',
+            month: 'Feb',
+            year: '2020',
+            current: false,
+            showMonth: true,
+            expiryMonth: 'Feb',
+            expiryYear: '2024',
+            showExpiryMonth: true,
+            credentialId: 'FCC-XYZ-123',
+            link: 'https://example.com/certification1',
+            description: 'Covers fundamental and advanced topics in JavaScript.',
         },
     ],
 };
@@ -308,20 +459,26 @@ export const templatePresets: Record<string, Partial<ResumeCustomizationOptions>
     classic: {
         layout: {
             templates: 'classic',
-            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects'],
+            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
             sectionTitles: {
                 personalInfo: 'Personal Info',
                 workExperience: 'Work Experience',
                 education: 'Education',
                 skills: 'Technical Skills',
-                projects: 'Projects'
+                projects: 'Projects',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
             },
             visibleSections: {
                 personalInfo: true,
                 workExperience: true,
                 education: true,
                 skills: true,
-                projects: true
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: false
             }
         },
         colors: {
@@ -358,20 +515,26 @@ export const templatePresets: Record<string, Partial<ResumeCustomizationOptions>
     modern: {
         layout: {
             templates: 'modern',
-            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects'],
+            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
             sectionTitles: {
                 personalInfo: 'About',
                 workExperience: 'Experience',
                 education: 'Education',
                 skills: 'Skills',
-                projects: 'Projects'
+                projects: 'Projects',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
             },
             visibleSections: {
                 personalInfo: true,
                 workExperience: true,
                 education: true,
                 skills: true,
-                projects: true
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: false
             }
         },
         colors: {
@@ -409,19 +572,25 @@ export const templatePresets: Record<string, Partial<ResumeCustomizationOptions>
     minimal: {
         layout: {
             templates: 'minimal',
-            sectionOrder: ['personalInfo', 'projects', 'education', 'skills'],
+            sectionOrder: ['personalInfo', 'projects', 'education', 'skills', 'achievements', 'publications', 'certifications'],
             sectionTitles: {
                 personalInfo: 'Contact',
                 projects: 'Projects',
                 education: 'Education',
-                skills: 'Skills'
+                skills: 'Skills',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
             },
             visibleSections: {
                 personalInfo: true,
                 workExperience: false,
                 education: true,
                 skills: true,
-                projects: true
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: true
             }
         },
         colors: {
@@ -458,20 +627,26 @@ export const templatePresets: Record<string, Partial<ResumeCustomizationOptions>
     professional: {
         layout: {
             templates: 'professional',
-            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects'],
+            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
             sectionTitles: {
                 personalInfo: 'Professional Summary',
                 workExperience: 'Professional Experience',
                 education: 'Education',
                 skills: 'Core Competencies',
-                projects: 'Key Projects'
+                projects: 'Key Projects',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
             },
             visibleSections: {
                 personalInfo: true,
                 workExperience: true,
                 education: true,
                 skills: true,
-                projects: true
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: false
             }
         },
         colors: {
@@ -508,20 +683,26 @@ export const templatePresets: Record<string, Partial<ResumeCustomizationOptions>
     creative: {
         layout: {
             templates: 'creative',
-            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects'],
+            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
             sectionTitles: {
                 personalInfo: 'About Me',
                 workExperience: 'Work History',
                 education: 'Academic Background',
                 skills: 'Expertise',
-                projects: 'Portfolio'
+                projects: 'Portfolio',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
             },
             visibleSections: {
                 personalInfo: true,
                 workExperience: true,
                 education: true,
                 skills: true,
-                projects: true
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: false
             }
         },
         colors: {

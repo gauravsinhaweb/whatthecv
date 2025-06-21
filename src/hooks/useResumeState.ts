@@ -14,12 +14,21 @@ export const useResumeState = () => {
         updateWorkExperience,
         updateEducation,
         updateProject,
+        updateAchievement,
+        updatePublication,
+        updateCertification,
         addWorkExperience,
         addEducation,
         addProject,
+        addAchievement,
+        addPublication,
+        addCertification,
         removeWorkExperience,
         removeEducation,
         removeProject,
+        removeAchievement,
+        removePublication,
+        removeCertification,
         addSkillCategory,
         removeSkillCategory,
         addSkillToCategory,
@@ -41,6 +50,10 @@ export const useResumeState = () => {
         // Customization
         customizationOptions,
         setCustomizationOptions,
+
+        // Field visibility
+        fieldVisibility,
+        toggleFieldVisibility,
 
         // Auto-save state
         isAutoSaving,
@@ -138,6 +151,30 @@ export const useResumeState = () => {
         updateProject(id, field, value);
     }, [updateProject]);
 
+    const handleAchievementChange = useCallback((id: string, field: string, value: string) => {
+        // Apply formatting to description fields
+        if (field === 'description') {
+            value = formatBulletPoints(value);
+        }
+        updateAchievement(id, field, value);
+    }, [updateAchievement]);
+
+    const handlePublicationChange = useCallback((id: string, field: string, value: string) => {
+        // Apply formatting to description fields
+        if (field === 'description') {
+            value = formatBulletPoints(value);
+        }
+        updatePublication(id, field, value);
+    }, [updatePublication]);
+
+    const handleCertificationChange = useCallback((id: string, field: string, value: string) => {
+        // Apply formatting to description fields
+        if (field === 'description') {
+            value = formatBulletPoints(value);
+        }
+        updateCertification(id, field, value);
+    }, [updateCertification]);
+
     const saveResume = useCallback(() => {
         // Format all descriptions before saving
         const formattedData = formatAllDescriptions(resumeData);
@@ -188,6 +225,7 @@ export const useResumeState = () => {
         previewScale,
         isAutoSaving,
         lastSavedTime,
+        fieldVisibility,
         handlers: {
             setResumeData,
             setActiveSection,
@@ -200,12 +238,21 @@ export const useResumeState = () => {
             handleWorkExperienceChange,
             handleEducationChange,
             handleProjectChange,
+            handleAchievementChange,
+            handlePublicationChange,
+            handleCertificationChange,
             addWorkExperience,
             addEducation,
             addProject,
+            addAchievement,
+            addPublication,
+            addCertification,
             removeWorkExperience,
             removeEducation,
             removeProject,
+            removeAchievement,
+            removePublication,
+            removeCertification,
             addSkillCategory,
             removeSkillCategory,
             addSkillToCategory,
@@ -216,6 +263,7 @@ export const useResumeState = () => {
             saveAsDraft: handleSaveAsDraft,
             toggleSection,
             editSection,
+            toggleFieldVisibility,
         }
     };
 }; 

@@ -1,13 +1,18 @@
-import { Award, BookOpen, Briefcase, Code, Plus, User } from 'lucide-react';
+import { Award, BookOpen, Briefcase, Code, Plus, User, Trophy, FileText, GraduationCap, Eye, EyeOff, Edit3 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '../../../../components/ui/Button';
+import { useResumeStore } from '../../../../store/resumeStore';
 import { ResumeCustomizationOptions, ResumeData } from '../../../../types/resume';
+import AchievementsSection from './AchievementsSection';
+import CertificationsSection from './CertificationsSection';
 import CustomSections from './CustomSections';
 import EducationSection from './EducationSection';
 import PersonalInfoSection from './PersonalInfoSection';
 import ProjectsSection from './ProjectsSection';
+import PublicationsSection from './PublicationsSection';
 import SkillsSection from './SkillsSection';
 import WorkExperienceSection from './WorkExperienceSection';
+import FieldVisibilityToggle from './FieldVisibilityToggle';
 
 const styles = `
 @keyframes fadeIn {
@@ -20,62 +25,121 @@ const styles = `
 }
 `;
 
-interface ResumeEditorProps {
-    resumeData: ResumeData;
-    activeSection: string;
-    expandedSections: Record<string, boolean>;
-    onPersonalInfoChange: (field: string, value: string) => void;
-    onWorkExperienceChange: (id: string, field: string, value: string | boolean) => void;
-    onEducationChange: (id: string, field: string, value: string) => void;
-    onProjectChange: (id: string, field: string, value: string) => void;
-    onSkillCategoryChange: {
-        addCategory: (name: string) => void;
-        removeCategory: (id: string) => void;
-        addSkill: (categoryId: string, skill: string) => void;
-        removeSkill: (categoryId: string, skill: string) => void;
-        renameCategory: (id: string, name: string) => void;
+interface SectionConfig {
+    id: string;
+    title: string;
+    icon: React.ComponentType<any>;
+    color: {
+        bg: string;
+        text: string;
+        icon: string;
     };
-    onSectionToggle: (section: string) => void;
-    onSectionEdit: (section: string) => void;
-    onAdd: {
-        addWorkExperience: () => void;
-        addEducation: () => void;
-        addProject: () => void;
-    };
-    onRemove: {
-        removeWorkExperience: (id: string) => void;
-        removeEducation: (id: string) => void;
-        removeProject: (id: string) => void;
-    };
-    customizationOptions?: ResumeCustomizationOptions;
-    onCustomizationChange?: (options: ResumeCustomizationOptions) => void;
+    component: React.ComponentType<any>;
 }
 
-const ResumeEditor: React.FC<ResumeEditorProps> = ({
-    resumeData,
-    activeSection,
-    expandedSections,
-    onPersonalInfoChange,
-    onWorkExperienceChange,
-    onEducationChange,
-    onProjectChange,
-    onSkillCategoryChange,
-    onSectionToggle,
-    onSectionEdit,
-    onAdd,
-    onRemove,
-    customizationOptions,
-    onCustomizationChange,
-}) => {
+const sectionConfigs: SectionConfig[] = [
+    {
+        id: 'personalInfo',
+        title: 'Personal Info',
+        icon: User,
+        color: { bg: 'from-blue-50 to-white', text: 'text-blue-800', icon: 'text-indigo-600' },
+        component: PersonalInfoSection
+    },
+    {
+        id: 'workExperience',
+        title: 'Work Experience',
+        icon: Briefcase,
+        color: { bg: 'from-indigo-50 to-white', text: 'text-indigo-900', icon: 'text-indigo-600' },
+        component: WorkExperienceSection
+    },
+    {
+        id: 'education',
+        title: 'Education',
+        icon: BookOpen,
+        color: { bg: 'from-emerald-50 to-white', text: 'text-emerald-900', icon: 'text-emerald-600' },
+        component: EducationSection
+    },
+    {
+        id: 'skills',
+        title: 'Skills',
+        icon: Code,
+        color: { bg: 'from-amber-50 to-white', text: 'text-amber-900', icon: 'text-amber-600' },
+        component: SkillsSection
+    },
+    {
+        id: 'projects',
+        title: 'Projects',
+        icon: Award,
+        color: { bg: 'from-purple-50 to-white', text: 'text-purple-900', icon: 'text-purple-600' },
+        component: ProjectsSection
+    },
+    {
+        id: 'achievements',
+        title: 'Achievements',
+        icon: Trophy,
+        color: { bg: 'from-emerald-50 to-white', text: 'text-emerald-900', icon: 'text-emerald-600' },
+        component: AchievementsSection
+    },
+    {
+        id: 'publications',
+        title: 'Publications',
+        icon: FileText,
+        color: { bg: 'from-blue-50 to-white', text: 'text-blue-900', icon: 'text-blue-600' },
+        component: PublicationsSection
+    },
+    {
+        id: 'certifications',
+        title: 'Certifications',
+        icon: GraduationCap,
+        color: { bg: 'from-purple-50 to-white', text: 'text-purple-900', icon: 'text-purple-600' },
+        component: CertificationsSection
+    }
+];
+
+const ResumeEditor: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showProfileUploader, setShowProfileUploader] = useState(false);
     const [socialLinkErrors, setSocialLinkErrors] = useState<{ url?: string; label?: string }[]>([]);
     const [socialLinkTouched, setSocialLinkTouched] = useState<{ url?: boolean; label?: boolean }[]>([]);
 
+    const {
+        resumeData,
+        activeSection,
+        expandedSections,
+        customizationOptions,
+        fieldVisibility,
+        toggleSection,
+        updatePersonalInfo,
+        updateWorkExperience,
+        updateEducation,
+        updateProject,
+        updateAchievement,
+        updatePublication,
+        updateCertification,
+        addWorkExperience,
+        addEducation,
+        addProject,
+        addAchievement,
+        addPublication,
+        addCertification,
+        removeWorkExperience,
+        removeEducation,
+        removeProject,
+        removeAchievement,
+        removePublication,
+        removeCertification,
+        addSkillCategory,
+        removeSkillCategory,
+        addSkillToCategory,
+        removeSkillFromCategory,
+        updateSkillCategoryName,
+        setCustomizationOptions,
+        toggleFieldVisibility
+    } = useResumeStore();
+
     const hasValidProfilePic = resumeData.personalInfo.profilePicture &&
         resumeData.personalInfo.profilePicture.startsWith('data:image');
 
-    // Update showProfileUploader when customization options change
     useEffect(() => {
         if (customizationOptions?.header.showPhoto && !showProfileUploader && !hasValidProfilePic) {
             setShowProfileUploader(true);
@@ -87,7 +151,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         }
     }, [customizationOptions?.header.showPhoto, showProfileUploader, hasValidProfilePic]);
 
-    // Helper to validate URL
     const isValidUrl = (url: string) => {
         try {
             new URL(url);
@@ -97,11 +160,9 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         }
     };
 
-    // Platform-specific URL validation
     const validatePlatformUrl = (platform: string, url: string) => {
         if (!url) return false;
 
-        // First check if the URL contains any other platform's domain
         const domainChecks = {
             linkedin: /linkedin\.com/i,
             peerlist: /peerlist\.io/i,
@@ -112,7 +173,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             stackoverflow: /stackoverflow\.com/i
         };
 
-        // Check if URL contains any other platform's domain
         for (const [otherPlatform, pattern] of Object.entries(domainChecks)) {
             if (otherPlatform !== platform && pattern.test(url)) {
                 return false;
@@ -129,12 +189,10 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             stackoverflow: /^https?:\/\/(?:www\.)?stackoverflow\.com\/users\/[\w\-]+(?:\/)?$/i
         };
 
-        // Then validate against the correct platform pattern
         const pattern = patterns[platform as keyof typeof patterns];
         return pattern ? pattern.test(url) : isValidUrl(url);
     };
 
-    // Validate all social links on change
     useEffect(() => {
         const errors = (resumeData.personalInfo.socialLinks || []).map((link) => {
             const error: { url?: string; label?: string } = {};
@@ -173,7 +231,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         setSocialLinkErrors(errors);
     }, [resumeData.personalInfo.socialLinks]);
 
-    // Update touched state array if number of links changes
     useEffect(() => {
         setSocialLinkTouched((prev) => {
             const links = resumeData.personalInfo.socialLinks || [];
@@ -182,6 +239,175 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         });
     }, [resumeData.personalInfo.socialLinks]);
 
+    const handleCustomizationChange = (options: ResumeCustomizationOptions) => {
+        setCustomizationOptions(options);
+    };
+
+    const handlePersonalInfoChange = (field: string, value: string) => {
+        if (field === 'socialLinks') {
+            try {
+                const parsedLinks = JSON.parse(value);
+                updatePersonalInfo(field, parsedLinks);
+            } catch (error) {
+                console.error('Error parsing social links:', error);
+            }
+        } else {
+            updatePersonalInfo(field, value);
+        }
+    };
+
+    const renderSection = (config: SectionConfig) => {
+        const isExpanded = expandedSections[config.id];
+        const isActive = activeSection === config.id;
+        const isVisible = customizationOptions?.layout?.visibleSections?.[config.id] !== false;
+        const sectionTitle = customizationOptions?.layout?.sectionTitles?.[config.id] || config.title;
+
+        const sectionProps = {
+            resumeData,
+            customizationOptions,
+            fieldVisibility,
+            toggleFieldVisibility,
+            onAdd: {
+                addWorkExperience,
+                addEducation,
+                addProject,
+                addAchievement,
+                addPublication,
+                addCertification
+            },
+            onRemove: {
+                removeWorkExperience,
+                removeEducation,
+                removeProject,
+                removeAchievement,
+                removePublication,
+                removeCertification
+            }
+        };
+
+        const specificProps = {
+            personalInfo: {
+                onPersonalInfoChange: handlePersonalInfoChange,
+                showProfileUploader,
+                setShowProfileUploader,
+                fileInputRef,
+                socialLinkErrors,
+                socialLinkTouched,
+                setSocialLinkTouched,
+                onCustomizationChange: handleCustomizationChange
+            },
+            workExperience: {
+                onWorkExperienceChange: updateWorkExperience
+            },
+            education: {
+                onEducationChange: updateEducation
+            },
+            skills: {
+                onSkillCategoryChange: {
+                    addCategory: addSkillCategory,
+                    removeCategory: removeSkillCategory,
+                    addSkill: addSkillToCategory,
+                    removeSkill: removeSkillFromCategory,
+                    renameCategory: updateSkillCategoryName
+                }
+            },
+            projects: {
+                onProjectChange: updateProject
+            },
+            achievements: {
+                onAchievementChange: updateAchievement,
+                onAdd: addAchievement,
+                onRemove: removeAchievement
+            },
+            publications: {
+                onPublicationChange: updatePublication,
+                onAdd: addPublication,
+                onRemove: removePublication
+            },
+            certifications: {
+                onCertificationChange: updateCertification,
+                onAdd: addCertification,
+                onRemove: removeCertification
+            }
+        };
+
+        const Component = config.component;
+        const props = { ...sectionProps, ...(specificProps[config.id as keyof typeof specificProps] || {}) };
+
+        return (
+            <div key={config.id} className="border-b border-slate-200">
+                <div
+                    className={`flex justify-between items-center p-4 cursor-pointer transition-all duration-200 ${isExpanded && isActive
+                        ? `bg-gradient-to-r ${config.color.bg} shadow-sm rounded-t-md`
+                        : 'hover:bg-slate-50/80'
+                        }`}
+                    onClick={() => toggleSection(config.id)}
+                >
+                    <div className="flex items-center">
+                        <config.icon className={`w-5 h-5 mr-3 ${config.color.icon}`} />
+                        <span className={`font-medium ${config.color.text} text-base`}>
+                            {sectionTitle}
+                        </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        {config.id !== 'personalInfo' && (
+                            <>
+                                <button
+                                    className="p-1 text-slate-500 hover:text-slate-700 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const newTitle = prompt('Edit section title:', sectionTitle);
+                                        if (newTitle && newTitle.trim() && handleCustomizationChange && customizationOptions) {
+                                            handleCustomizationChange({
+                                                ...customizationOptions,
+                                                layout: {
+                                                    ...customizationOptions.layout,
+                                                    sectionTitles: {
+                                                        ...customizationOptions.layout.sectionTitles,
+                                                        [config.id]: newTitle.trim()
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }}
+                                    title="Edit section title"
+                                >
+                                    <Edit3 className="w-4 h-4" />
+                                </button>
+                                <button
+                                    className="p-1 text-slate-500 hover:text-slate-700 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (handleCustomizationChange && customizationOptions) {
+                                            handleCustomizationChange({
+                                                ...customizationOptions,
+                                                layout: {
+                                                    ...customizationOptions.layout,
+                                                    visibleSections: {
+                                                        ...customizationOptions.layout.visibleSections,
+                                                        [config.id]: !isVisible
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }}
+                                    title={isVisible ? "Hide section" : "Show section"}
+                                >
+                                    {isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+                {isExpanded && isActive && (
+                    <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
+                        <Component {...props} />
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-md border border-slate-200">
             <style>{styles}</style>
@@ -189,152 +415,19 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                 <h2 className="text-xl font-bold text-blue-800">Content</h2>
             </div>
             <div className="divide-y divide-slate-200">
-                <div className="border-b border-slate-200">
-                    <div
-                        className={`flex justify-between items-center p-4 cursor-pointer transition-all duration-200 ${expandedSections.personalInfo && activeSection === 'personalInfo'
-                            ? 'bg-gradient-to-r from-blue-50 to-white shadow-sm rounded-t-md'
-                            : 'hover:bg-slate-50/80'
-                            }`}
-                        onClick={() => onSectionToggle('personalInfo')}
-                    >
-                        <div className="flex items-center">
-                            <User className="w-5 h-5 mr-3 text-indigo-600" />
-                            <span className="font-medium text-indigo-900 text-base">
-                                {customizationOptions?.layout?.sectionTitles?.personalInfo || 'Personal Info'}
-                            </span>
-                        </div>
-                    </div>
-                    {expandedSections.personalInfo && activeSection === 'personalInfo' && (
-                        <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
-                            <PersonalInfoSection
-                                resumeData={resumeData}
-                                customizationOptions={customizationOptions}
-                                onPersonalInfoChange={onPersonalInfoChange}
-                                showProfileUploader={showProfileUploader}
-                                setShowProfileUploader={setShowProfileUploader}
-                                fileInputRef={fileInputRef}
-                                socialLinkErrors={socialLinkErrors}
-                                socialLinkTouched={socialLinkTouched}
-                                setSocialLinkTouched={setSocialLinkTouched}
-                                onCustomizationChange={onCustomizationChange}
-                            />
-                        </div>
-                    )}
-                </div>
-                <div className="border-b border-slate-200">
-                    <div
-                        className={`flex justify-between items-center p-4 cursor-pointer transition-all duration-200 ${expandedSections.workExperience && activeSection === 'workExperience'
-                            ? 'bg-gradient-to-r from-indigo-50 to-white shadow-sm rounded-t-md'
-                            : 'hover:bg-slate-50/80'
-                            }`}
-                        onClick={() => onSectionToggle('workExperience')}
-                    >
-                        <div className="flex items-center">
-                            <Briefcase className="w-5 h-5 mr-3 text-indigo-600" />
-                            <span className="font-medium text-indigo-900 text-base">
-                                {customizationOptions?.layout?.sectionTitles?.workExperience || 'Work Experience'}
-                            </span>
-                        </div>
-                    </div>
-                    {expandedSections.workExperience && activeSection === 'workExperience' && (
-                        <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
-                            <WorkExperienceSection
-                                resumeData={resumeData}
-                                onWorkExperienceChange={onWorkExperienceChange}
-                                onRemove={onRemove}
-                                onAdd={onAdd}
-                            />
-                        </div>
-                    )}
-                </div>
-                <div className="border-b border-slate-200">
-                    <div
-                        className={`flex justify-between items-center p-4 cursor-pointer transition-all duration-200 ${expandedSections.education && activeSection === 'education'
-                            ? 'bg-gradient-to-r from-emerald-50 to-white shadow-sm rounded-t-md'
-                            : 'hover:bg-slate-50/80'
-                            }`}
-                        onClick={() => onSectionToggle('education')}
-                    >
-                        <div className="flex items-center">
-                            <BookOpen className="w-5 h-5 mr-3 text-emerald-600" />
-                            <span className="font-medium text-emerald-900 text-base">
-                                {customizationOptions?.layout?.sectionTitles?.education || 'Education'}
-                            </span>
-                        </div>
-                    </div>
-                    {expandedSections.education && activeSection === 'education' && (
-                        <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
-                            <EducationSection
-                                resumeData={resumeData}
-                                onEducationChange={onEducationChange}
-                                onRemove={onRemove}
-                                onAdd={onAdd}
-                            />
-                        </div>
-                    )}
-                </div>
-                <div className="border-b border-slate-200">
-                    <div
-                        className={`flex justify-between items-center p-4 cursor-pointer transition-all duration-200 ${expandedSections.skills && activeSection === 'skills'
-                            ? 'bg-gradient-to-r from-amber-50 to-white shadow-sm rounded-t-md'
-                            : 'hover:bg-slate-50/80'
-                            }`}
-                        onClick={() => onSectionToggle('skills')}
-                    >
-                        <div className="flex items-center">
-                            <Code className="w-5 h-5 mr-3 text-amber-600" />
-                            <span className="font-medium text-amber-900 text-base">
-                                {customizationOptions?.layout?.sectionTitles?.skills || 'Skills'}
-                            </span>
-                        </div>
-                    </div>
-                    {expandedSections.skills && activeSection === 'skills' && (
-                        <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
-                            <SkillsSection
-                                resumeData={resumeData}
-                                onSkillCategoryChange={onSkillCategoryChange}
-                            />
-                        </div>
-                    )}
-                </div>
-                <div className="border-b border-slate-200">
-                    <div
-                        className={`flex justify-between items-center p-4 cursor-pointer transition-all duration-200 ${expandedSections.projects && activeSection === 'projects'
-                            ? 'bg-gradient-to-r from-purple-50 to-white shadow-sm rounded-t-md'
-                            : 'hover:bg-slate-50/80'
-                            }`}
-                        onClick={() => onSectionToggle('projects')}
-                    >
-                        <div className="flex items-center">
-                            <Award className="w-5 h-5 mr-3 text-purple-600" />
-                            <span className="font-medium text-purple-900 text-base">
-                                {customizationOptions?.layout?.sectionTitles?.projects || 'Projects'}
-                            </span>
-                        </div>
-                    </div>
-                    {expandedSections.projects && activeSection === 'projects' && (
-                        <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
-                            <ProjectsSection
-                                resumeData={resumeData}
-                                onProjectChange={onProjectChange}
-                                onRemove={onRemove}
-                                onAdd={onAdd}
-                            />
-                        </div>
-                    )}
-                </div>
+                {sectionConfigs.map(renderSection)}
                 <CustomSections
                     customizationOptions={customizationOptions}
                     expandedSections={expandedSections}
                     activeSection={activeSection}
-                    onSectionToggle={onSectionToggle}
-                    onCustomizationChange={onCustomizationChange}
+                    onSectionToggle={toggleSection}
+                    onCustomizationChange={handleCustomizationChange}
                 />
                 <div className="p-4 flex justify-center">
                     <Button
                         variant="outline"
                         onClick={() => {
-                            if (onCustomizationChange && customizationOptions) {
+                            if (handleCustomizationChange && customizationOptions) {
                                 const title = prompt('Enter section title:');
                                 if (title) {
                                     const newSection = {
@@ -346,7 +439,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                         ...customizationOptions.layout.visibleSections,
                                         [newSection.id]: true
                                     };
-                                    onCustomizationChange({
+                                    handleCustomizationChange({
                                         ...customizationOptions,
                                         customSections: [...(customizationOptions.customSections || []), newSection],
                                         layout: {
@@ -354,9 +447,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
                                             visibleSections: updatedVisibleSections
                                         }
                                     });
-                                    if (onSectionToggle) {
-                                        onSectionToggle(newSection.id);
-                                    }
+                                    toggleSection(newSection.id);
                                 }
                             }
                         }}

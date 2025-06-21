@@ -19,6 +19,7 @@ const CreateResume: React.FC = () => {
         activeSection,
         expandedSections,
         customizationOptions,
+        fieldVisibility,
         handlers,
         previewScale,
         isAutoSaving,
@@ -146,7 +147,6 @@ const CreateResume: React.FC = () => {
             const convertedData: ResumeData = {
                 personalInfo: {
                     ...enhancedResumeData.personalInfo,
-                    // Move summary from top level to personalInfo if it exists
                     summary: enhancedResumeData.personalInfo.summary || ''
                 },
                 workExperience: enhancedResumeData.workExperience,
@@ -155,18 +155,17 @@ const CreateResume: React.FC = () => {
                     if (!enhancedResumeData.skills || enhancedResumeData.skills.length === 0) {
                         return [];
                     }
-
-                    // Check if skills is already in the new categorized format
                     const firstSkill = enhancedResumeData.skills[0];
                     if (firstSkill !== null && firstSkill !== undefined && typeof firstSkill === 'object' && 'skills' in (firstSkill as object) && Array.isArray((firstSkill as any).skills)) {
-                        // Already in categorized format, use as is
                         return enhancedResumeData.skills as unknown as { id: string; name: string; skills: string[] }[];
                     } else {
-                        // Convert from flat list to categorized format
                         return [{ id: '1', name: 'Technical Skills', skills: enhancedResumeData.skills as unknown as string[] }];
                     }
                 })(),
                 projects: enhancedResumeData.projects,
+                achievements: [],
+                publications: [],
+                certifications: [],
             };
 
             // Update resume data with the enhanced content
@@ -287,11 +286,7 @@ const CreateResume: React.FC = () => {
                         <div className="flex-1 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                             <div className="h-full overflow-y-auto">
                                 {activeTab === 'content' ? (
-                                    <ResumeEditor
-                                        {...editorProps}
-                                        customizationOptions={customizationOptions}
-                                        onCustomizationChange={handlers.setCustomizationOptions}
-                                    />
+                                    <ResumeEditor />
                                 ) : (
                                     <ResumeCustomizationPanel
                                         options={customizationOptions}
@@ -310,7 +305,8 @@ const CreateResume: React.FC = () => {
                                 resumeData,
                                 customizationOptions,
                                 previewScale,
-                                setIsFullScreenPreview
+                                setIsFullScreenPreview,
+                                { fieldVisibility }
                             )}
                         </div>
                     </div>

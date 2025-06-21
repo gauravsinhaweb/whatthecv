@@ -30,7 +30,12 @@ import {
     ArrowUpDown,
     Sparkles,
     Crown,
-    Zap
+    Zap,
+    Code,
+    Trophy,
+    BookOpen,
+    ChevronUp,
+    ChevronDown
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import RadioGroup from '../../../../components/ui/RadioGroup';
@@ -49,7 +54,11 @@ const SECTION_MAP: SectionInfo[] = [
     { id: 'personalInfo', label: 'Personal Info', icon: <CircleUser className="w-4 h-4" /> },
     { id: 'workExperience', label: 'Work Experience', icon: <Briefcase className="w-4 h-4" /> },
     { id: 'education', label: 'Education', icon: <GraduationCap className="w-4 h-4" /> },
+    { id: 'skills', label: 'Skills', icon: <Code className="w-4 h-4" /> },
     { id: 'projects', label: 'Projects', icon: <Lightbulb className="w-4 h-4" /> },
+    { id: 'achievements', label: 'Achievements', icon: <Trophy className="w-4 h-4" /> },
+    { id: 'publications', label: 'Publications', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'certifications', label: 'Certifications', icon: <Award className="w-4 h-4" /> },
 ];
 
 interface ResumeCustomizationPanelProps {
@@ -159,6 +168,19 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
     };
 
     const getSectionById = (id: string): SectionInfo => {
+        // Check if it's a custom section
+        if (id.startsWith('custom_')) {
+            const customSection = options.customSections?.find(section => section.id === id);
+            if (customSection) {
+                return {
+                    id: customSection.id,
+                    label: customSection.title,
+                    icon: <FileText className="w-4 h-4" />
+                };
+            }
+        }
+
+        // Return predefined section or default
         return SECTION_MAP.find(section => section.id === id) || SECTION_MAP[0];
     };
 
@@ -190,11 +212,30 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
             // Create a new order array without modifying the original
             const newOrder = [...options.layout.sectionOrder];
 
-            // Remove the source section
-            newOrder.splice(sourceIndex, 1);
+            // If source section is not in sectionOrder (custom section), add it
+            if (sourceIndex === -1) {
+                newOrder.push(sourceSectionId);
+            } else {
+                // Remove the source section
+                newOrder.splice(sourceIndex, 1);
+            }
+
+            // If target section is not in sectionOrder (custom section), add it
+            if (targetIndex === -1) {
+                newOrder.push(targetSectionId);
+            }
+
+            // Get the final target index
+            const finalTargetIndex = newOrder.indexOf(targetSectionId);
 
             // Insert at the target position
-            newOrder.splice(targetIndex, 0, sourceSectionId);
+            if (sourceIndex === -1) {
+                // If source was not in original order, insert at target position
+                newOrder.splice(finalTargetIndex, 0, sourceSectionId);
+            } else {
+                // If source was in original order, insert at target position
+                newOrder.splice(finalTargetIndex, 0, sourceSectionId);
+            }
 
             // Make sure personalInfo is always the first section
             const personalInfoIndex = newOrder.indexOf('personalInfo');
@@ -344,63 +385,119 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                             </div>
                         </div>
 
-                        <div className="bg-slate-50 p-5 rounded-xl">
-                            <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                                <Move className="w-5 h-5 text-blue-600" />
+                        <div className="bg-slate-50 p-4 rounded-xl">
+                            <h3 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                                <Move className="w-4 h-4 text-blue-600" />
                                 Rearrange Sections
                             </h3>
-                            <p className="text-sm text-slate-500 mb-4">Drag and drop to reorder, or toggle visibility.</p>
-                            <div className="space-y-3">
-                                {options.layout.sectionOrder
-                                    .filter(section => section !== 'personalInfo')
-                                    .map((section) => {
-                                        const sectionInfo = getSectionById(section);
-                                        const isVisible = options.layout.visibleSections?.[section] !== false;
+                            <p className="text-xs text-slate-500 mb-3">Drag and drop to reorder, or toggle visibility.</p>
+                            <div className="space-y-2">
+                                {/* Get all sections including custom ones */}
+                                {(() => {
+                                    // Get all section IDs from sectionOrder
+                                    const sectionIds = [...options.layout.sectionOrder];
 
-                                        return (
-                                            <div
-                                                key={section}
-                                                draggable
-                                                onDragStart={(e) => handleDragStart(e, section)}
-                                                onDragOver={(e) => handleDragOver(e, section)}
-                                                onDragEnd={handleDragEnd}
-                                                onDrop={(e) => handleDrop(e, section)}
-                                                className={`flex items-center justify-between bg-white p-4 rounded-lg border ${draggedSection === section
-                                                    ? 'opacity-50 border-blue-400 shadow-md'
-                                                    : dragOverSection === section
-                                                        ? 'border-blue-500 bg-blue-50'
-                                                        : isVisible
-                                                            ? 'border-slate-200 hover:border-blue-300'
-                                                            : 'border-slate-200 bg-slate-100/70 hover:border-slate-300'
-                                                    } hover:shadow-sm transition-all cursor-grab active:cursor-grabbing`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <GripVertical className="w-5 h-5 text-slate-400" />
-                                                    <span className={`font-medium flex items-center gap-2 ${isVisible ? 'text-slate-800' : 'text-slate-500'}`}>
-                                                        {React.cloneElement(sectionInfo.icon as React.ReactElement, { className: "w-5 h-5" })}
-                                                        {sectionInfo.label}
-                                                    </span>
+                                    // Add custom sections that aren't already in sectionOrder
+                                    options.customSections?.forEach(customSection => {
+                                        if (!sectionIds.includes(customSection.id)) {
+                                            sectionIds.push(customSection.id);
+                                        }
+                                    });
+
+                                    return sectionIds
+                                        .filter(section => section !== 'personalInfo')
+                                        .map((section) => {
+                                            const sectionInfo = getSectionById(section);
+                                            const isVisible = options.layout.visibleSections?.[section] !== false;
+
+                                            return (
+                                                <div
+                                                    key={section}
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStart(e, section)}
+                                                    onDragOver={(e) => handleDragOver(e, section)}
+                                                    onDragEnd={handleDragEnd}
+                                                    onDrop={(e) => handleDrop(e, section)}
+                                                    className={`flex items-center justify-between bg-white p-3 rounded-lg border ${draggedSection === section
+                                                        ? 'opacity-50 border-blue-400 shadow-md'
+                                                        : dragOverSection === section
+                                                            ? 'border-blue-500 bg-blue-50'
+                                                            : isVisible
+                                                                ? 'border-slate-200 hover:border-blue-300'
+                                                                : 'border-slate-200 bg-slate-100/70 hover:border-slate-300'
+                                                        } hover:shadow-sm transition-all cursor-grab active:cursor-grabbing`}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <GripVertical className="w-4 h-4 text-slate-400" />
+                                                        <span className={`text-sm font-medium flex items-center gap-2 ${isVisible ? 'text-slate-800' : 'text-slate-500'}`}>
+                                                            {React.cloneElement(sectionInfo.icon as React.ReactElement, { className: "w-4 h-4" })}
+                                                            {sectionInfo.label}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                        {/* Up/Down movement buttons */}
+                                                        <div className="flex flex-col mr-1">
+                                                            <button
+                                                                className={`p-0.5 rounded transition-colors ${section === options.layout.sectionOrder[1] ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-blue-600 hover:bg-blue-100'}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (section !== options.layout.sectionOrder[1]) {
+                                                                        const currentIndex = options.layout.sectionOrder.indexOf(section);
+                                                                        if (currentIndex > 1) { // Don't move above personalInfo
+                                                                            const newOrder = [...options.layout.sectionOrder];
+                                                                            const temp = newOrder[currentIndex];
+                                                                            newOrder[currentIndex] = newOrder[currentIndex - 1];
+                                                                            newOrder[currentIndex - 1] = temp;
+                                                                            handleChange('layout', 'sectionOrder', newOrder);
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                title="Move up"
+                                                                disabled={section === options.layout.sectionOrder[1]}
+                                                            >
+                                                                <ChevronUp className="w-3 h-3" />
+                                                            </button>
+                                                            <button
+                                                                className={`p-0.5 rounded transition-colors ${section === options.layout.sectionOrder[options.layout.sectionOrder.length - 1] ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-blue-600 hover:bg-blue-100'}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (section !== options.layout.sectionOrder[options.layout.sectionOrder.length - 1]) {
+                                                                        const currentIndex = options.layout.sectionOrder.indexOf(section);
+                                                                        if (currentIndex !== -1 && currentIndex < options.layout.sectionOrder.length - 1) {
+                                                                            const newOrder = [...options.layout.sectionOrder];
+                                                                            const temp = newOrder[currentIndex];
+                                                                            newOrder[currentIndex] = newOrder[currentIndex + 1];
+                                                                            newOrder[currentIndex + 1] = temp;
+                                                                            handleChange('layout', 'sectionOrder', newOrder);
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                title="Move down"
+                                                                disabled={section === options.layout.sectionOrder[options.layout.sectionOrder.length - 1]}
+                                                            >
+                                                                <ChevronDown className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        {section !== 'personalInfo' && (
+                                                            <button
+                                                                className={`p-1.5 rounded-full transition-colors ${isVisible ? 'text-slate-500 hover:text-blue-600 hover:bg-blue-100' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200'}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleChange('layout', 'visibleSections', {
+                                                                        ...options.layout.visibleSections,
+                                                                        [section]: !isVisible
+                                                                    });
+                                                                }}
+                                                                title={isVisible ? "Hide section" : "Show section"}
+                                                            >
+                                                                {isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center">
-                                                    {section !== 'personalInfo' && (
-                                                        <button
-                                                            className={`p-2 rounded-full transition-colors ${isVisible ? 'text-slate-500 hover:text-blue-600 hover:bg-blue-100' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200'}`}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleChange('layout', 'visibleSections', {
-                                                                    ...options.layout.visibleSections,
-                                                                    [section]: !isVisible
-                                                                });
-                                                            }}
-                                                            title={isVisible ? "Hide section" : "Show section"}
-                                                        >
-                                                            {isVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        });
+                                })()}
                             </div>
                         </div>
 

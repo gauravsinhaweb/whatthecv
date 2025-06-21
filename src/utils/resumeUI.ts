@@ -26,6 +26,9 @@ export const getEditorProps = (
         onWorkExperienceChange: handlers.handleWorkExperienceChange,
         onEducationChange: handlers.handleEducationChange,
         onProjectChange: handlers.handleProjectChange,
+        onAchievementChange: handlers.handleAchievementChange,
+        onPublicationChange: handlers.handlePublicationChange,
+        onCertificationChange: handlers.handleCertificationChange,
         onSkillCategoryChange: {
             addCategory: handlers.addSkillCategory,
             removeCategory: handlers.removeSkillCategory,
@@ -39,11 +42,17 @@ export const getEditorProps = (
             addWorkExperience: handlers.addWorkExperience,
             addEducation: handlers.addEducation,
             addProject: handlers.addProject,
+            addAchievement: handlers.addAchievement,
+            addPublication: handlers.addPublication,
+            addCertification: handlers.addCertification,
         },
         onRemove: {
             removeWorkExperience: handlers.removeWorkExperience,
             removeEducation: handlers.removeEducation,
             removeProject: handlers.removeProject,
+            removeAchievement: handlers.removeAchievement,
+            removePublication: handlers.removePublication,
+            removeCertification: handlers.removeCertification,
         },
     };
 };
@@ -52,7 +61,8 @@ export const renderPreviewContainer = (
     resumeData: ResumeData,
     customizationOptions: ResumeCustomizationOptions,
     previewScale: number,
-    setIsFullScreenPreview: (isFullScreen: boolean) => void
+    setIsFullScreenPreview: (isFullScreen: boolean) => void,
+    extraProps?: Record<string, any>
 ) => {
     const customizationKey = JSON.stringify({
         ...customizationOptions,
@@ -82,7 +92,8 @@ export const renderPreviewContainer = (
             key: customizationKey,
             resumeData,
             customizationOptions,
-            previewScale
+            previewScale,
+            ...(extraProps || {})
         })
     );
 }; 

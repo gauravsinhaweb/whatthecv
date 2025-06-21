@@ -8,12 +8,14 @@ interface ResumePreviewProps {
     customizationOptions: ResumeCustomizationOptions;
     fullScreen?: boolean;
     previewScale?: number;
+    fieldVisibility?: Record<string, boolean>;
 }
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({
     resumeData,
     customizationOptions,
     fullScreen = false,
+    fieldVisibility = {},
 }) => {
     const fontStack = 'Inter, Arial, Helvetica, "Noto Sans Devanagari", "Noto Sans CJK SC Thin", "Noto Sans SC", "Noto Sans Hebrew", "Noto Sans Bengali", sans-serif';
 
@@ -102,6 +104,35 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
         // Return original if not in expected format
         return dateStr;
+    };
+
+    // Format dates from separate month and year fields
+    const formatDateFromFields = (month?: string, year?: string, showMonth: boolean = true, isCurrent: boolean = false): string => {
+        if (isCurrent) return 'Present';
+        if (!year) return '';
+
+        if (!month || !showMonth) {
+            return year;
+        }
+
+        // If month is already a month name (like "Jan", "Feb"), use it directly
+        const monthNames = [
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
+
+        // Check if month is already a month name
+        if (monthNames.includes(month)) {
+            return `${month} ${year}`;
+        }
+
+        // Try to parse as number (for backward compatibility)
+        const monthIndex = parseInt(month, 10) - 1;
+        if (monthIndex >= 0 && monthIndex < 12) {
+            return `${monthNames[monthIndex]} ${year}`;
+        }
+
+        return year;
     };
 
     // Process text with bullet points to create proper list items
@@ -440,7 +471,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                         )}
 
                         <div className={`flex flex-wrap mt-1 text-sm gap-y-2 gap-x-6 ${customizationOptions.header.alignment === 'center' ? 'justify-center' : ''}`}>
-                            {resumeData.personalInfo.phone && (
+                            {fieldVisibility['personalInfo.phone'] !== false && resumeData.personalInfo.phone && (
                                 <a
                                     href={`tel:${resumeData.personalInfo.phone}`}
                                     className="flex items-center transition-colors"
@@ -471,7 +502,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     <span>{resumeData.personalInfo.phone}</span>
                                 </a>
                             )}
-                            {resumeData.personalInfo.email && (
+                            {fieldVisibility['personalInfo.email'] !== false && resumeData.personalInfo.email && (
                                 <a
                                     href={`mailto:${resumeData.personalInfo.email}`}
                                     className="flex items-center transition-colors"
@@ -502,7 +533,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     <span>{resumeData.personalInfo.email}</span>
                                 </a>
                             )}
-                            {resumeData.personalInfo.location && (
+                            {fieldVisibility['personalInfo.location'] !== false && resumeData.personalInfo.location && (
                                 <div className="flex items-center">
                                     <MapPin
                                         className={`${customizationOptions.socialIcons?.style === 'filled' ? 'lucide-icon-filled' : ''} ${(() => {
@@ -530,7 +561,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     <span>{resumeData.personalInfo.location}</span>
                                 </div>
                             )}
-                            {resumeData.personalInfo.socialLinks && resumeData.personalInfo.socialLinks.map((link, index) => {
+                            {fieldVisibility['personalInfo.socialLinks'] !== false && resumeData.personalInfo.socialLinks && resumeData.personalInfo.socialLinks.map((link, index) => {
                                 if (!link.url || !link.url.startsWith('http')) return null;
 
                                 // Platform-specific URL validation
@@ -708,8 +739,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 return null;
                             }
 
+                            // Skip Skills and Projects in main column for two-column layouts (they're rendered in right column)
+                            if (isTwoColumnLayout() && (sectionKey === 'skills' || sectionKey === 'projects')) {
+                                return null;
+                            }
+
                             // Summary
-                            if (sectionKey === 'personalInfo' && showSummary) {
+                            if (sectionKey === 'personalInfo' && fieldVisibility['personalInfo.summary'] !== false && showSummary) {
                                 return (
                                     <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
                                         {renderSectionTitle('SUMMARY')}
@@ -759,11 +795,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                     </div>
                                                                 </div>
 
-                                                                {!isSingleColumnLayout() && (exp.startDate || exp.endDate || exp.location) && (
+                                                                {!isSingleColumnLayout() && (exp.startYear || exp.endYear || exp.location) && (
                                                                     <div className="flex items-center text-sm opacity-80 mb-1">
-                                                                        {exp.startDate && (
+                                                                        {exp.startYear && (
                                                                             <span className="italic">
-                                                                                {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
+                                                                                {formatDateFromFields(exp.startMonth, exp.startYear, exp.showStartMonth)} - {exp.current ? 'Present' : (exp.endYear ? formatDateFromFields(exp.endMonth, exp.endYear, exp.showEndMonth) : '')}
                                                                             </span>
                                                                         )}
                                                                         {exp.location && <span className='px-1'>{"|"}</span>}
@@ -792,11 +828,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                                             </div>
 
-                                                            {isSingleColumnLayout() && (exp.startDate || exp.endDate || exp.location) && (
+                                                            {isSingleColumnLayout() && (exp.startYear || exp.endYear || exp.location) && (
                                                                 <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
-                                                                    {exp.startDate && (
+                                                                    {exp.startYear && (
                                                                         <div className="italic">
-                                                                            {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
+                                                                            {formatDateFromFields(exp.startMonth, exp.startYear, exp.showStartMonth)} - {exp.current ? 'Present' : (exp.endYear ? formatDateFromFields(exp.endMonth, exp.endYear, exp.showEndMonth) : '')}
                                                                         </div>
                                                                     )}
                                                                     {exp.location && (
@@ -845,14 +881,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                         {edu.institution}
                                                                     </div>
                                                                 )}
-                                                                {!isSingleColumnLayout() && (edu.startDate || edu.endDate || edu.location) && (
+                                                                {!isSingleColumnLayout() && (edu.startYear || edu.endYear || edu.location) && (
                                                                     <div className="flex items-center text-sm opacity-80 pl-4">
-                                                                        {edu.startDate && edu.endDate && (
+                                                                        {edu.startYear && edu.endYear && (
                                                                             <span className="italic">
-                                                                                {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
+                                                                                {formatDateFromFields(edu.startMonth, edu.startYear, edu.showStartMonth)} - {edu.current ? 'Present' : formatDateFromFields(edu.endMonth, edu.endYear, edu.showEndMonth)}
                                                                             </span>
                                                                         )}
-                                                                        {(edu.startDate || edu.endDate) && edu.location && (
+                                                                        {(edu.startYear || edu.endYear) && edu.location && (
                                                                             <span className='px-1'>{"|"}</span>
                                                                         )}
                                                                         {edu.location && (
@@ -862,11 +898,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                 )}
                                                             </div>
 
-                                                            {isSingleColumnLayout() && (edu.startDate || edu.endDate || edu.location) && (
+                                                            {isSingleColumnLayout() && (edu.startYear || edu.endYear || edu.location) && (
                                                                 <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
-                                                                    {edu.startDate && edu.endDate && (
+                                                                    {edu.startYear && edu.endYear && (
                                                                         <div className="italic">
-                                                                            {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
+                                                                            {formatDateFromFields(edu.startMonth, edu.startYear, edu.showStartMonth)} - {edu.current ? 'Present' : formatDateFromFields(edu.endMonth, edu.endYear, edu.showEndMonth)}
                                                                         </div>
                                                                     )}
                                                                     {edu.location && (
@@ -882,74 +918,291 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 );
                             }
 
-                            // Skills - only in one column layout
-                            if (sectionKey === 'skills' && isSingleColumnLayout() && resumeData.skills.length > 0) {
+                            // Skills
+                            if (sectionKey === 'skills' && resumeData.skills.length > 0) {
+                                // Check if any skill category has skills
+                                const hasSkills = resumeData.skills.some(category =>
+                                    category.skills && category.skills.length > 0
+                                );
+
+                                if (!hasSkills) return null;
+
                                 return (
                                     <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
                                         {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'SKILLS')}
                                         <div className="space-y-1 mt-2">
-                                            {resumeData.skills.map((category) => (
-                                                <div key={category.id} className="flex items-start text-sm">
-                                                    <div className="pr-2 shrink-0">
-                                                        <h3 className="font-semibold" style={{ fontWeight: 600 }}>
-                                                            {`${category.name}:`}
-                                                        </h3>
+                                            {resumeData.skills
+                                                .filter(category => category.skills && category.skills.length > 0)
+                                                .map((category) => (
+                                                    <div key={category.id} className="flex items-start text-sm">
+                                                        <div className="pr-2 shrink-0">
+                                                            <h3 className="font-semibold" style={{ fontWeight: 600 }}>
+                                                                {`${category.name}:`}
+                                                            </h3>
+                                                        </div>
+                                                        <div>
+                                                            <p>
+                                                                {Array.isArray(category.skills) ? category.skills.join(', ') : ''}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p>
-                                                            {Array.isArray(category.skills) ? category.skills.join(', ') : ''}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                ))}
                                         </div>
                                     </div>
                                 );
                             }
 
-                            // Projects - only in one column layout
-                            if (sectionKey === 'projects' && isSingleColumnLayout() && resumeData.projects.some((project) => project.name || project.description)) {
+                            // Projects
+                            if (sectionKey === 'projects' && resumeData.projects.some((project) => project.name || project.description)) {
                                 return (
                                     <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
                                         {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'PROJECTS')}
                                         <div className="space-y-4">
                                             {resumeData.projects?.slice(0, 3)
+                                                .filter((project) => project.name || project.description)
                                                 .map((project, index) => (
                                                     <div key={index} className="mb-3">
-                                                        <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
-                                                            {project.name || 'Project Name'}
-                                                            {project.link && project.link.startsWith('http') && (
-                                                                <a
-                                                                    href={project.link}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
-                                                                    style={{ color: getAccentColor(0.9) }}
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    {renderLinkIcon()}
-                                                                </a>
-                                                            )}
-                                                        </h3>
-                                                        <div className="pl-4">
-                                                            {
-                                                                project.description && (
-                                                                    <SafeHTML
-                                                                        html={project.description}
-                                                                        className="text-sm mt-1"
-                                                                    />
-                                                                )
-                                                            }
-                                                            {
-                                                                project.technologies && (
-                                                                    <div className="text-sm mt-1 italic text-gray-600">
-                                                                        {project.technologies}
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                    {project.name || 'Project Name'}
+                                                                    {project.link && project.link.startsWith('http') && (
+                                                                        <a
+                                                                            href={project.link}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
+                                                                </h3>
+                                                                <div className="pl-4">
+                                                                    {
+                                                                        project.description && (
+                                                                            <SafeHTML
+                                                                                html={project.description}
+                                                                                className="text-sm mt-1"
+                                                                            />
+                                                                        )
+                                                                    }
+                                                                    {
+                                                                        project.technologies && (
+                                                                            <div className="text-sm mt-1 italic text-gray-600">
+                                                                                {project.technologies}
+                                                                            </div>
+                                                                        )
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                            {isSingleColumnLayout() && (project.startYear || project.endYear) && (
+                                                                <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
+                                                                    <div className="italic">
+                                                                        {formatDateFromFields(project.startMonth, project.startYear, project.showStartMonth)} - {project.current ? 'Present' : (project.endYear ? formatDateFromFields(project.endMonth, project.endYear, project.showEndMonth) : '')}
                                                                     </div>
-                                                                )
-                                                            }
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 ))}
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            // Achievements
+                            if (sectionKey === 'achievements') {
+                                const hasAny = resumeData.achievements.some(a => a.title || a.description || a.organization || a.year || a.link);
+                                if (!hasAny) return null;
+
+                                return (
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'ACHIEVEMENTS')}
+                                        <div className="space-y-4">
+                                            {resumeData.achievements
+                                                .filter(achievement => achievement.title || achievement.description || achievement.organization || achievement.year || achievement.link)
+                                                .map((achievement, index) => (
+                                                    <div key={achievement.id || index} className="mb-3">
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                    {achievement.title || 'Achievement Title'}
+                                                                    {achievement.showLink && achievement.link && achievement.link.startsWith('http') && (
+                                                                        <a
+                                                                            href={achievement.link}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
+                                                                </h3>
+                                                                {achievement.showOrganization && achievement.organization && (
+                                                                    <div className="text-base italic text-gray-700">
+                                                                        {achievement.organization}
+                                                                    </div>
+                                                                )}
+                                                                {!isSingleColumnLayout() && achievement.year && (
+                                                                    <div className="text-sm opacity-80 mt-1">
+                                                                        <span className="italic">{formatDateFromFields(achievement.month, achievement.year, achievement.showMonth, achievement.current)}</span>
+                                                                    </div>
+                                                                )}
+                                                                {achievement.showDescription && achievement.description && (
+                                                                    <div className="text-sm mt-1">
+                                                                        {achievement.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {isSingleColumnLayout() && achievement.year && (
+                                                                <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
+                                                                    <div className="italic">{formatDateFromFields(achievement.month, achievement.year, achievement.showMonth, achievement.current)}</div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            // Publications
+                            if (sectionKey === 'publications') {
+                                const hasAny = resumeData.publications.some(p => p.title || p.authors || p.journal || p.year || p.doi || p.link || p.description);
+                                if (!hasAny) return null;
+
+                                return (
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'PUBLICATIONS')}
+                                        <div className="space-y-4">
+                                            {resumeData.publications
+                                                .filter(publication => publication.title || publication.authors || publication.journal || publication.year || publication.doi || publication.link || publication.description)
+                                                .map((publication, index) => (
+                                                    <div key={publication.id || index} className="mb-3">
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                    {publication.title || 'Publication Title'}
+                                                                    {((publication.showLink && publication.link) || (publication.showDoi && publication.doi)) && (
+                                                                        <a
+                                                                            href={publication.link || `https://doi.org/${publication.doi}`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
+                                                                </h3>
+                                                                {publication.showAuthors && publication.authors && (
+                                                                    <div className="text-base italic text-gray-700">
+                                                                        {publication.authors}
+                                                                    </div>
+                                                                )}
+                                                                {publication.showJournal && publication.journal && (
+                                                                    <div className="text-sm text-gray-600">
+                                                                        {publication.journal}
+                                                                    </div>
+                                                                )}
+                                                                {!isSingleColumnLayout() && publication.year && (
+                                                                    <div className="text-sm opacity-80 mt-1">
+                                                                        <span className="italic">{formatDateFromFields(publication.month, publication.year, publication.showMonth, publication.current)}</span>
+                                                                    </div>
+                                                                )}
+                                                                {publication.showDescription && publication.description && (
+                                                                    <div className="text-sm mt-1">
+                                                                        {publication.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {isSingleColumnLayout() && publication.year && (
+                                                                <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
+                                                                    <div className="italic">{formatDateFromFields(publication.month, publication.year, publication.showMonth, publication.current)}</div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            // Certifications
+                            if (sectionKey === 'certifications') {
+                                const hasAny = resumeData.certifications.some(c => c.name || c.issuer || c.year || c.expiryYear || c.credentialId || c.link || c.description);
+                                if (!hasAny) return null;
+
+                                return (
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'CERTIFICATIONS')}
+                                        <div className="space-y-4">
+                                            {resumeData.certifications
+                                                .filter(certification => certification.name || certification.issuer || certification.year || certification.expiryYear || certification.credentialId || certification.link || certification.description)
+                                                .map((certification, index) => (
+                                                    <div key={certification.id || index} className="mb-3">
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                    {certification.name || 'Certification Name'}
+                                                                    {certification.showLink && certification.link && certification.link.startsWith('http') && (
+                                                                        <a
+                                                                            href={certification.link}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
+                                                                </h3>
+                                                                {certification.showIssuer && certification.issuer && (
+                                                                    <div className="text-base italic text-gray-700">
+                                                                        {certification.issuer}
+                                                                    </div>
+                                                                )}
+                                                                {!isSingleColumnLayout() && (certification.year || certification.expiryYear) && (
+                                                                    <div className="text-sm opacity-80 mt-1">
+                                                                        <div className="italic">{formatDateFromFields(certification.month, certification.year, certification.showMonth, certification.current)}</div>
+                                                                        {certification.expiryYear && (
+                                                                            <div className="italic text-xs">Expires: {formatDateFromFields(certification.expiryMonth, certification.expiryYear, certification.showExpiryMonth)}</div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                                {certification.showCredentialId && certification.credentialId && (
+                                                                    <div className="text-sm text-gray-600">
+                                                                        ID: {certification.credentialId}
+                                                                    </div>
+                                                                )}
+                                                                {certification.showDescription && certification.description && (
+                                                                    <div className="text-sm mt-1">
+                                                                        {certification.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {isSingleColumnLayout() && (certification.year || certification.expiryYear) && (
+                                                                <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
+                                                                    <div className="italic">{formatDateFromFields(certification.month, certification.year, certification.showMonth, certification.current)}</div>
+                                                                    {certification.expiryYear && (
+                                                                        <div className="italic text-xs">Expires: {formatDateFromFields(certification.expiryMonth, certification.expiryYear, certification.showExpiryMonth)}</div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            }
                                         </div>
                                     </div>
                                 );
@@ -976,27 +1229,36 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                         isTwoColumnLayout() && (
                             <div className="md:w-2/5" data-id="resume-side-column">
                                 {/* Skills */}
-                                {resumeData.skills.length > 0 && customizationOptions.layout.visibleSections?.skills !== false && (
-                                    <div style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
-                                        {renderSectionTitle(customizationOptions.layout.sectionTitles['skills']?.toUpperCase() || 'SKILLS')}
-                                        <div className="space-y-1 mt-2">
-                                            {resumeData.skills.map((category) => (
-                                                <div key={category.id} className="flex items-start text-sm py-1">
-                                                    <div className="w-2/5 pr-2 shrink-0">
-                                                        <h3 className="font-semibold" style={{ fontWeight: 600 }}>
-                                                            {category.name}
-                                                        </h3>
-                                                    </div>
-                                                    <div className="w-3/5">
-                                                        <p>
-                                                            {Array.isArray(category.skills) ? category.skills.join(', ') : ''}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                {resumeData.skills.length > 0 && customizationOptions.layout.visibleSections?.skills !== false && (() => {
+                                    const hasSkills = resumeData.skills.some(category =>
+                                        category.skills && category.skills.length > 0
+                                    );
+                                    if (!hasSkills) return null;
+
+                                    return (
+                                        <div style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                            {renderSectionTitle(customizationOptions.layout.sectionTitles['skills']?.toUpperCase() || 'SKILLS')}
+                                            <div className="space-y-1 mt-2">
+                                                {resumeData.skills
+                                                    .filter(category => category.skills && category.skills.length > 0)
+                                                    .map((category) => (
+                                                        <div key={category.id} className="flex items-start text-sm py-1">
+                                                            <div className="w-2/5 pr-2 shrink-0">
+                                                                <h3 className="font-semibold" style={{ fontWeight: 600 }}>
+                                                                    {category.name}
+                                                                </h3>
+                                                            </div>
+                                                            <div className="w-3/5">
+                                                                <p>
+                                                                    {Array.isArray(category.skills) ? category.skills.join(', ') : ''}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
 
                                 {/* Projects */}
                                 {resumeData.projects.some(
@@ -1051,7 +1313,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 {/* Custom Sections - only in right column if layout is two columns */}
                                 {
                                     customizationOptions.customSections
-                                        ?.filter(customSection => customizationOptions.layout.visibleSections?.[customSection.id] !== false)
+                                        ?.filter(customSection =>
+                                            customizationOptions.layout.visibleSections?.[customSection.id] !== false &&
+                                            customSection.content && customSection.content.trim() !== ''
+                                        )
                                         ?.map((customSection) => (
                                             <div key={customSection.id} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
                                                 {renderSectionTitle(customSection.title.toUpperCase())}
