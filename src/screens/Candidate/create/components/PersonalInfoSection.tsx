@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import ProfilePictureUploader from '../../../../components/ui/ProfilePictureUploader';
 import RichTextEditor from '../../../../components/ui/RichTextEditor';
+import InputFieldWithToggle from './InputFieldWithToggle';
+import FieldVisibilityToggle from './FieldVisibilityToggle';
 
 const styles = `
 @keyframes fadeIn {
@@ -23,7 +25,9 @@ const PersonalInfoSection = ({
     socialLinkErrors,
     socialLinkTouched,
     setSocialLinkTouched,
-    onCustomizationChange
+    onCustomizationChange,
+    fieldVisibility,
+    toggleFieldVisibility
 }) => {
     const hasValidProfilePic = resumeData.personalInfo.profilePicture &&
         resumeData.personalInfo.profilePicture.startsWith('data:image');
@@ -89,7 +93,7 @@ const PersonalInfoSection = ({
             <p className="text-xs text-slate-500 ml-6 mb-3">
                 Show your professional summary at the top of your resume
             </p>
-            {(showProfileUploader || hasValidProfilePic) && (
+            {/* {(showProfileUploader || hasValidProfilePic) && (
                 <div className="flex justify-center mb-6">
                     <ProfilePictureUploader
                         value={resumeData.personalInfo.profilePicture || ''}
@@ -109,13 +113,13 @@ const PersonalInfoSection = ({
                         ref={fileInputRef}
                     />
                 </div>
-            )}
+            )} */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">Full Name</label>
                     <input
                         type="text"
-                        className="w-full p-2.5 border border-slate-300  bg-white"
+                        className="w-full p-2.5 border border-slate-300 rounded-md transition-all bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value={resumeData.personalInfo.name}
                         onChange={(e) => onPersonalInfoChange('name', e.currentTarget.value)}
                         placeholder="John Doe"
@@ -125,7 +129,7 @@ const PersonalInfoSection = ({
                     <label className="block text-sm font-medium text-indigo-700 mb-1.5">Position</label>
                     <input
                         type="text"
-                        className="w-full p-2.5 border border-slate-300  bg-white"
+                        className="w-full p-2.5 border border-slate-300 rounded-md transition-all bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value={resumeData.personalInfo.position}
                         onChange={(e) => onPersonalInfoChange('position', e.currentTarget.value)}
                         placeholder="Senior Software Engineer"
@@ -133,39 +137,41 @@ const PersonalInfoSection = ({
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label className="block text-sm font-medium text-indigo-700 mb-1.5">Email</label>
-                    <input
-                        type="email"
-                        className="w-full p-2.5 border border-slate-300  bg-white"
-                        value={resumeData.personalInfo.email}
-                        onChange={(e) => onPersonalInfoChange('email', e.currentTarget.value)}
-                        placeholder="john.doe@example.com"
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-indigo-700 mb-1.5">Phone</label>
-                    <input
-                        type="tel"
-                        className="w-full p-2.5 border border-slate-300  bg-white"
-                        value={resumeData.personalInfo.phone}
-                        onChange={(e) => onPersonalInfoChange('phone', e.currentTarget.value)}
-                        placeholder="(123) 456-7890"
-                    />
-                </div>
-            </div>
-            <div>
-                <label className="block text-sm font-medium text-indigo-700 mb-1.5">Location</label>
-                <input
-                    type="text"
-                    className="w-full p-2.5 border border-slate-300  bg-white"
-                    value={resumeData.personalInfo.location}
-                    onChange={(e) => onPersonalInfoChange('location', e.currentTarget.value)}
-                    placeholder="Country (e.g., United States)"
+                <InputFieldWithToggle
+                    label="Email"
+                    value={resumeData.personalInfo.email}
+                    onChange={(value) => onPersonalInfoChange('email', value)}
+                    placeholder="john.doe@example.com"
+                    type="email"
+                    isVisible={true}
+                    onToggleVisibility={() => { }}
+                />
+                <InputFieldWithToggle
+                    label="Phone"
+                    value={resumeData.personalInfo.phone}
+                    onChange={(value) => onPersonalInfoChange('phone', value)}
+                    placeholder="(123) 456-7890"
+                    type="tel"
+                    isVisible={fieldVisibility['personalInfo.phone']}
+                    onToggleVisibility={() => toggleFieldVisibility('personalInfo.phone')}
                 />
             </div>
+            <InputFieldWithToggle
+                label="Location"
+                value={resumeData.personalInfo.location}
+                onChange={(value) => onPersonalInfoChange('location', value)}
+                placeholder="Country (e.g., United States)"
+                isVisible={fieldVisibility['personalInfo.location']}
+                onToggleVisibility={() => toggleFieldVisibility('personalInfo.location')}
+            />
             <div>
-                <label className="block text-sm font-medium text-indigo-700 mb-1.5">Social Links</label>
+                <label className="block text-sm font-medium text-indigo-700 mb-1.5 flex items-center justify-between">
+                    <span>Social Links</span>
+                    <FieldVisibilityToggle
+                        isVisible={fieldVisibility['personalInfo.socialLinks']}
+                        onToggle={() => toggleFieldVisibility('personalInfo.socialLinks')}
+                    />
+                </label>
                 <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3 text-sm">
                     <span className="font-semibold">Tip:</span> Add your professional social profiles to enhance your resume. Links will appear in the header.
                 </div>
@@ -188,7 +194,7 @@ const PersonalInfoSection = ({
                         {resumeData.personalInfo.socialLinks.map((link, index) => (
                             <div key={index} className="flex items-center space-x-2">
                                 <select
-                                    className={`p-2.5 border  bg-white${socialLinkErrors[index]?.label && link.platform === 'other' ? ' border-red-500' : ''}`}
+                                    className={`p-2.5 border border-slate-300 rounded-md transition-all bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500${socialLinkErrors[index]?.label && link.platform === 'other' ? ' border-red-500' : ''}`}
                                     value={link.platform}
                                     onChange={(e) => {
                                         const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
@@ -207,7 +213,7 @@ const PersonalInfoSection = ({
                                 </select>
                                 <input
                                     type="url"
-                                    className={`flex-1 p-2.5 border  bg-white${socialLinkErrors[index]?.url && socialLinkTouched[index]?.url ? ' border-red-500' : ''}`}
+                                    className={`flex-1 p-2.5 border border-slate-300 rounded-md transition-all bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500${socialLinkErrors[index]?.url && socialLinkTouched[index]?.url ? ' border-red-500' : ''}`}
                                     value={link.url}
                                     onChange={(e) => {
                                         const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
@@ -226,7 +232,7 @@ const PersonalInfoSection = ({
                                 {link.platform === 'other' && (
                                     <input
                                         type="text"
-                                        className={`w-24 p-2.5 border  bg-white${socialLinkErrors[index]?.label && socialLinkTouched[index]?.label ? ' border-red-500' : ''}`}
+                                        className={`w-24 p-2.5 border border-slate-300 rounded-md transition-all bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500${socialLinkErrors[index]?.label && socialLinkTouched[index]?.label ? ' border-red-500' : ''}`}
                                         value={link.label || ''}
                                         onChange={(e) => {
                                             const newLinks = [...(resumeData.personalInfo.socialLinks || [])];
@@ -259,18 +265,26 @@ const PersonalInfoSection = ({
                     </div>
                 )}
             </div>
-            {customizationOptions?.showSummary && <div>
-                <label className="block text-sm font-medium text-indigo-700 mb-1.5">Professional Summary</label>
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3 text-sm">
-                    <span className="font-semibold">Pro tip:</span> A concise, impactful summary is essential. Keep it to 2-3 sentences highlighting your expertise and career focus.
+            {customizationOptions?.showSummary && (
+                <div>
+                    <label className="block text-sm font-medium text-indigo-700 mb-1.5 flex items-center justify-between">
+                        <span>Professional Summary</span>
+                        <FieldVisibilityToggle
+                            isVisible={fieldVisibility['personalInfo.summary']}
+                            onToggle={() => toggleFieldVisibility('personalInfo.summary')}
+                        />
+                    </label>
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3 text-sm">
+                        <span className="font-semibold">Pro tip:</span> A concise, impactful summary is essential. Keep it to 2-3 sentences highlighting your expertise and career focus.
+                    </div>
+                    <RichTextEditor
+                        value={resumeData.personalInfo.summary}
+                        onChange={(value) => onPersonalInfoChange('summary', value)}
+                        placeholder="A brief summary of your professional background and goals..."
+                        rows={5}
+                    />
                 </div>
-                <RichTextEditor
-                    value={resumeData.personalInfo.summary}
-                    onChange={(value) => onPersonalInfoChange('summary', value)}
-                    placeholder="A brief summary of your professional background and goals..."
-                    rows={5}
-                />
-            </div>}
+            )}
         </div>
     );
 };
