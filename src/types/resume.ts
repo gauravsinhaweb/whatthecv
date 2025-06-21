@@ -531,7 +531,7 @@ export const templatePresets: Record<string, Partial<ResumeCustomizationOptions>
         },
         spacing: {
             fontSize: 10.5,
-            lineHeight: 1.5,
+            lineHeight: 1.3,
             sectionGap: 28,
             margins: { left: 14, right: 14, top: 14, bottom: 14 }
         },
@@ -556,53 +556,4 @@ export const templatePresets: Record<string, Partial<ResumeCustomizationOptions>
         },
         showSummary: true,
     },
-    executive: {
-        layout: {
-            templates: 'executive',
-            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills'],
-            sectionTitles: {
-                personalInfo: 'Executive Profile',
-                workExperience: 'Executive Experience',
-                education: 'Education & Certifications',
-                skills: 'Leadership Competencies'
-            },
-            visibleSections: {
-                personalInfo: true,
-                workExperience: true,
-                education: true,
-                skills: true,
-                projects: false
-            }
-        },
-        colors: {
-            accent: '#000000',
-            text: '#1a202c',
-            headings: '#000000',
-        },
-        spacing: {
-            fontSize: 12,
-            lineHeight: 1.4,
-            sectionGap: 26,
-            margins: { left: 16, right: 16, top: 16, bottom: 16 }
-        },
-        font: {
-            family: 'serif',
-            specificFont: 'Baskerville',
-        },
-        header: {
-            nameSize: 'xl',
-            nameBold: true,
-            jobTitleSize: 'l',
-            showPhoto: false,
-            headerFont: 'Times New Roman',
-            alignment: 'center',
-        },
-        sectionTitles: {
-            size: 'l',
-            style: 'uppercase',
-            bold: true,
-            decoration: 'fullBorder',
-        },
-        showSummary: true,
-    }
 }; 
