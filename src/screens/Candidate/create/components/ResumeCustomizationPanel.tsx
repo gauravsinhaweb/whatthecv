@@ -252,7 +252,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                                 />
                                             </div>
                                         </div>
-                                        <span className="absolute bottom-2 right-2 bg-gradient-to-r from-pink-400 to-purple-600 text-white text-[10px] font-semibold px-3 py-1 shadow-md z-10" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 80%)' }}>Most popular</span>
+                                        <span className="absolute bottom-2 right-2 bg-gradient-to-r from-blue-400 to-indigo-600 text-white text-[10px] font-semibold px-3 py-1 shadow-md z-10" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 80%)' }}>Recommended</span>
                                     </button>
                                     <button
                                         onClick={() => handleChange('layout', 'templates', 'modern')}
@@ -303,7 +303,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                             : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
                                             }`}
                                     >
-                                        <div className="h-full flex flex-col">
+                                        <div className="relative h-full flex flex-col">
                                             <div className="flex items-center justify-between p-2 border-b border-slate-100">
                                                 <Briefcase className="w-4 h-4 text-slate-600" />
                                                 <span className="text-xs font-medium text-slate-700">Professional</span>
@@ -315,6 +315,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                                     className="w-full h-full aspect-[210/297] object-cover rounded-b"
                                                 />
                                             </div>
+                                            <span className="absolute bottom-2 right-2 bg-gradient-to-r from-pink-400 to-purple-600 text-white text-[10px] font-semibold px-3 py-1 shadow-md z-10" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 80%)' }}>Most popular</span>
                                         </div>
                                     </button>
                                     <button
@@ -338,27 +339,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                             </div>
                                         </div>
                                     </button>
-                                    <button
-                                        onClick={() => handleChange('layout', 'templates', 'executive')}
-                                        className={`flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'executive'
-                                            ? 'border-blue-200 shadow-lg'
-                                            : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
-                                            }`}
-                                    >
-                                        <div className="h-full flex flex-col">
-                                            <div className="flex items-center justify-between p-2 border-b border-slate-100">
-                                                <Crown className="w-4 h-4 text-slate-600" />
-                                                <span className="text-xs font-medium text-slate-700">Executive</span>
-                                            </div>
-                                            <div className="flex-1 relative">
-                                                <img
-                                                    src={ClassicSingleColumnTemplate}
-                                                    alt="Executive Template"
-                                                    className="w-full h-full aspect-[210/297] object-cover rounded-b"
-                                                />
-                                            </div>
-                                        </div>
-                                    </button>
+
                                 </div>
                             </div>
                         </div>
@@ -517,7 +498,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                 size="md"
                             />
 
-                            <div>
+                            {/* <div>
                                 <div className="flex items-center">
                                     <input
                                         type="checkbox"
@@ -581,7 +562,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                         />
                                     </div>
                                 )}
-                            </div>
+                            </div> */}
 
                             <div>
                                 <h4 className="block text-base font-medium text-slate-700">Social Icons</h4>

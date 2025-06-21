@@ -41,7 +41,7 @@ const PersonalInfoSection = ({
 
     return (
         <div className="space-y-5">
-            <div className="flex justify-between items-center">
+            {/* <div className="flex justify-between items-center">
                 <div className="flex items-center">
                     <input
                         type="checkbox"
@@ -66,7 +66,7 @@ const PersonalInfoSection = ({
                         Include Profile Picture
                     </label>
                 </div>
-            </div>
+            </div> */}
             <div className="flex items-center mt-2">
                 <input
                     type="checkbox"

@@ -651,7 +651,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     </div>
 
                     {/* Profile picture or initials - only show if enabled in customization */}
-                    {customizationOptions.header.showPhoto ? (
+                    {/* {customizationOptions.header.showPhoto ? (
                         resumeData.personalInfo.profilePicture && resumeData.personalInfo.profilePicture.startsWith('data:image') ? (
                             <div
                                 className={`overflow-hidden mt-4 md:mt-0 ${customizationOptions.header.photoSize === 'small' ? 'w-16 h-16' :
@@ -695,7 +695,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 {getInitials}
                             </div>
                         )
-                    ) : null}
+                    ) : null} */}
                 </div>
 
                 <div className={`flex flex-col ${isTwoColumnLayout() ? 'md:flex-row gap-6' : ''}`} data-id="resume-body">
@@ -897,7 +897,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                     </div>
                                                     <div>
                                                         <p>
-                                                            {category.skills.join(', ')}
+                                                            {Array.isArray(category.skills) ? category.skills.join(', ') : ''}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -989,7 +989,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                     </div>
                                                     <div className="w-3/5">
                                                         <p>
-                                                            {category.skills.join(', ')}
+                                                            {Array.isArray(category.skills) ? category.skills.join(', ') : ''}
                                                         </p>
                                                     </div>
                                                 </div>
