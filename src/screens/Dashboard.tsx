@@ -161,35 +161,117 @@ const Dashboard = () => {
                                 platform: (link.platform.toLowerCase() === 'peerlist' ? 'other' : link.platform.toLowerCase()) as "linkedin" | "github" | "twitter" | "leetcode" | "medium" | "stackoverflow" | "other"
                             }))
                         },
-                        workExperience: (resume.content?.workExperience || []).map(exp => ({
-                            ...exp,
-                            location: exp.location || '',
-                            startDate: exp.startDate || '',
-                            endDate: exp.endDate || '',
-                            description: exp.description || '',
-                            current: exp.current || false
-                        })),
-                        education: (resume.content?.education || []).map(edu => ({
-                            ...edu,
-                            location: edu.location || '',
-                            startDate: edu.startDate || '',
-                            endDate: edu.endDate || '',
-                            description: edu.description || ''
-                        })),
-                        skills: resume.content?.skills || [],
-                        projects: (resume.content?.projects || []).map(project => ({
-                            ...project,
-                            description: project.description || '',
-                            technologies: project.technologies || '',
-                            link: project.link || '',
-                            startDate: project.startDate || '',
-                            endDate: project.endDate || ''
-                        }))
+                        workExperience: (resume.content?.workExperience || []).map(exp => {
+                            const newExp = exp as any
+                            return {
+                                id: newExp.id || '',
+                                position: newExp.position || '',
+                                company: newExp.company || '',
+                                location: newExp.location || '',
+                                startMonth: newExp.startMonth || '',
+                                startYear: newExp.startYear || '',
+                                endMonth: newExp.endMonth || '',
+                                endYear: newExp.endYear || '',
+                                current: newExp.current || false,
+                                showStartMonth: newExp.showStartMonth !== false,
+                                showEndMonth: newExp.showEndMonth !== false,
+                                description: newExp.description || '',
+                                experienceLink: newExp.experienceLink
+                            }
+                        }),
+                        education: (resume.content?.education || []).map(edu => {
+                            const newEdu = edu as any
+                            return {
+                                id: newEdu.id || '',
+                                degree: newEdu.degree || '',
+                                institution: newEdu.institution || '',
+                                location: newEdu.location || '',
+                                startMonth: newEdu.startMonth || '',
+                                startYear: newEdu.startYear || '',
+                                endMonth: newEdu.endMonth || '',
+                                endYear: newEdu.endYear || '',
+                                current: newEdu.current || false,
+                                showStartMonth: newEdu.showStartMonth !== false,
+                                showEndMonth: newEdu.showEndMonth !== false,
+                                description: newEdu.description || '',
+                                degreeLink: newEdu.degreeLink,
+                                institutionLink: newEdu.institutionLink
+                            }
+                        }),
+                        skills: (() => {
+                            const skillsData = resume.content?.skills;
+                            if (!skillsData) return [];
+
+                            // Ensure skills have the correct SkillCategory structure
+                            if (Array.isArray(skillsData)) {
+                                return skillsData
+                                    .filter(skill => skill !== null && skill !== undefined)
+                                    .map((skill, index) => {
+                                        // If it's already a SkillCategory object with correct structure
+                                        if (typeof skill === 'object' && skill && 'id' in skill && 'name' in skill && 'skills' in skill) {
+                                            return skill as any;
+                                        }
+
+                                        // If it's a string, convert to SkillCategory
+                                        if (typeof skill === 'string') {
+                                            return { id: `skill-${index}`, name: skill, skills: [skill] };
+                                        }
+
+                                        // If it's an object but missing required fields, fix it
+                                        if (typeof skill === 'object') {
+                                            const skillObj = skill as any;
+                                            return {
+                                                id: skillObj.id || `skill-${index}`,
+                                                name: skillObj.name || 'Technical Skills',
+                                                skills: skillObj.skills || [skillObj.name || '']
+                                            };
+                                        }
+
+                                        return { id: `skill-${index}`, name: 'Technical Skills', skills: [] };
+                                    });
+                            }
+
+                            return [];
+                        })(),
+                        projects: (resume.content?.projects || []).map(project => {
+                            const newProject = project as any
+                            return {
+                                id: newProject.id || '',
+                                name: newProject.name || '',
+                                description: newProject.description || '',
+                                technologies: newProject.technologies || '',
+                                link: newProject.link || '',
+                                startMonth: newProject.startMonth || '',
+                                startYear: newProject.startYear || '',
+                                endMonth: newProject.endMonth || '',
+                                endYear: newProject.endYear || '',
+                                current: newProject.current || false,
+                                showStartMonth: newProject.showStartMonth !== false,
+                                showEndMonth: newProject.showEndMonth !== false
+                            }
+                        }),
+                        achievements: (resume.content as any)?.achievements || [],
+                        publications: (resume.content as any)?.publications || [],
+                        certifications: (resume.content as any)?.certifications || []
                     },
-                    customizationOptions: {
-                        ...defaultCustomizationOptions,
-                        ...(resume.customization_options || {})
-                    }
+                    customizationOptions: (() => {
+                        const savedOptions = resume.customization_options || {};
+                        const mergedOptions = { ...defaultCustomizationOptions };
+
+                        // Deep merge the saved options with defaults
+                        Object.keys(savedOptions).forEach(key => {
+                            if (typeof savedOptions[key] === 'object' && savedOptions[key] !== null && !Array.isArray(savedOptions[key])) {
+                                mergedOptions[key] = {
+                                    ...mergedOptions[key],
+                                    ...savedOptions[key]
+                                };
+                            } else {
+                                mergedOptions[key] = savedOptions[key];
+                            }
+                        });
+
+                        return mergedOptions;
+                    })()
                 })))
             } catch (error) {
                 console.error('Failed to fetch resumes:', error)
@@ -230,31 +312,81 @@ const Dashboard = () => {
                 position: exp.position,
                 company: exp.company,
                 location: exp.location,
-                startDate: exp.startDate,
-                endDate: exp.endDate,
+                startMonth: exp.startMonth,
+                startYear: exp.startYear,
+                endMonth: exp.endMonth,
+                endYear: exp.endYear,
                 current: exp.current,
-                description: exp.description,
-                experienceLink: exp.experienceLink
+                showStartMonth: exp.showStartMonth,
+                showEndMonth: exp.showEndMonth,
+                description: exp.description
             })),
             education: resume.resumeData.education.map(edu => ({
                 id: edu.id,
                 degree: edu.degree,
                 institution: edu.institution,
                 location: edu.location,
-                startDate: edu.startDate,
-                endDate: edu.endDate,
-                description: edu.description,
-                degreeLink: edu.degreeLink,
-                institutionLink: edu.institutionLink
+                startMonth: edu.startMonth,
+                startYear: edu.startYear,
+                endMonth: edu.endMonth,
+                endYear: edu.endYear,
+                current: edu.current,
+                showStartMonth: edu.showStartMonth,
+                showEndMonth: edu.showEndMonth,
+                description: edu.description
             })),
-            skills: resume.resumeData.skills,
+            skills: (() => {
+                const skillsData = resume.resumeData.skills;
+                if (!skillsData) return [];
+
+                // Ensure skills have the correct SkillCategory structure
+                if (Array.isArray(skillsData)) {
+                    return skillsData
+                        .filter(skill => skill !== null && skill !== undefined)
+                        .map((skill, index) => {
+                            // If it's already a SkillCategory object with correct structure
+                            if (typeof skill === 'object' && skill && 'id' in skill && 'name' in skill && 'skills' in skill) {
+                                return skill as any;
+                            }
+
+                            // If it's a string, convert to SkillCategory
+                            if (typeof skill === 'string') {
+                                return { id: `skill-${index}`, name: skill, skills: [skill] };
+                            }
+
+                            // If it's an object but missing required fields, fix it
+                            if (typeof skill === 'object') {
+                                const skillObj = skill as any;
+                                return {
+                                    id: skillObj.id || `skill-${index}`,
+                                    name: skillObj.name || 'Technical Skills',
+                                    skills: skillObj.skills || [skillObj.name || '']
+                                };
+                            }
+
+                            return { id: `skill-${index}`, name: 'Technical Skills', skills: [] };
+                        });
+                }
+
+                return [];
+            })(),
             projects: resume.resumeData.projects.map(proj => ({
                 id: proj.id,
                 name: proj.name,
                 description: proj.description,
                 technologies: proj.technologies,
-                link: proj.link
-            }))
+                link: proj.link,
+                startMonth: proj.startMonth,
+                startYear: proj.startYear,
+                endMonth: proj.endMonth,
+                endYear: proj.endYear,
+                current: proj.current,
+                showStartMonth: proj.showStartMonth,
+                showEndMonth: proj.showEndMonth
+            })),
+            achievements: resume.resumeData.achievements,
+            publications: resume.resumeData.publications,
+            certifications: resume.resumeData.certifications
         }
 
         setResumeData(resumeData)
@@ -309,9 +441,13 @@ const Dashboard = () => {
                     position: exp.position,
                     company: exp.company,
                     location: exp.location,
-                    startDate: exp.startDate,
-                    endDate: exp.endDate,
+                    startMonth: exp.startMonth,
+                    startYear: exp.startYear,
+                    endMonth: exp.endMonth,
+                    endYear: exp.endYear,
                     current: exp.current,
+                    showStartMonth: exp.showStartMonth,
+                    showEndMonth: exp.showEndMonth,
                     description: exp.description
                 })),
                 education: resume.resumeData.education.map(edu => ({
@@ -319,18 +455,67 @@ const Dashboard = () => {
                     degree: edu.degree,
                     institution: edu.institution,
                     location: edu.location,
-                    startDate: edu.startDate,
-                    endDate: edu.endDate,
+                    startMonth: edu.startMonth,
+                    startYear: edu.startYear,
+                    endMonth: edu.endMonth,
+                    endYear: edu.endYear,
+                    current: edu.current,
+                    showStartMonth: edu.showStartMonth,
+                    showEndMonth: edu.showEndMonth,
                     description: edu.description
                 })),
-                skills: resume.resumeData.skills,
+                skills: (() => {
+                    const skillsData = resume.resumeData.skills;
+                    if (!skillsData) return [];
+
+                    // Ensure skills have the correct SkillCategory structure
+                    if (Array.isArray(skillsData)) {
+                        return skillsData
+                            .filter(skill => skill !== null && skill !== undefined)
+                            .map((skill, index) => {
+                                // If it's already a SkillCategory object with correct structure
+                                if (typeof skill === 'object' && skill && 'id' in skill && 'name' in skill && 'skills' in skill) {
+                                    return skill as any;
+                                }
+
+                                // If it's a string, convert to SkillCategory
+                                if (typeof skill === 'string') {
+                                    return { id: `skill-${index}`, name: skill, skills: [skill] };
+                                }
+
+                                // If it's an object but missing required fields, fix it
+                                if (typeof skill === 'object') {
+                                    const skillObj = skill as any;
+                                    return {
+                                        id: skillObj.id || `skill-${index}`,
+                                        name: skillObj.name || 'Technical Skills',
+                                        skills: skillObj.skills || [skillObj.name || '']
+                                    };
+                                }
+
+                                return { id: `skill-${index}`, name: 'Technical Skills', skills: [] };
+                            });
+                    }
+
+                    return [];
+                })(),
                 projects: resume.resumeData.projects.map(proj => ({
                     id: proj.id,
                     name: proj.name,
                     description: proj.description,
                     technologies: proj.technologies,
-                    link: proj.link
-                }))
+                    link: proj.link,
+                    startMonth: proj.startMonth,
+                    startYear: proj.startYear,
+                    endMonth: proj.endMonth,
+                    endYear: proj.endYear,
+                    current: proj.current,
+                    showStartMonth: proj.showStartMonth,
+                    showEndMonth: proj.showEndMonth
+                })),
+                achievements: resume.resumeData.achievements,
+                publications: resume.resumeData.publications,
+                certifications: resume.resumeData.certifications
             }
 
             await saveDraft(enhancedResumeData, newTitle, resume.customizationOptions, resumeId)
