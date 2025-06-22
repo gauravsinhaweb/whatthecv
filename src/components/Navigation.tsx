@@ -26,7 +26,7 @@ const Navigation: React.FC = () => {
   const currentPage = getPageFromPath(location.pathname);
   const isCreateResumePage = location.pathname === '/create-resume';
   const { user, isAuthenticated, setUser, setIsAuthenticated, setLoginError } = useUserStore();
-  const { resetStore, resumeData, isSavingDraft, saveAsDraft, selectedDocument, lastSavedDraftId, isAutoSaving, lastSavedTime, customizationOptions } = useResumeStore();
+  const { resetStore, resumeData, isSavingDraft, saveAsDraft, selectedDocument, isAutoSaving, lastSavedTime, customizationOptions } = useResumeStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -141,11 +141,10 @@ const Navigation: React.FC = () => {
   };
 
   const handleSaveClick = () => {
-    const { selectedDocument, lastSavedDraftId } = useResumeStore.getState();
+    const { selectedDocument } = useResumeStore.getState();
 
-    // If we have a lastSavedDraftId, it means this resume has been saved before
-    // or if we have a selected document with a meaningful title
-    if (lastSavedDraftId || (selectedDocument?.title && selectedDocument.title !== 'Untitled')) {
+    // If we have a selected document with a meaningful title, save directly
+    if (selectedDocument?.title && selectedDocument.title !== 'Untitled') {
       handleSaveDraftDirect();
     } else {
       // For new resumes or untitled resumes, show the modal
@@ -305,10 +304,12 @@ const Navigation: React.FC = () => {
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {isCreateResumePage ? (
               <div className="flex items-center space-x-3">
-                <AutoSaveIndicator
-                  isAutoSaving={isAutoSaving}
-                  lastSavedTime={lastSavedTime}
-                />
+                {(selectedDocument?.title) && (
+                  <AutoSaveIndicator
+                    isAutoSaving={isAutoSaving}
+                    lastSavedTime={lastSavedTime}
+                  />
+                )}
                 <button
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   onClick={handleExportPDF}
@@ -444,10 +445,12 @@ const Navigation: React.FC = () => {
             {isCreateResumePage && (
               <>
                 <div className="px-4 py-3 border-b border-slate-200">
-                  <AutoSaveIndicator
-                    isAutoSaving={isAutoSaving}
-                    lastSavedTime={lastSavedTime}
-                  />
+                  {(selectedDocument?.title) && (
+                    <AutoSaveIndicator
+                      isAutoSaving={isAutoSaving}
+                      lastSavedTime={lastSavedTime}
+                    />
+                  )}
                 </div>
                 <button
                   onClick={handleExportPDF}

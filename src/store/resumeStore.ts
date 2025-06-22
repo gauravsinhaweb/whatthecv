@@ -553,8 +553,11 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 },
                 workExperience: resumeData.workExperience,
                 education: resumeData.education,
-                skills: resumeData.skills.flatMap(category => category.skills),
-                projects: resumeData.projects
+                skills: resumeData.skills,
+                projects: resumeData.projects,
+                achievements: resumeData.achievements,
+                publications: resumeData.publications,
+                certifications: resumeData.certifications
             };
 
             // Use provided title or generate a default one
@@ -575,6 +578,19 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     lastSavedTime: null,
     autoSaveDraft: async () => {
         const { resumeData, selectedDocument, lastSavedDraftId } = get();
+
+        // Only auto-save if we have an existing resume
+        if (!selectedDocument && !lastSavedDraftId) {
+            console.log('Auto-save skipped: No existing resume to update');
+            return;
+        }
+
+        // For auto-save, we must have the original title from selectedDocument
+        if (!selectedDocument?.title) {
+            console.log('Auto-save skipped: No original title found');
+            return;
+        }
+
         set({ isAutoSaving: true });
         try {
             // Convert ResumeData to EnhancedResumeData format
@@ -590,18 +606,22 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 },
                 workExperience: resumeData.workExperience,
                 education: resumeData.education,
-                skills: resumeData.skills.flatMap(category => category.skills),
-                projects: resumeData.projects
+                skills: resumeData.skills,
+                projects: resumeData.projects,
+                achievements: resumeData.achievements,
+                publications: resumeData.publications,
+                certifications: resumeData.certifications
             };
 
             // Use existing document ID for auto-save (update existing resume)
-            const documentId = selectedDocument?.id || lastSavedDraftId;
+            const documentId = selectedDocument.id;
 
-            // Use existing title or create a simple auto-save title
-            const resumeTitle = selectedDocument?.title || `Auto-saved ${new Date().toLocaleString()}`;
+            // Always preserve the exact original title for auto-save
+            const resumeTitle = selectedDocument.title;
 
             const response = await saveDraft(enhancedData, resumeTitle, get().customizationOptions, documentId);
             set({ lastSavedDraftId: response.id, lastSavedTime: new Date() });
+            console.log('Auto-save completed successfully with original title:', resumeTitle);
         } catch (error) {
             console.error('Error auto-saving draft:', error);
             throw error;
@@ -612,100 +632,107 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
     setLastSavedTime: (time: Date | null) => set({ lastSavedTime: time }),
 
-    resetStore: () => set({
-        documents: [],
-        selectedDocument: null,
-        resumeData: {
-            ...initialResumeData,
-            skills: (initialResumeData.skills as any[]).map((cat) => ({
-                id: cat.id,
-                name: cat.name,
-                skills: [...cat.skills]
-            }))
-        },
-        enhancedResumeData: null,
-        customizationOptions: defaultCustomizationOptions,
-        isEnhancing: false,
-        enhancementStage: 'extracting',
-        activeSection: 'personalInfo',
-        expandedSections: {
-            personalInfo: true,
-            workExperience: false,
-            education: false,
-            skills: false,
-            projects: false,
-            achievements: false,
-            publications: false,
-            certifications: false,
-        },
-        previewScale: 70,
-        isSavingDraft: false,
-        lastSavedDraftId: null,
-        isAutoSaving: false,
-        lastSavedTime: null,
-        fieldVisibility: {
-            // Personal Info fields
-            'personalInfo.phone': true,
-            'personalInfo.location': true,
-            'personalInfo.socialLinks': true,
-            'personalInfo.summary': true,
+    resetStore: () => {
+        // First clear all data including enhancedResumeData
+        set({
+            documents: [],
+            selectedDocument: null,
+            enhancedResumeData: null,
+            isEnhancing: false,
+            enhancementStage: 'extracting',
+            isSavingDraft: false,
+            lastSavedDraftId: null,
+            isAutoSaving: false,
+            lastSavedTime: null,
+        });
 
-            // Work Experience fields
-            'workExperience.experienceLink': true,
-            'workExperience.location': true,
-            'workExperience.startMonth': true,
-            'workExperience.startYear': true,
-            'workExperience.endMonth': true,
-            'workExperience.endYear': true,
-            'workExperience.description': true,
+        // Then set the default resume data and customization options
+        set({
+            resumeData: {
+                ...initialResumeData,
+                skills: (initialResumeData.skills as any[]).map((cat) => ({
+                    id: cat.id,
+                    name: cat.name,
+                    skills: [...cat.skills]
+                }))
+            },
+            customizationOptions: defaultCustomizationOptions,
+            activeSection: 'personalInfo',
+            expandedSections: {
+                personalInfo: true,
+                workExperience: false,
+                education: false,
+                skills: false,
+                projects: false,
+                achievements: false,
+                publications: false,
+                certifications: false,
+            },
+            previewScale: 70,
+            fieldVisibility: {
+                // Personal Info fields
+                'personalInfo.phone': true,
+                'personalInfo.location': true,
+                'personalInfo.socialLinks': true,
+                'personalInfo.summary': true,
 
-            // Education fields
-            'education.institutionLink': true,
-            'education.location': true,
-            'education.startMonth': true,
-            'education.startYear': true,
-            'education.endMonth': true,
-            'education.endYear': true,
-            'education.description': true,
+                // Work Experience fields
+                'workExperience.experienceLink': true,
+                'workExperience.location': true,
+                'workExperience.startMonth': true,
+                'workExperience.startYear': true,
+                'workExperience.endMonth': true,
+                'workExperience.endYear': true,
+                'workExperience.description': true,
 
-            // Skills fields
-            'skills.format': true,
+                // Education fields
+                'education.institutionLink': true,
+                'education.location': true,
+                'education.startMonth': true,
+                'education.startYear': true,
+                'education.endMonth': true,
+                'education.endYear': true,
+                'education.description': true,
 
-            // Projects fields
-            'projects.link': true,
-            'projects.technologies': true,
-            'projects.startMonth': true,
-            'projects.startYear': true,
-            'projects.endMonth': true,
-            'projects.endYear': true,
+                // Skills fields
+                'skills.format': true,
 
-            // Achievements fields
-            'achievements.organization': true,
-            'achievements.description': true,
-            'achievements.link': true,
-            'achievements.month': true,
-            'achievements.year': true,
+                // Projects fields
+                'projects.link': true,
+                'projects.technologies': true,
+                'projects.startMonth': true,
+                'projects.startYear': true,
+                'projects.endMonth': true,
+                'projects.endYear': true,
 
-            // Publications fields
-            'publications.authors': true,
-            'publications.journal': true,
-            'publications.doi': true,
-            'publications.link': true,
-            'publications.description': true,
-            'publications.month': true,
-            'publications.year': true,
+                // Achievements fields
+                'achievements.organization': true,
+                'achievements.description': true,
+                'achievements.link': true,
+                'achievements.month': true,
+                'achievements.year': true,
 
-            // Certifications fields
-            'certifications.issuer': true,
-            'certifications.credentialId': true,
-            'certifications.link': true,
-            'certifications.description': true,
-            'certifications.month': true,
-            'certifications.year': true,
-            'certifications.expiryMonth': true,
-            'certifications.expiryYear': true,
-        },
-    }),
+                // Publications fields
+                'publications.authors': true,
+                'publications.journal': true,
+                'publications.doi': true,
+                'publications.link': true,
+                'publications.description': true,
+                'publications.month': true,
+                'publications.year': true,
+
+                // Certifications fields
+                'certifications.issuer': true,
+                'certifications.credentialId': true,
+                'certifications.link': true,
+                'certifications.description': true,
+                'certifications.month': true,
+                'certifications.year': true,
+                'certifications.expiryMonth': true,
+                'certifications.expiryYear': true,
+            },
+        });
+    },
 
     addSkillCategory: (name) => set((state) => {
         const newId = (Date.now() + Math.random()).toString();

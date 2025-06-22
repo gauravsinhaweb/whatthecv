@@ -25,12 +25,15 @@ const CreateResume: React.FC = () => {
         isAutoSaving,
         lastSavedTime
     } = useResumeState();
-    const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft } = useResumeStore();
+    const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft, selectedDocument } = useResumeStore();
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+    // Check if this is an existing resume (has been saved before with a title)
+    const isExistingResume = selectedDocument?.title;
 
     const setPreviewScaleRef = useRef(handlers.setPreviewScale);
     setPreviewScaleRef.current = handlers.setPreviewScale;
@@ -73,22 +76,22 @@ const CreateResume: React.FC = () => {
         };
     }, []);
 
-    // Track unsaved changes when resume data changes
+    // Track unsaved changes when resume data changes (only for existing resumes)
     useEffect(() => {
-        if (resumeData) {
+        if (resumeData && isExistingResume) {
             setHasUnsavedChanges(true);
         }
-    }, [resumeData]);
+    }, [resumeData, isExistingResume]);
 
-    // Reset unsaved changes when auto-save occurs
+    // Reset unsaved changes when auto-save occurs (only for existing resumes)
     useEffect(() => {
-        if (lastSavedTime) {
+        if (lastSavedTime && isExistingResume) {
             setHasUnsavedChanges(false);
         }
-    }, [lastSavedTime]);
+    }, [lastSavedTime, isExistingResume]);
 
-    // Check if there are actually unsaved changes (more recent than last save)
-    const hasActualUnsavedChanges = hasUnsavedChanges && (!lastSavedTime ||
+    // Check if there are actually unsaved changes (more recent than last save) - only for existing resumes
+    const hasActualUnsavedChanges = isExistingResume && hasUnsavedChanges && (!lastSavedTime ||
         new Date().getTime() - lastSavedTime.getTime() > 5000); // 5 seconds buffer
 
     // Push a dummy state to the history when component mounts
@@ -96,7 +99,7 @@ const CreateResume: React.FC = () => {
         window.history.pushState(null, '', window.location.pathname);
     }, []);
 
-    // Handle back button and history navigation
+    // Handle back button and history navigation (only for existing resumes)
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
             if (hasActualUnsavedChanges && !isSavingDraft) {
@@ -121,7 +124,7 @@ const CreateResume: React.FC = () => {
         };
     }, [hasActualUnsavedChanges, isSavingDraft, navigate]);
 
-    // Handle beforeunload event to show confirmation dialog
+    // Handle beforeunload event to show confirmation dialog (only for existing resumes)
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (hasActualUnsavedChanges && !isSavingDraft) {
@@ -227,12 +230,19 @@ const CreateResume: React.FC = () => {
     const handleSaveDraft = async () => {
         try {
             await saveAsDraft();
-            setHasUnsavedChanges(false);
-            toast.success('Draft saved successfully');
+            if (isExistingResume) {
+                setHasUnsavedChanges(false);
+                toast.success('Draft saved successfully');
+            } else {
+                toast.success('Resume saved successfully');
+            }
         } catch (error) {
             toast.error('Failed to save draft');
         }
     };
+
+    // Show auto-save status
+    const showAutoSaveStatus = isExistingResume && (isAutoSaving || lastSavedTime);
 
     return (
         <div className="h-full flex flex-col overflow-hidden">
