@@ -1,6 +1,5 @@
-import { Brush, Laptop, Pen } from 'lucide-react';
+import { Brush, Pen } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 import { useResumeState } from '../../../hooks/useResumeState';
@@ -226,23 +225,6 @@ const CreateResume: React.FC = () => {
         setIsExportModalOpen(false);
         exportResumeToPDF(resumeData, customizationOptions);
     };
-
-    const handleSaveDraft = async () => {
-        try {
-            await saveAsDraft();
-            if (isExistingResume) {
-                setHasUnsavedChanges(false);
-                toast.success('Draft saved successfully');
-            } else {
-                toast.success('Resume saved successfully');
-            }
-        } catch (error) {
-            toast.error('Failed to save draft');
-        }
-    };
-
-    // Show auto-save status
-    const showAutoSaveStatus = isExistingResume && (isAutoSaving || lastSavedTime);
 
     return (
         <div className="h-full flex flex-col overflow-hidden">
