@@ -26,11 +26,12 @@ export const getEditorProps = (
         onWorkExperienceChange: handlers.handleWorkExperienceChange,
         onEducationChange: handlers.handleEducationChange,
         onProjectChange: handlers.handleProjectChange,
-        onSkillChange: {
-            addSkill: handlers.addSkill,
-            removeSkill: handlers.removeSkill,
-            setSkillInput: handlers.setSkillInput,
-            skillInput: handlers.skillInput,
+        onSkillCategoryChange: {
+            addCategory: handlers.addSkillCategory,
+            removeCategory: handlers.removeSkillCategory,
+            addSkill: handlers.addSkillToCategory,
+            removeSkill: handlers.removeSkillFromCategory,
+            renameCategory: handlers.updateSkillCategoryName,
         },
         onSectionToggle: handlers.toggleSection,
         onSectionEdit: handlers.editSection,
@@ -44,7 +45,6 @@ export const getEditorProps = (
             removeEducation: handlers.removeEducation,
             removeProject: handlers.removeProject,
         },
-        onSkillInputKeyDown: handlers.handleSkillInputKeyDown,
     };
 };
 
@@ -54,10 +54,8 @@ export const renderPreviewContainer = (
     previewScale: number,
     setIsFullScreenPreview: (isFullScreen: boolean) => void
 ) => {
-    // Create a more specific key for header-related options to ensure re-renders
     const customizationKey = JSON.stringify({
         ...customizationOptions,
-        // Explicitly include header options to ensure they trigger re-renders
         header: {
             nameSize: customizationOptions.header.nameSize,
             nameBold: customizationOptions.header.nameBold,
@@ -69,18 +67,19 @@ export const renderPreviewContainer = (
     return React.createElement(
         'div',
         {
-            className: "transform origin-top transition-transform duration-200 ease-in-out print-container",
+            className: "transform origin-top transition-transform duration-200 ease-in-out print-container preview-scale-container",
             onClick: () => setIsFullScreenPreview(true),
             style: {
-                transform: `scale(${previewScale / 100})`,
                 maxWidth: '210mm',
                 minHeight: '297mm',
                 aspectRatio: '1 / 1.414',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                transform: `scale(${previewScale})`,
+                transformOrigin: 'top center',
+                willChange: 'transform',
             }
         },
         React.createElement(ResumePreview, {
-            key: customizationKey, // Force re-render when any customization option changes
+            key: customizationKey,
             resumeData,
             customizationOptions,
             previewScale

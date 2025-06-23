@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useResumeStore } from '../store/resumeStore';
 import { saveResumeData, saveCompleteResumeData } from '../utils/resumeSaveUtils';
 import { formatBulletPoints, formatAllDescriptions } from '../utils/resumeFormatUtils';
@@ -20,8 +20,11 @@ export const useResumeState = () => {
         removeWorkExperience,
         removeEducation,
         removeProject,
-        addSkill,
-        removeSkill,
+        addSkillCategory,
+        removeSkillCategory,
+        addSkillToCategory,
+        removeSkillFromCategory,
+        updateSkillCategoryName,
 
         // UI state
         activeSection,
@@ -38,10 +41,40 @@ export const useResumeState = () => {
         // Customization
         customizationOptions,
         setCustomizationOptions,
+
+        // Auto-save state
+        isAutoSaving,
+        lastSavedTime,
+        autoSaveDraft,
+        setLastSavedTime,
+
+        // Draft state
+        selectedDocument,
+        lastSavedDraftId,
     } = useResumeStore();
 
     // Local state for skill input (keep this in component level as it's purely UI input state)
-    const [skillInput, setSkillInput] = useState('');
+    const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Auto-save functionality
+    const triggerAutoSave = useCallback(() => {
+        if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current);
+        }
+
+        autoSaveTimeoutRef.current = setTimeout(async () => {
+            try {
+                // Only auto-save existing resumes (not new ones)
+                const isExistingResume = selectedDocument || lastSavedDraftId;
+
+                if (isExistingResume) {
+                    await autoSaveDraft();
+                }
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }, 2000);
+    }, [autoSaveDraft, selectedDocument, lastSavedDraftId]);
 
     // Auto-format bullet points when editing descriptions
     useEffect(() => {
@@ -51,13 +84,21 @@ export const useResumeState = () => {
         }
     }, [resumeData, setResumeData]);
 
-    const handleSkillInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addSkill(skillInput);
-            setSkillInput('');
+    // Trigger auto-save when resume data changes (but only for existing resumes)
+    useEffect(() => {
+        // Only trigger auto-save for existing resumes
+        const isExistingResume = selectedDocument || lastSavedDraftId;
+
+        if (isExistingResume && resumeData && Object.keys(resumeData).length > 0) {
+            triggerAutoSave();
         }
-    }, [addSkill, skillInput]);
+
+        return () => {
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current);
+            }
+        };
+    }, [resumeData, triggerAutoSave, selectedDocument, lastSavedDraftId]);
 
     const handlePersonalInfoChange = useCallback((field: string, value: string) => {
         // Handle socialLinks as a special case since it comes as a JSON string
@@ -97,13 +138,6 @@ export const useResumeState = () => {
         updateProject(id, field, value);
     }, [updateProject]);
 
-    const handleAddSkill = useCallback(() => {
-        if (skillInput.trim()) {
-            addSkill(skillInput);
-            setSkillInput('');
-        }
-    }, [skillInput, addSkill]);
-
     const saveResume = useCallback(() => {
         // Format all descriptions before saving
         const formattedData = formatAllDescriptions(resumeData);
@@ -119,7 +153,24 @@ export const useResumeState = () => {
     const handleSaveAsDraft = useCallback(() => {
         // Format all descriptions before saving
         const formattedData = formatAllDescriptions(resumeData);
-        saveResumeDraft(formattedData, customizationOptions);
+
+        // Convert ResumeData to EnhancedResumeData format
+        const enhancedData = {
+            personalInfo: {
+                ...formattedData.personalInfo,
+                profilePicture: formattedData.personalInfo.profilePicture || null,
+                socialLinks: formattedData.personalInfo.socialLinks?.map(link => ({
+                    ...link,
+                    platform: link.platform === 'peerlist' ? 'other' : link.platform
+                })) || []
+            },
+            workExperience: formattedData.workExperience,
+            education: formattedData.education,
+            skills: formattedData.skills.flatMap(category => category.skills), // Convert SkillCategory[] to string[]
+            projects: formattedData.projects
+        };
+
+        saveDraft(enhancedData, `Draft ${new Date().toLocaleString()}`, customizationOptions);
         alert('Resume saved as draft');
     }, [resumeData, customizationOptions]);
 
@@ -131,14 +182,14 @@ export const useResumeState = () => {
 
     return {
         resumeData,
-        skillInput,
         activeSection,
         expandedSections,
         customizationOptions,
         previewScale,
+        isAutoSaving,
+        lastSavedTime,
         handlers: {
             setResumeData,
-            setSkillInput,
             setActiveSection,
             setExpandedSections,
             setCustomizationOptions: handleCustomizationChange,
@@ -155,9 +206,11 @@ export const useResumeState = () => {
             removeWorkExperience,
             removeEducation,
             removeProject,
-            addSkill: handleAddSkill,
-            removeSkill,
-            handleSkillInputKeyDown,
+            addSkillCategory,
+            removeSkillCategory,
+            addSkillToCategory,
+            removeSkillFromCategory,
+            updateSkillCategoryName,
             saveResume,
             saveResumeWithOptions,
             saveAsDraft: handleSaveAsDraft,

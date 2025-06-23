@@ -1,6 +1,8 @@
-import { Eye, EyeOff, FileDown, Layout, Palette, Laptop, Save } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
-import Button from '../../../components/ui/Button';
+import { Brush, Laptop, Pen } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { useResumeStore } from '../../../store/resumeStore';
 import { ResumeData } from '../../../types/resume';
@@ -9,39 +11,65 @@ import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../.
 import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
 import ResumeEditor from './components/ResumeEditor';
 import ResumeFullScreenModal from './components/ResumeFullScreenModal';
-import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
-import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 
 const CreateResume: React.FC = () => {
     const navigate = useNavigate();
     const {
         resumeData,
-        skillInput,
         activeSection,
         expandedSections,
         customizationOptions,
+        handlers,
         previewScale,
-        handlers
+        isAutoSaving,
+        lastSavedTime
     } = useResumeState();
-
-    // Get enhanced resume data and setResumeData from Zustand store
     const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft } = useResumeStore();
-
-    const [isMobilePreviewVisible, setIsMobilePreviewVisible] = useState(false);
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+    const setPreviewScaleRef = useRef(handlers.setPreviewScale);
+    setPreviewScaleRef.current = handlers.setPreviewScale;
+
     useEffect(() => {
         const handleResize = () => {
-            setScreenWidth(window.innerWidth);
+            const width = window.innerWidth;
+            setScreenWidth(width);
+
+            const baseWidth = 1200;
+            const maxScale = 1;
+            const minScale = 0.3;
+
+            let newScale;
+
+            if (width < 480) {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.45) / 480));
+            } else if (width < 640) {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.75) / 640));
+            } else if (width < 768) {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.85) / 768));
+            } else {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.67) / baseWidth));
+            }
+
+            setPreviewScaleRef.current(newScale);
         };
 
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        const debouncedHandleResize = () => {
+            clearTimeout((window as any).resizeTimeout);
+            (window as any).resizeTimeout = setTimeout(handleResize, 30);
+        };
+
+        window.addEventListener('resize', debouncedHandleResize);
+        handleResize();
+
+        return () => {
+            window.removeEventListener('resize', debouncedHandleResize);
+            clearTimeout((window as any).resizeTimeout);
+        };
     }, []);
 
     // Track unsaved changes when resume data changes
@@ -51,6 +79,17 @@ const CreateResume: React.FC = () => {
         }
     }, [resumeData]);
 
+    // Reset unsaved changes when auto-save occurs
+    useEffect(() => {
+        if (lastSavedTime) {
+            setHasUnsavedChanges(false);
+        }
+    }, [lastSavedTime]);
+
+    // Check if there are actually unsaved changes (more recent than last save)
+    const hasActualUnsavedChanges = hasUnsavedChanges && (!lastSavedTime ||
+        new Date().getTime() - lastSavedTime.getTime() > 5000); // 5 seconds buffer
+
     // Push a dummy state to the history when component mounts
     useEffect(() => {
         window.history.pushState(null, '', window.location.pathname);
@@ -59,7 +98,7 @@ const CreateResume: React.FC = () => {
     // Handle back button and history navigation
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
-            if (hasUnsavedChanges && !isSavingDraft) {
+            if (hasActualUnsavedChanges && !isSavingDraft) {
                 // Prevent the default back action
                 event.preventDefault();
                 // Push another state to prevent back navigation
@@ -79,12 +118,12 @@ const CreateResume: React.FC = () => {
         return () => {
             window.removeEventListener('popstate', handlePopState);
         };
-    }, [hasUnsavedChanges, isSavingDraft, navigate]);
+    }, [hasActualUnsavedChanges, isSavingDraft, navigate]);
 
     // Handle beforeunload event to show confirmation dialog
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (hasUnsavedChanges && !isSavingDraft) {
+            if (hasActualUnsavedChanges && !isSavingDraft) {
                 const message = 'You have unsaved changes. Are you sure you want to leave?';
                 e.preventDefault();
                 e.returnValue = message;
@@ -96,7 +135,7 @@ const CreateResume: React.FC = () => {
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-    }, [hasUnsavedChanges, isSavingDraft]);
+    }, [hasActualUnsavedChanges, isSavingDraft]);
 
     useEffect(() => {
         // Check for enhanced resume data in the store
@@ -112,7 +151,21 @@ const CreateResume: React.FC = () => {
                 },
                 workExperience: enhancedResumeData.workExperience,
                 education: enhancedResumeData.education,
-                skills: enhancedResumeData.skills,
+                skills: (() => {
+                    if (!enhancedResumeData.skills || enhancedResumeData.skills.length === 0) {
+                        return [];
+                    }
+
+                    // Check if skills is already in the new categorized format
+                    const firstSkill = enhancedResumeData.skills[0];
+                    if (firstSkill !== null && firstSkill !== undefined && typeof firstSkill === 'object' && 'skills' in (firstSkill as object) && Array.isArray((firstSkill as any).skills)) {
+                        // Already in categorized format, use as is
+                        return enhancedResumeData.skills as unknown as { id: string; name: string; skills: string[] }[];
+                    } else {
+                        // Convert from flat list to categorized format
+                        return [{ id: '1', name: 'Technical Skills', skills: enhancedResumeData.skills as unknown as string[] }];
+                    }
+                })(),
                 projects: enhancedResumeData.projects,
             };
 
@@ -158,10 +211,9 @@ const CreateResume: React.FC = () => {
             expandedSections,
             {
                 ...handlers,
-                skillInput
             }
         ),
-        [resumeData, activeSection, expandedSections, handlers, skillInput]
+        [resumeData, activeSection, expandedSections, handlers]
     );
 
     const handleExportPDF = () => {
@@ -170,7 +222,7 @@ const CreateResume: React.FC = () => {
 
     const handleConfirmExport = () => {
         setIsExportModalOpen(false);
-        exportResumeToPDF(resumeData);
+        exportResumeToPDF(resumeData, customizationOptions);
     };
 
     const handleSaveDraft = async () => {
@@ -183,31 +235,8 @@ const CreateResume: React.FC = () => {
         }
     };
 
-    // Screen too small message
-    if (screenWidth < 450) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-                    <div className="flex justify-center mb-6">
-                        <Laptop className="w-16 h-16 text-blue-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-4 text-gray-800">Screen Too Small</h2>
-                    <p className="text-gray-600 mb-6">
-                        The resume builder requires a minimum screen width of 450px for the best experience.
-                        Please use a larger device or rotate your device to landscape mode.
-                    </p>
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                        <p className="text-sm text-blue-700">
-                            For the best experience, we recommend using a desktop or tablet device with a screen width of at least 768px.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="h-full flex flex-col overflow-hidden">
             <ResumeFullScreenModal
                 isOpen={isFullScreenPreview}
                 onClose={() => setIsFullScreenPreview(false)}
@@ -223,117 +252,67 @@ const CreateResume: React.FC = () => {
                 onConfirm={handleConfirmExport}
             />
 
-            <div className="flex">
-                {/* Vertical tab navigation */}
-                <div className="bg-white rounded-l-lg shadow-md border border-slate-200 mr-6 flex-shrink-0 self-start sticky top-6">
-                    <div className="flex flex-col border-r border-slate-200">
-                        <button
-                            className={`p-4 font-medium transition-colors relative ${activeTab === 'content'
-                                ? 'text-blue-600 border-r-2 border-blue-600 bg-white'
-                                : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                                }`}
-                            onClick={() => setActiveTab('content')}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Layout className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Content</span>
+            <div className="flex-1 p-6 pb-0 overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-12 h-full overflow-hidden">
+                    <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
+                        <div className="flex-shrink-0 mb-4">
+                            <div className="flex bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                <button
+                                    className={`flex-1 px-4 py-3 font-medium transition-colors relative ${activeTab === 'content'
+                                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                                        }`}
+                                    onClick={() => setActiveTab('content')}
+                                >
+                                    <div className="flex items-center justify-center gap-2">
+                                        <Pen className="w-4 h-4" />
+                                        <span className="text-sm">Content</span>
+                                    </div>
+                                </button>
+                                <button
+                                    className={`flex-1 px-4 py-3 font-medium transition-colors relative ${activeTab === 'customization'
+                                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                                        }`}
+                                    onClick={() => setActiveTab('customization')}
+                                >
+                                    <div className="flex items-center justify-center gap-2">
+                                        <Brush className="w-4 h-4" />
+                                        <span className="text-sm">Customize</span>
+                                    </div>
+                                </button>
                             </div>
-                        </button>
-                        <button
-                            className={`p-4 font-medium transition-colors relative ${activeTab === 'customization'
-                                ? 'text-blue-600 border-r-2 border-blue-600 bg-white'
-                                : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                                }`}
-                            onClick={() => setActiveTab('customization')}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Palette className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Design</span>
+                        </div>
+
+                        <div className="flex-1 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="h-full overflow-y-auto">
+                                {activeTab === 'content' ? (
+                                    <ResumeEditor
+                                        {...editorProps}
+                                        customizationOptions={customizationOptions}
+                                        onCustomizationChange={handlers.setCustomizationOptions}
+                                    />
+                                ) : (
+                                    <ResumeCustomizationPanel
+                                        options={customizationOptions}
+                                        onChange={handlers.setCustomizationOptions}
+                                        onSave={handlers.saveResumeWithOptions}
+                                        onSaveAsDraft={handlers.saveAsDraft}
+                                    />
+                                )}
                             </div>
-                        </button>
-                        <button
-                            className="p-4 font-medium transition-colors relative text-slate-600 hover:text-slate-800 hover:bg-slate-50"
-                            onClick={handleExportPDF}
-                        >
-                            <div className="flex flex-col items-center">
-                                <FileDown className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Export</span>
-                            </div>
-                        </button>
-                        <button
-                            className="p-4 font-medium transition-colors relative text-slate-600 hover:text-slate-800 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={handleSaveDraft}
-                            disabled={isSavingDraft}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Save className="w-5 h-5 mb-1" />
-                                <span className="text-xs">{isSavingDraft ? 'Saving...' : 'Save'}</span>
-                            </div>
-                        </button>
+                        </div>
                     </div>
-                </div>
 
-                {/* Content area */}
-                <div className="flex-1">
-                    {activeTab === 'content' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
-                            <div className={`${isMobilePreviewVisible ? 'hidden' : 'block'} sm:block`}>
-                                <ResumeEditor
-                                    {...editorProps}
-                                    customizationOptions={customizationOptions}
-                                    onCustomizationChange={handlers.setCustomizationOptions}
-                                />
-                            </div>
-                            <div className={`${isMobilePreviewVisible ? 'block' : 'hidden'} sm:block`}>
-                                <div className="lg:sticky top-20 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
-                                    <div className="flex justify-center items-center">
-                                        {renderPreviewContainer(
-                                            resumeData,
-                                            customizationOptions,
-                                            previewScale,
-                                            setIsFullScreenPreview
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
+                        <div className="h-full pt-4 hide-scrollbar overflow-y-scroll overflow-x-hidden bg-slate-200 border border-slate-200 flex justify-center">
+                            {renderPreviewContainer(
+                                resumeData,
+                                customizationOptions,
+                                previewScale,
+                                setIsFullScreenPreview
+                            )}
                         </div>
-                    )}
-
-                    {activeTab === 'customization' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
-                            <div>
-                                <ResumeCustomizationPanel
-                                    options={customizationOptions}
-                                    onChange={handlers.setCustomizationOptions}
-                                    onSave={handlers.saveResumeWithOptions}
-                                    onSaveAsDraft={handlers.saveAsDraft}
-                                />
-                            </div>
-                            <div>
-                                <div className="lg:sticky top-24 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
-                                    <div className="flex justify-center items-center">
-                                        {renderPreviewContainer(
-                                            resumeData,
-                                            customizationOptions,
-                                            previewScale,
-                                            setIsFullScreenPreview
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="mt-6 sm:hidden flex justify-center items-center">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsMobilePreviewVisible(!isMobilePreviewVisible)}
-                            leftIcon={isMobilePreviewVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            className="w-full max-w-xs"
-                        >
-                            {isMobilePreviewVisible ? 'Edit Content' : 'Show Preview'}
-                        </Button>
                     </div>
                 </div>
             </div>

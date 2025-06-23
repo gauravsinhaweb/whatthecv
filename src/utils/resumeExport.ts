@@ -4,7 +4,7 @@ import { ResumeData } from '../types/resume';
 import DOMPurify from 'dompurify';
 import { formatTextWithBullets } from '../utils/html';
 
-export const exportResumeToPDF = (resumeData: ResumeData) => {
+export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?: any) => {
     const originalTitle = document.title;
     const date = new Date();
     const formattedDate = date.getFullYear().toString() +
@@ -56,6 +56,11 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                 <meta name="pdfkit-margin-right" content="0">
                 <meta name="pdfkit-margin-bottom" content="0">
                 <meta name="pdfkit-margin-left" content="0">
+                <meta name="format-detection" content="telephone=no">
+                <meta name="format-detection" content="date=no">
+                <meta name="format-detection" content="address=no">
+                <meta name="format-detection" content="email=no">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
                     @page {
                         size: 210mm 297mm;
@@ -70,6 +75,14 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         color-adjust: exact !important;
+                        font-family: ${customizationOptions?.font?.specificFont || 'Times New Roman'}, serif !important;
+                        color: ${customizationOptions?.colors?.text || '#000000'} !important;
+                        font-size: ${customizationOptions?.spacing?.fontSize || 11.5}pt !important;
+                        line-height: ${customizationOptions?.spacing?.lineHeight || 1.2} !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
                     }
                     .print-container {
                         position: relative;
@@ -105,18 +118,42 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                         margin-bottom: 0.75rem !important;
                     }
                     .resume-content {
-                        font-size: 0.95em !important;
+                        font-size: ${customizationOptions?.spacing?.fontSize || 11.5}pt !important;
+                        line-height: ${customizationOptions?.spacing?.lineHeight || 1.2} !important;
+                        padding-left: ${customizationOptions?.spacing?.margins?.left || 10}mm !important;
+                        padding-right: ${customizationOptions?.spacing?.margins?.right || 10}mm !important;
+                        padding-top: ${customizationOptions?.spacing?.margins?.top || 10}mm !important;
+                        padding-bottom: ${customizationOptions?.spacing?.margins?.bottom || 10}mm !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
                     }
                     p, div {
                         text-overflow: ellipsis !important;
                         overflow: hidden !important;
                         -webkit-user-select: text !important;
                         user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
                     }
                     h1, h2, h3, h4, h5, h6 {
                         font-weight: inherit !important;
                         -webkit-user-select: text !important;
                         user-select: text !important;
+                        color: ${customizationOptions?.colors?.headings || '#000000'} !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
+                    }
+                    span, a, li, td, th {
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
                     }
                     .font-black {
                         font-weight: 800 !important;
@@ -124,11 +161,51 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                     .font-bold {
                         font-weight: 700 !important;
                     }
+                    .font-semibold {
+                        font-weight: 600 !important;
+                    }
                     .font-medium {
                         font-weight: 500 !important;
                     }
                     .font-normal {
                         font-weight: 400 !important;
+                    }
+                    h3.font-semibold {
+                        font-weight: 600 !important;
+                    }
+                    h3.font-bold {
+                        font-weight: 700 !important;
+                    }
+                    h3 {
+                        font-weight: 600 !important;
+                    }
+                    h2.section-title {
+                        font-weight: ${customizationOptions?.sectionTitles?.bold ? '600' : '400'} !important;
+                        font-size: ${(() => {
+                switch (customizationOptions?.sectionTitles?.size) {
+                    case 's': return '0.875rem';
+                    case 'm': return '1rem';
+                    case 'l': return '1.125rem';
+                    case 'xl': return '1.25rem';
+                    default: return '1.125rem';
+                }
+            })()} !important;
+                        text-transform: ${customizationOptions?.sectionTitles?.style || 'uppercase'} !important;
+                        ${customizationOptions?.sectionTitles?.underline ? 'border-bottom: 1px solid; padding-bottom: 0.25rem;' : ''}
+                    }
+                    .section-title {
+                        font-weight: ${customizationOptions?.sectionTitles?.bold ? '600' : '400'} !important;
+                        font-size: ${(() => {
+                switch (customizationOptions?.sectionTitles?.size) {
+                    case 's': return '0.875rem';
+                    case 'm': return '1rem';
+                    case 'l': return '1.125rem';
+                    case 'xl': return '1.25rem';
+                    default: return '1.125rem';
+                }
+            })()} !important;
+                        text-transform: ${customizationOptions?.sectionTitles?.style || 'uppercase'} !important;
+                        ${customizationOptions?.sectionTitles?.underline ? 'border-bottom: 1px solid; padding-bottom: 0.25rem;' : ''}
                     }
                     .mb-8 {
                         margin-bottom: 2rem !important;
@@ -225,6 +302,77 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                     .print-container {
                         padding-bottom: 10mm !important;
                     }
+                    
+                    /* Header styling based on customization */
+                    [data-id="resume-header"] h1 {
+                        font-weight: ${customizationOptions?.header?.nameBold ? '600' : '500'} !important;
+                        font-size: ${(() => {
+                switch (customizationOptions?.header?.nameSize) {
+                    case 's': return '1.25rem';
+                    case 'm': return '1.75rem';
+                    case 'l': return '2.25rem';
+                    case 'xl': return '2.75rem';
+                    default: return '2.25rem';
+                }
+            })()} !important;
+                        text-align: ${customizationOptions?.header?.alignment || 'center'} !important;
+                    }
+                    
+                    [data-id="resume-header"] h2 {
+                        font-size: ${(() => {
+                switch (customizationOptions?.header?.jobTitleSize) {
+                    case 's': return '1rem';
+                    case 'm': return '1.125rem';
+                    case 'l': return '1.25rem';
+                    default: return '1.125rem';
+                }
+            })()} !important;
+                        color: ${customizationOptions?.colors?.accent || '#000000'} !important;
+                    }
+                    
+                    /* Accent color styling */
+                    [data-id="resume-body"] a {
+                        color: ${customizationOptions?.colors?.accent || '#000000'} !important;
+                        text-decoration: none !important;
+                    }
+                    
+                    /* Skills styling based on format */
+                    .skills-pills span {
+                        border-color: ${customizationOptions?.colors?.accent || '#000000'} !important;
+                        background-color: ${customizationOptions?.colors?.accent || '#000000'}20 !important;
+                    }
+                    
+                    .skills-grid div {
+                        border-color: ${customizationOptions?.colors?.accent || '#000000'} !important;
+                    }
+                    
+                    .skills-level .level-dot {
+                        background-color: ${customizationOptions?.colors?.accent || '#000000'} !important;
+                    }
+                    
+                    /* Ensure text remains selectable in PDF */
+                    * {
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }
+                    
+                    /* Prevent text from being treated as image */
+                    .printable-content {
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }
                 </style>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
             </head>
@@ -277,6 +425,13 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
         printContent.style.overflow = 'hidden';
         printContent.style.pageBreakInside = 'avoid';
         printContent.style.breakInside = 'avoid';
+        printContent.style.fontFamily = customizationOptions?.font?.specificFont || 'Times New Roman, serif';
+        printContent.style.color = customizationOptions?.colors?.text || '#000000';
+        printContent.style.fontSize = `${customizationOptions?.spacing?.fontSize || 11.5}pt`;
+        printContent.style.lineHeight = `${customizationOptions?.spacing?.lineHeight || 1.2}`;
+        printContent.style.userSelect = 'text';
+        printContent.style.webkitUserSelect = 'text';
+        printContent.style.pointerEvents = 'auto';
 
         // Fix bullet points styling
         const ulElements = printContent.querySelectorAll('ul');
@@ -299,6 +454,16 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
         liElements.forEach(li => {
             (li as HTMLElement).style.display = 'list-item';
             (li as HTMLElement).style.marginBottom = '0.25em';
+        });
+
+        // Ensure all text elements are selectable
+        const textElements = printContent.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, span, a, li, td, th');
+        textElements.forEach(element => {
+            (element as HTMLElement).style.userSelect = 'text';
+            (element as HTMLElement).style.webkitUserSelect = 'text';
+            (element as HTMLElement).style.pointerEvents = 'auto';
+            (element as HTMLElement).style.webkitTextSizeAdjust = 'none';
+            (element as HTMLElement).style.setProperty('text-size-adjust', 'none');
         });
 
         // Process description elements to ensure bullet points are properly formatted
@@ -324,8 +489,56 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
 
         const nameTitle = printContent.querySelector('h1');
         if (nameTitle) {
-            nameTitle.style.fontWeight = '800';
+            nameTitle.style.fontWeight = customizationOptions?.header?.nameBold ? '600' : '500';
+            nameTitle.style.fontSize = (() => {
+                switch (customizationOptions?.header?.nameSize) {
+                    case 's': return '1.25rem';
+                    case 'm': return '1.75rem';
+                    case 'l': return '2.25rem';
+                    case 'xl': return '2.75rem';
+                    default: return '2.25rem';
+                }
+            })();
+            nameTitle.style.textAlign = customizationOptions?.header?.alignment || 'center';
         }
+
+        // Fix job title styling
+        const jobTitle = printContent.querySelector('[data-id="resume-header"] h2');
+        if (jobTitle) {
+            (jobTitle as HTMLElement).style.fontSize = (() => {
+                switch (customizationOptions?.header?.jobTitleSize) {
+                    case 's': return '1rem';
+                    case 'm': return '1.125rem';
+                    case 'l': return '1.25rem';
+                    default: return '1.125rem';
+                }
+            })();
+            (jobTitle as HTMLElement).style.color = customizationOptions?.colors?.accent || '#000000';
+        }
+
+        // Fix h3 elements font weight for company names and other headings
+        const h3Elements = printContent.querySelectorAll('h3');
+        h3Elements.forEach(h3 => {
+            (h3 as HTMLElement).style.fontWeight = '600';
+        });
+
+        // Fix any elements with font-semibold class
+        const semiboldElements = printContent.querySelectorAll('.font-semibold');
+        semiboldElements.forEach(element => {
+            (element as HTMLElement).style.fontWeight = '600';
+        });
+
+        // Fix any elements with font-bold class
+        const boldElements = printContent.querySelectorAll('.font-bold');
+        boldElements.forEach(element => {
+            (element as HTMLElement).style.fontWeight = '700';
+        });
+
+        // Fix section titles (h2 elements with section-title class)
+        const sectionTitles = printContent.querySelectorAll('h2.section-title, .section-title');
+        sectionTitles.forEach(element => {
+            (element as HTMLElement).style.fontWeight = customizationOptions?.sectionTitles?.bold ? '600' : '400';
+        });
 
         const educationSection = printContent.querySelectorAll('.mb-8');
         educationSection.forEach(section => {
@@ -372,6 +585,18 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
         }
 
         const fixScript = frameDoc.createElement('script');
+        const sectionTitleWeight = customizationOptions?.sectionTitles?.bold ? '600' : '400';
+        const headerNameWeight = customizationOptions?.header?.nameBold ? '600' : '500';
+        const headerNameSize = (() => {
+            switch (customizationOptions?.header?.nameSize) {
+                case 's': return '1.25rem';
+                case 'm': return '1.75rem';
+                case 'l': return '2.25rem';
+                case 'xl': return '2.75rem';
+                default: return '2.25rem';
+            }
+        })();
+        const headerAlignment = customizationOptions?.header?.alignment || 'center';
         fixScript.innerHTML = `
             document.addEventListener('DOMContentLoaded', function() {
                 const resumeBody = document.querySelector('[data-id="resume-body"]');
@@ -395,8 +620,34 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                 
                 const nameTitle = document.querySelector('h1');
                 if (nameTitle) {
-                    nameTitle.style.fontWeight = '800';
+                    nameTitle.style.fontWeight = '${headerNameWeight}';
+                    nameTitle.style.fontSize = '${headerNameSize}';
+                    nameTitle.style.textAlign = '${headerAlignment}';
                 }
+                
+                // Fix h3 elements font weight for company names and other headings
+                const h3Elements = document.querySelectorAll('h3');
+                h3Elements.forEach(h3 => {
+                    h3.style.fontWeight = '600';
+                });
+                
+                // Fix any elements with font-semibold class
+                const semiboldElements = document.querySelectorAll('.font-semibold');
+                semiboldElements.forEach(element => {
+                    element.style.fontWeight = '600';
+                });
+                
+                // Fix any elements with font-bold class
+                const boldElements = document.querySelectorAll('.font-bold');
+                boldElements.forEach(element => {
+                    element.style.fontWeight = '700';
+                });
+                
+                // Fix section titles (h2 elements with section-title class)
+                const sectionTitles = document.querySelectorAll('h2.section-title, .section-title');
+                sectionTitles.forEach(element => {
+                    element.style.fontWeight = '${sectionTitleWeight}';
+                });
                 
                 const educationSection = document.querySelectorAll('.mb-8');
                 educationSection.forEach(section => {
@@ -406,6 +657,16 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                 const educationItems = document.querySelectorAll('.mb-5');
                 educationItems.forEach(item => {
                     item.style.marginBottom = '1rem';
+                });
+                
+                // Ensure all text elements are selectable
+                const textElements = document.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, span, a, li, td, th');
+                textElements.forEach(element => {
+                    element.style.userSelect = 'text';
+                    element.style.webkitUserSelect = 'text';
+                    element.style.pointerEvents = 'auto';
+                    element.style.webkitTextSizeAdjust = 'none';
+                    element.style.setProperty('text-size-adjust', 'none');
                 });
             });
         `;
@@ -463,8 +724,42 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
 
                 const nameTitle = frameDoc.querySelector('h1');
                 if (nameTitle) {
-                    (nameTitle as HTMLElement).style.fontWeight = '800';
+                    (nameTitle as HTMLElement).style.fontWeight = customizationOptions?.header?.nameBold ? '600' : '500';
+                    (nameTitle as HTMLElement).style.fontSize = (() => {
+                        switch (customizationOptions?.header?.nameSize) {
+                            case 's': return '1.25rem';
+                            case 'm': return '1.75rem';
+                            case 'l': return '2.25rem';
+                            case 'xl': return '2.75rem';
+                            default: return '2.25rem';
+                        }
+                    })();
+                    (nameTitle as HTMLElement).style.textAlign = customizationOptions?.header?.alignment || 'center';
                 }
+
+                // Fix h3 elements font weight for company names and other headings
+                const h3Elements = frameDoc.querySelectorAll('h3');
+                h3Elements.forEach(h3 => {
+                    (h3 as HTMLElement).style.fontWeight = '600';
+                });
+
+                // Fix any elements with font-semibold class
+                const semiboldElements = frameDoc.querySelectorAll('.font-semibold');
+                semiboldElements.forEach(element => {
+                    (element as HTMLElement).style.fontWeight = '600';
+                });
+
+                // Fix any elements with font-bold class
+                const boldElements = frameDoc.querySelectorAll('.font-bold');
+                boldElements.forEach(element => {
+                    (element as HTMLElement).style.fontWeight = '700';
+                });
+
+                // Fix section titles (h2 elements with section-title class)
+                const sectionTitles = frameDoc.querySelectorAll('h2.section-title, .section-title');
+                sectionTitles.forEach(element => {
+                    (element as HTMLElement).style.fontWeight = sectionTitleWeight;
+                });
 
                 const educationSection = frameDoc.querySelectorAll('.mb-8');
                 educationSection.forEach(section => {
@@ -474,6 +769,16 @@ export const exportResumeToPDF = (resumeData: ResumeData) => {
                 const educationItems = frameDoc.querySelectorAll('.mb-5');
                 educationItems.forEach(item => {
                     (item as HTMLElement).style.marginBottom = '1rem';
+                });
+
+                // Ensure all text elements are selectable
+                const textElements = frameDoc.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, span, a, li, td, th');
+                textElements.forEach(element => {
+                    (element as HTMLElement).style.userSelect = 'text';
+                    (element as HTMLElement).style.webkitUserSelect = 'text';
+                    (element as HTMLElement).style.pointerEvents = 'auto';
+                    (element as HTMLElement).style.webkitTextSizeAdjust = 'none';
+                    (element as HTMLElement).style.setProperty('text-size-adjust', 'none');
                 });
 
                 printFrame.contentWindow?.focus();
