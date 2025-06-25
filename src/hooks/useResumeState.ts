@@ -4,6 +4,8 @@ import { saveResumeData, saveCompleteResumeData } from '../utils/resumeSaveUtils
 import { formatBulletPoints, formatAllDescriptions } from '../utils/resumeFormatUtils';
 import { ResumeCustomizationOptions } from '../types/resume';
 import { saveDraft } from '../utils/api';
+import { useTokenActions } from './useTokenActions';
+import { useTokens } from './useTokens';
 
 export const useResumeState = () => {
     const {
@@ -64,7 +66,14 @@ export const useResumeState = () => {
         // Draft state
         selectedDocument,
         lastSavedDraftId,
+
+        // New additions
+        saveResumeData,
+        saveCompleteResumeData,
     } = useResumeStore();
+
+    const { executeAction } = useTokenActions();
+    const { refreshBalance } = useTokens();
 
     // Local state for skill input (keep this in component level as it's purely UI input state)
     const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -94,6 +103,10 @@ export const useResumeState = () => {
 
     // Auto-format bullet points when editing descriptions
     useEffect(() => {
+        if (!resumeData || Object.keys(resumeData).length === 0) {
+            return; // Don't format if resumeData is empty or undefined
+        }
+
         const formattedData = formatAllDescriptions(resumeData);
         if (JSON.stringify(formattedData) !== JSON.stringify(resumeData)) {
             setResumeData(formattedData);
@@ -180,18 +193,33 @@ export const useResumeState = () => {
     }, [updateCertification]);
 
     const saveResume = useCallback(() => {
+        if (!resumeData || Object.keys(resumeData).length === 0) {
+            console.warn('Cannot save: resumeData is empty');
+            return;
+        }
+
         // Format all descriptions before saving
         const formattedData = formatAllDescriptions(resumeData);
         saveResumeData(formattedData);
-    }, [resumeData]);
+    }, [resumeData, saveResumeData]);
 
     const saveResumeWithOptions = useCallback(() => {
+        if (!resumeData || Object.keys(resumeData).length === 0) {
+            console.warn('Cannot save: resumeData is empty');
+            return;
+        }
+
         // Format all descriptions before saving
         const formattedData = formatAllDescriptions(resumeData);
         saveCompleteResumeData(formattedData, customizationOptions);
-    }, [resumeData, customizationOptions]);
+    }, [resumeData, customizationOptions, saveCompleteResumeData]);
 
     const handleSaveAsDraft = useCallback(() => {
+        if (!resumeData || Object.keys(resumeData).length === 0) {
+            console.warn('Cannot save draft: resumeData is empty');
+            return;
+        }
+
         // Format all descriptions before saving
         const formattedData = formatAllDescriptions(resumeData);
 
@@ -214,9 +242,22 @@ export const useResumeState = () => {
             certifications: formattedData.certifications
         };
 
-        saveDraft(enhancedData, `Draft ${new Date().toLocaleString()}`, customizationOptions);
+        // If we have a selected document ID, it's an update (no token cost)
+        // If no ID, it's a new resume (requires token)
+        if (selectedDocument?.id) {
+            saveDraft(enhancedData, `Draft ${new Date().toLocaleString()}`, customizationOptions, selectedDocument.id);
+        } else {
+            // Use executeAction for new resumes to handle token spending
+            executeAction('resume_storage_space', () =>
+                saveDraft(enhancedData, `Draft ${new Date().toLocaleString()}`, customizationOptions)
+            ).then(() => {
+                // Refresh token balance after successful save
+                refreshBalance();
+            });
+        }
+
         alert('Resume saved as draft');
-    }, [resumeData, customizationOptions]);
+    }, [resumeData, customizationOptions, selectedDocument, executeAction, refreshBalance]);
 
     // Update customization options with a fresh object reference to trigger re-renders
     const handleCustomizationChange = useCallback((newOptions: ResumeCustomizationOptions) => {

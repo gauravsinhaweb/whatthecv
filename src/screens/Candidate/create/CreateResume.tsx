@@ -2,9 +2,12 @@ import { Brush, Pen } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
+import StorageLimitModal from '../../../components/modals/StorageLimitModal';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { useResumeStore } from '../../../store/resumeStore';
-import { ResumeData } from '../../../types/resume';
+import { useTokenActions } from '../../../hooks/useTokenActions';
+import { useTokens } from '../../../hooks/useTokens';
+import { ResumeData, initialResumeData } from '../../../types/resume';
 import { exportResumeToPDF } from '../../../utils/resumeExport';
 import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../../../utils/resumeUI';
 import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
@@ -25,17 +28,82 @@ const CreateResume: React.FC = () => {
         lastSavedTime
     } = useResumeState();
     const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft, selectedDocument } = useResumeStore();
+    const { executeAction } = useTokenActions();
+    const { refreshBalance } = useTokens();
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [isStorageLimitModalOpen, setIsStorageLimitModalOpen] = useState(false);
 
     // Check if this is an existing resume (has been saved before with a title)
     const isExistingResume = selectedDocument?.title;
 
-    const setPreviewScaleRef = useRef(handlers.setPreviewScale);
-    setPreviewScaleRef.current = handlers.setPreviewScale;
+    // Ensure new resumes start with initialResumeData
+    useEffect(() => {
+        if (!selectedDocument && (!resumeData || Object.keys(resumeData).length === 0)) {
+            console.log('Initializing new resume with initialResumeData');
+            setResumeData(initialResumeData);
+        }
+    }, [selectedDocument, resumeData, setResumeData]);
+
+    // Add defensive programming for handlers
+    const safeHandlers = handlers || {
+        setPreviewScale: () => { },
+        setActiveSection: () => { },
+        setExpandedSections: () => { },
+        setCustomizationOptions: () => { },
+        handleZoomIn: () => { },
+        handleZoomOut: () => { },
+        handlePersonalInfoChange: () => { },
+        handleWorkExperienceChange: () => { },
+        handleEducationChange: () => { },
+        handleProjectChange: () => { },
+        handleAchievementChange: () => { },
+        handlePublicationChange: () => { },
+        handleCertificationChange: () => { },
+        addWorkExperience: () => { },
+        addEducation: () => { },
+        addProject: () => { },
+        addAchievement: () => { },
+        addPublication: () => { },
+        addCertification: () => { },
+        removeWorkExperience: () => { },
+        removeEducation: () => { },
+        removeProject: () => { },
+        removeAchievement: () => { },
+        removePublication: () => { },
+        removeCertification: () => { },
+        addSkillCategory: () => { },
+        removeSkillCategory: () => { },
+        addSkillToCategory: () => { },
+        removeSkillFromCategory: () => { },
+        updateSkillCategoryName: () => { },
+        saveResume: () => { },
+        saveResumeWithOptions: () => { },
+        saveAsDraft: () => { },
+        toggleSection: () => { },
+        editSection: () => { },
+        toggleFieldVisibility: () => { },
+    };
+
+    const setPreviewScaleRef = useRef(safeHandlers.setPreviewScale);
+    setPreviewScaleRef.current = safeHandlers.setPreviewScale;
+
+    // Add loading state check
+    const isLoading = !resumeData || !handlers;
+
+    if (isLoading) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-lg text-slate-600">Loading resume editor...</p>
+                </div>
+            </div>
+        );
+    }
 
     useEffect(() => {
         const handleResize = () => {
@@ -211,19 +279,34 @@ const CreateResume: React.FC = () => {
             activeSection,
             expandedSections,
             {
-                ...handlers,
+                ...safeHandlers,
             }
         ),
-        [resumeData, activeSection, expandedSections, handlers]
+        [resumeData, activeSection, expandedSections, safeHandlers]
     );
-
-    const handleExportPDF = () => {
-        setIsExportModalOpen(true);
-    };
 
     const handleConfirmExport = () => {
         setIsExportModalOpen(false);
         exportResumeToPDF(resumeData, customizationOptions);
+    };
+
+    // Override saveAsDraft to handle storage limit errors
+    const handleSaveAsDraft = async (title?: string) => {
+        try {
+            // If we have a selected document ID, it's an update (no token cost)
+            // If no ID, it's a new resume (requires token)
+            if (selectedDocument?.id) {
+                await saveAsDraft(title);
+            } else {
+                // Use executeAction for new resumes to handle token spending
+                await executeAction('resume_storage_space', () => saveAsDraft(title));
+                // Refresh token balance after successful save
+                await refreshBalance();
+            }
+        } catch (error) {
+            console.error('Failed to save draft:', error);
+            throw error;
+        }
     };
 
     return (
@@ -234,13 +317,21 @@ const CreateResume: React.FC = () => {
                 resumeData={resumeData}
                 customizationOptions={customizationOptions}
                 previewScale={previewScale}
-                onZoomIn={handlers.handleZoomIn}
-                onZoomOut={handlers.handleZoomOut}
+                onZoomIn={safeHandlers.handleZoomIn}
+                onZoomOut={safeHandlers.handleZoomOut}
             />
             <ExportConfirmationModal
                 isOpen={isExportModalOpen}
                 onClose={() => setIsExportModalOpen(false)}
                 onConfirm={handleConfirmExport}
+            />
+            <StorageLimitModal
+                isOpen={isStorageLimitModalOpen}
+                onClose={() => setIsStorageLimitModalOpen(false)}
+                onPurchaseSuccess={() => {
+                    setIsStorageLimitModalOpen(false);
+                    // Optionally retry the save operation
+                }}
             />
 
             <div className="flex-1 p-6 pb-0 overflow-hidden">
@@ -282,9 +373,9 @@ const CreateResume: React.FC = () => {
                                 ) : (
                                     <ResumeCustomizationPanel
                                         options={customizationOptions}
-                                        onChange={handlers.setCustomizationOptions}
-                                        onSave={handlers.saveResumeWithOptions}
-                                        onSaveAsDraft={handlers.saveAsDraft}
+                                        onChange={safeHandlers.setCustomizationOptions}
+                                        onSave={safeHandlers.saveResumeWithOptions}
+                                        onSaveAsDraft={handleSaveAsDraft}
                                     />
                                 )}
                             </div>

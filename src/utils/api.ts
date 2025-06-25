@@ -46,13 +46,12 @@ api.interceptors.response.use(
                     return api(originalRequest);
                 } else {
                     // If refresh fails, redirect to login
-                    window.location.href = '/auth/login';
                     return Promise.reject(new Error('Session expired. Please login again.'));
                 }
             } catch (refreshError) {
                 console.error('Token refresh failed:', refreshError);
                 // If refresh fails, redirect to login
-                window.location.href = '/auth/login';
+                // window.location.href = '/auth/login';
                 return Promise.reject(new Error('Authentication failed. Please login again.'));
             }
         }
@@ -304,9 +303,10 @@ export async function updateResumeVersion(resumeId: string, file: File): Promise
 /**
  * Delete a specific resume version
  */
-export async function deleteResumeVersion(resumeId: string): Promise<void> {
+export async function deleteResumeVersion(resumeId: string): Promise<{ message: string; storage_info: any }> {
     try {
-        await api.delete(`/resume/versions/${resumeId}`);
+        const response = await api.delete(`/resume/versions/${resumeId}`);
+        return response.data;
     } catch (error) {
         console.error('Error deleting resume version:', error);
         throw error;
@@ -325,6 +325,21 @@ export const saveDraft = async (resumeData: EnhancedResumeData, title: string, c
         return response.data;
     } catch (error) {
         console.error('Error saving draft:', error);
+        throw error;
+    }
+};
+
+export const updateResumeDraft = async (resumeId: string, resumeData: EnhancedResumeData, title: string, customizationOptions?: any) => {
+    try {
+        const response = await api.put(`/resume/versions/${resumeId}`, {
+            resume_data: resumeData,
+            title,
+            customization_options: customizationOptions
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error updating resume draft:', error);
         throw error;
     }
 };
@@ -423,6 +438,19 @@ export const reserveTokens = async (action_id: string, token_amount: number) => 
         return res.data;
     } catch (error) {
         console.error('Error reserving tokens:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 402) {
+                throw new Error('Insufficient tokens. Please purchase more tokens to continue.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+            if (error.response?.status === 422) {
+                throw new Error('Invalid token amount or action. Please try again.');
+            }
+            const message = error.response?.data?.detail || 'Failed to reserve tokens';
+            throw new Error(message);
+        }
         throw new Error('Failed to reserve tokens. Please try again.');
     }
 };
@@ -547,5 +575,44 @@ export const getActionLockStatus = async (action_id: string) => {
         throw new Error('Failed to get action lock status. Please try again.');
     }
 };
+
+/**
+ * Get user's storage information
+ */
+export async function getStorageInfo(): Promise<any> {
+    try {
+        const response = await api.get('/resume/storage/info');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching storage info:', error);
+        throw error;
+    }
+}
+
+/**
+ * Purchase additional storage space
+ */
+export async function purchaseStorageSpace(): Promise<any> {
+    try {
+        const response = await api.post('/resume/storage/purchase');
+        return response.data;
+    } catch (error) {
+        console.error('Error purchasing storage space:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get storage action information
+ */
+export async function getStorageActionInfo(): Promise<any> {
+    try {
+        const response = await api.get('/resume/storage/action-info');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching storage action info:', error);
+        throw error;
+    }
+}
 
 export default api; 

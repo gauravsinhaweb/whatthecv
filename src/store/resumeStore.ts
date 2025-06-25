@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import type { EnhancedResumeData } from '../utils/types';
 import { ResumeData, initialResumeData, ResumeCustomizationOptions, defaultCustomizationOptions } from '../types/resume';
 import { saveDraft } from '../utils/api';
+import { EnhancedResumeData } from '../utils/types';
 
 interface Document {
     id: string;
@@ -119,8 +119,9 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         const currentState = get();
         if (data?.personalInfo?.name === 'Alex Johnson' &&
             data?.personalInfo?.email === 'alex.johnson@example.com' &&
-            currentState.enhancedResumeData) {
-            console.log('Preventing resume data reset to default values - enhanced data exists');
+            currentState.enhancedResumeData &&
+            currentState.selectedDocument) {
+            console.log('Preventing resume data reset to default values - enhanced data exists and document is selected');
             return;
         }
         set({ resumeData: data });
@@ -633,7 +634,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     setLastSavedTime: (time: Date | null) => set({ lastSavedTime: time }),
 
     resetStore: () => {
-        // First clear all data including enhancedResumeData
+        // Set all state in a single call to avoid race conditions
         set({
             documents: [],
             selectedDocument: null,
@@ -644,10 +645,6 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             lastSavedDraftId: null,
             isAutoSaving: false,
             lastSavedTime: null,
-        });
-
-        // Then set the default resume data and customization options
-        set({
             resumeData: {
                 ...initialResumeData,
                 skills: (initialResumeData.skills as any[]).map((cat) => ({
