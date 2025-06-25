@@ -1,16 +1,23 @@
-import { ChevronDown, FileText, Loader2, LogIn, LogOut, Menu, Upload, User, X, Settings, FileDown, Save } from 'lucide-react';
+import { ChevronDown, FileDown, FileText, Loader2, LogIn, LogOut, Menu, Save, Settings, Upload, User, X, Coins, RefreshCw } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useStorage } from '../hooks/useStorage';
+import { useTokens } from '../hooks/useTokens';
+import { useTokenActions } from '../hooks/useTokenActions';
 import { getSession, getUser, signInWithGoogle, signOut } from '../lib/supabase';
 import { getPageFromPath } from '../routes';
 import { useResumeStore } from '../store/resumeStore';
 import { useUserStore } from '../store/userStore';
+import { exportResumeToPDF } from '../utils/resumeExport';
 import { removeToken } from '../utils/storage';
 import { isSuperUser } from '../utils/superuser';
-import { exportResumeToPDF } from '../utils/resumeExport';
-import ExportConfirmationModal from './ui/ExportConfirmationModal';
+import StorageLimitModal from './modals/StorageLimitModal';
 import AutoSaveIndicator from './ui/AutoSaveIndicator';
+import Button from './ui/Button';
+import ExportConfirmationModal from './ui/ExportConfirmationModal';
+import { saveDraft, updateResumeDraft, getResumeVersions } from '../utils/api';
+import SaveResumeModal from './modals/SaveResumeModal';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -19,6 +26,12 @@ const Navigation: React.FC = () => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [resumeTitle, setResumeTitle] = useState('');
+  const [isStorageLimitModalOpen, setIsStorageLimitModalOpen] = useState(false);
+  const [saveMode, setSaveMode] = useState<'new' | 'replace'>('new');
+  const [userResumes, setUserResumes] = useState<any[]>([]);
+  const [selectedResumeId, setSelectedResumeId] = useState<string>('');
+  const [isLoadingResumes, setIsLoadingResumes] = useState(false);
+  const [pendingSaveAfterPurchase, setPendingSaveAfterPurchase] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
@@ -26,7 +39,61 @@ const Navigation: React.FC = () => {
   const currentPage = getPageFromPath(location.pathname);
   const isCreateResumePage = location.pathname === '/create-resume';
   const { user, isAuthenticated, setUser, setIsAuthenticated, setLoginError } = useUserStore();
-  const { resetStore, resumeData, isSavingDraft, saveAsDraft, selectedDocument, isAutoSaving, lastSavedTime, customizationOptions } = useResumeStore();
+  const { resetStore, resumeData, isSavingDraft, selectedDocument, isAutoSaving, lastSavedTime, customizationOptions } = useResumeStore();
+  const { actionInfo, storageInfo } = useStorage();
+  const { executeAction } = useTokenActions();
+  const { tokenBalance, refreshBalance, setBuyModalOpen, buyAmount, setBuyAmount, handleBuyTokens, buyLoading, buyModalOpen } = useTokens();
+
+  // Centralized modal management
+  const closeAllModals = () => {
+    setIsSaveModalOpen(false);
+    setIsStorageLimitModalOpen(false);
+    setBuyModalOpen(false);
+    setIsExportModalOpen(false);
+    setResumeTitle('');
+    setSelectedResumeId('');
+    setSaveMode('new');
+  };
+
+  const openSaveModal = () => {
+    closeAllModals();
+    setIsSaveModalOpen(true);
+  };
+
+  const openBuyModal = (amount: number = 100) => {
+    closeAllModals();
+    setBuyAmount(amount);
+    setBuyModalOpen(true);
+  };
+
+  const openStorageLimitModal = () => {
+    closeAllModals();
+    setIsStorageLimitModalOpen(true);
+  };
+
+  // Handle successful token purchase
+  const handleTokenPurchaseSuccess = async () => {
+    closeAllModals();
+    await refreshBalance();
+
+    // If there was a pending save operation, retry it
+    if (pendingSaveAfterPurchase) {
+      setPendingSaveAfterPurchase(false);
+      // Small delay to ensure balance is updated
+      setTimeout(() => {
+        handleSaveClick();
+      }, 500);
+    }
+  };
+
+  // Override the setBuyModalOpen to handle modal flow
+  const handleSetBuyModalOpen = (open: boolean) => {
+    if (!open) {
+      closeAllModals();
+    } else {
+      setBuyModalOpen(true);
+    }
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -113,13 +180,53 @@ const Navigation: React.FC = () => {
     }
 
     try {
-      await saveAsDraft(resumeTitle);
+      const { resumeData, customizationOptions } = useResumeStore.getState();
+
+      // Convert ResumeData to EnhancedResumeData format
+      const enhancedData = {
+        personalInfo: {
+          ...resumeData.personalInfo,
+          summary: resumeData.personalInfo.summary || '',
+          profilePicture: resumeData.personalInfo.profilePicture || null,
+          socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
+            ...link,
+            platform: link.platform === 'peerlist' ? 'other' : link.platform
+          })) as any
+        },
+        workExperience: resumeData.workExperience,
+        education: resumeData.education,
+        skills: resumeData.skills,
+        projects: resumeData.projects,
+        achievements: resumeData.achievements,
+        publications: resumeData.publications,
+        certifications: resumeData.certifications
+      };
+
+      // Use executeAction to handle token spending automatically
+      await executeAction('resume_storage_space', () =>
+        saveDraft(enhancedData, resumeTitle, customizationOptions)
+      );
+
+      // Refresh token balance after successful save
+      await refreshBalance();
+
       setIsSaveModalOpen(false);
       setResumeTitle('');
       toast.success('Draft saved successfully');
     } catch (error) {
-      toast.error('Failed to save draft');
       console.error('Failed to save draft:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
+
+      // Handle different types of errors
+      if (errorMessage.includes('Storage limit reached')) {
+        setIsStorageLimitModalOpen(true);
+      } else if (errorMessage.includes('Insufficient tokens')) {
+        // For insufficient tokens, open the buy tokens modal
+        setBuyAmount(100); // Set a default amount
+        setBuyModalOpen(true);
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -130,13 +237,47 @@ const Navigation: React.FC = () => {
     }
 
     try {
-      await saveAsDraft(resumeTitle);
-      setIsSaveModalOpen(false);
-      setResumeTitle('');
+      const { resumeData, customizationOptions } = useResumeStore.getState();
+
+      // Convert ResumeData to EnhancedResumeData format
+      const enhancedData = {
+        personalInfo: {
+          ...resumeData.personalInfo,
+          summary: resumeData.personalInfo.summary || '',
+          profilePicture: resumeData.personalInfo.profilePicture || null,
+          socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
+            ...link,
+            platform: link.platform === 'peerlist' ? 'other' : link.platform
+          })) as any
+        },
+        workExperience: resumeData.workExperience,
+        education: resumeData.education,
+        skills: resumeData.skills,
+        projects: resumeData.projects,
+        achievements: resumeData.achievements,
+        publications: resumeData.publications,
+        certifications: resumeData.certifications
+      };
+
+      // Use executeAction to handle token spending automatically
+      await executeAction('resume_storage_space', () =>
+        saveDraft(enhancedData, resumeTitle, customizationOptions)
+      );
+      // Refresh token balance after successful save
+      await refreshBalance();
+
+      closeAllModals();
       toast.success('Draft saved successfully');
     } catch (error) {
-      toast.error('Failed to save draft');
-      console.error('Failed to save draft:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
+      if (errorMessage.includes('Storage limit reached')) {
+        openStorageLimitModal();
+      } else if (errorMessage.includes('Failed to reserve tokens. Please try again.') || errorMessage.includes('Insufficient tokens')) {
+        setPendingSaveAfterPurchase(true);
+        openBuyModal(100);
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -148,17 +289,119 @@ const Navigation: React.FC = () => {
       handleSaveDraftDirect();
     } else {
       // For new resumes or untitled resumes, show the modal
-      setIsSaveModalOpen(true);
+      openSaveModal();
     }
   };
 
   const handleSaveDraftDirect = async () => {
     try {
-      await saveAsDraft();
+      const { resumeData, customizationOptions, selectedDocument } = useResumeStore.getState();
+
+      // Convert ResumeData to EnhancedResumeData format
+      const enhancedData = {
+        personalInfo: {
+          ...resumeData.personalInfo,
+          summary: resumeData.personalInfo.summary || '',
+          profilePicture: resumeData.personalInfo.profilePicture || null,
+          socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
+            ...link,
+            platform: link.platform === 'peerlist' ? 'other' : link.platform
+          })) as any
+        },
+        workExperience: resumeData.workExperience,
+        education: resumeData.education,
+        skills: resumeData.skills,
+        projects: resumeData.projects,
+        achievements: resumeData.achievements,
+        publications: resumeData.publications,
+        certifications: resumeData.certifications
+      };
+
+      // If we have a selected document ID, it's an update (no token cost)
+      // If no ID, it's a new resume (requires token)
+      if (selectedDocument?.id) {
+        await saveDraft(enhancedData, selectedDocument?.title || 'Updated Resume', customizationOptions, selectedDocument?.id);
+      } else {
+        // Use executeAction for new resumes to handle token spending
+        await executeAction('resume_storage_space', () =>
+          saveDraft(enhancedData, selectedDocument?.title || 'Updated Resume', customizationOptions)
+        );
+        // Refresh token balance after successful save
+        await refreshBalance();
+      }
+
       toast.success('Draft saved successfully');
     } catch (error) {
-      toast.error('Failed to save draft');
       console.error('Failed to save draft:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
+
+      // Handle different types of errors
+      if (errorMessage.includes('Storage limit reached')) {
+        openStorageLimitModal();
+      } else if (errorMessage.includes('Insufficient tokens') || errorMessage.includes('Failed to reserve tokens. Please try again.')) {
+        setPendingSaveAfterPurchase(true);
+        openBuyModal(100);
+      } else {
+        toast.error(errorMessage);
+      }
+    }
+  };
+
+  const fetchUserResumes = async () => {
+    try {
+      setIsLoadingResumes(true);
+      const resumes = await getResumeVersions();
+      setUserResumes(resumes);
+    } catch (error) {
+      console.error('Failed to fetch resumes:', error);
+      toast.error('Failed to load your resumes');
+    } finally {
+      setIsLoadingResumes(false);
+    }
+  };
+
+  const handleSaveModeChange = (mode: 'new' | 'replace') => {
+    setSaveMode(mode);
+    if (mode === 'replace') {
+      fetchUserResumes();
+    }
+  };
+
+  const handleReplaceResume = async () => {
+    if (!selectedResumeId) {
+      toast.error('Please select a resume to replace');
+      return;
+    }
+
+    try {
+      const { resumeData, customizationOptions } = useResumeStore.getState();
+
+      // Convert ResumeData to EnhancedResumeData format
+      const enhancedData = {
+        personalInfo: {
+          ...resumeData.personalInfo,
+          summary: resumeData.personalInfo.summary || '',
+          profilePicture: resumeData.personalInfo.profilePicture || null,
+          socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
+            ...link,
+            platform: link.platform === 'peerlist' ? 'other' : link.platform
+          })) as any
+        },
+        workExperience: resumeData.workExperience,
+        education: resumeData.education,
+        skills: resumeData.skills,
+        projects: resumeData.projects,
+        achievements: resumeData.achievements,
+        publications: resumeData.publications,
+        certifications: resumeData.certifications
+      };
+
+      await updateResumeDraft(selectedResumeId, enhancedData, resumeTitle || 'Updated Resume', customizationOptions);
+      closeAllModals();
+      toast.success('Resume updated successfully');
+    } catch (error) {
+      console.error('Failed to replace resume:', error);
+      toast.error('Failed to update resume');
     }
   };
 
@@ -213,18 +456,39 @@ const Navigation: React.FC = () => {
         onClose={() => setIsExportModalOpen(false)}
         onConfirm={handleConfirmExport}
       />
+      <StorageLimitModal
+        isOpen={isStorageLimitModalOpen}
+        onClose={closeAllModals}
+        onPurchaseSuccess={handleTokenPurchaseSuccess}
+      />
 
       {/* Save Draft Modal */}
-      {isSaveModalOpen && (
+      <SaveResumeModal
+        isOpen={isSaveModalOpen}
+        onClose={closeAllModals}
+        saveMode={saveMode}
+        onSaveModeChange={handleSaveModeChange}
+        resumeTitle={resumeTitle}
+        setResumeTitle={setResumeTitle}
+        isSavingDraft={isSavingDraft}
+        onSaveDraft={handleSaveDraftWithTitle}
+        onReplaceResume={handleReplaceResume}
+        userResumes={userResumes}
+        isLoadingResumes={isLoadingResumes}
+        selectedResumeId={selectedResumeId}
+        setSelectedResumeId={setSelectedResumeId}
+        actionInfo={actionInfo}
+        storageInfo={storageInfo}
+      />
+
+      {/* Buy Tokens Modal */}
+      {buyModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-slate-900">Save Resume</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Buy Tokens</h3>
               <button
-                onClick={() => {
-                  setIsSaveModalOpen(false);
-                  setResumeTitle('');
-                }}
+                onClick={closeAllModals}
                 className="text-slate-400 hover:text-slate-500"
               >
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -234,38 +498,41 @@ const Navigation: React.FC = () => {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Resume Title</label>
-                <input
-                  type="text"
-                  value={resumeTitle}
-                  onChange={(e) => setResumeTitle((e.target as HTMLInputElement).value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && resumeTitle.trim() && !isSavingDraft) {
-                      handleSaveDraftWithTitle();
-                    } else if (e.key === 'Escape') {
-                      setIsSaveModalOpen(false);
-                      setResumeTitle('');
-                    }
-                  }}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., Google Software Engineer, Microsoft Frontend Developer"
-                  autoFocus
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  Give your resume a meaningful name like company name or target position
-                </p>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Amount (₹)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₹</span>
+                  <input
+                    type="number"
+                    value={buyAmount}
+                    onChange={(e) => setBuyAmount(Number((e.target as HTMLInputElement).value))}
+                    className="w-full pl-8 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter amount"
+                    min="5"
+                    step={10}
+                    defaultValue={100}
+                  />
+                </div>
+              </div>
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <p className="text-sm text-slate-600">You will receive {buyAmount} tokens</p>
               </div>
               <button
-                onClick={handleSaveDraftWithTitle}
-                disabled={isSavingDraft || !resumeTitle.trim()}
+                onClick={async () => {
+                  try {
+                    await handleBuyTokens(handleTokenPurchaseSuccess);
+                  } catch (error) {
+                    console.error('Payment failed:', error);
+                  }
+                }}
+                disabled={buyLoading || !buyAmount}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {isSavingDraft ? (
+                {buyLoading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
-                    <Save className="h-5 w-5 mr-2" />
-                    Save Draft
+                    <Coins className="h-5 w-5 mr-2" />
+                    Credit Token
                   </>
                 )}
               </button>
@@ -461,16 +728,19 @@ const Navigation: React.FC = () => {
                     <span>Export PDF</span>
                   </div>
                 </button>
-                <button
-                  onClick={handleSaveClick}
-                  disabled={isSavingDraft}
-                  className="block w-full pl-3 pr-4 py-3 border-l-4 border-transparent text-base font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  <div className="flex items-center">
-                    <Save className="h-5 w-5 text-slate-500 mr-3" />
+                <div className="px-3 py-3">
+                  <Button
+                    onClick={handleSaveClick}
+                    disabled={isSavingDraft}
+                    isLoading={isSavingDraft}
+                    tokenAmount={storageInfo && !storageInfo.can_create_new ? actionInfo?.amount : undefined}
+                    fullWidth
+                    size="lg"
+                  >
+                    <Save className="h-5 w-5 mr-3" />
                     <span>{isSavingDraft ? 'Saving...' : 'Save Draft'}</span>
-                  </div>
-                </button>
+                  </Button>
+                </div>
               </>
             )}
 
