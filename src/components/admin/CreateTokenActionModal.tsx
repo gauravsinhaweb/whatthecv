@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../ui/Button';
-import { createTokenAction } from '../../utils/api';
+import { tokenService } from '../../services/tokenService';
 import { toast } from 'react-hot-toast';
 import { Plus, X, Lock } from 'lucide-react';
 import { TokenAction, TokenActionCategory, TOKEN_ACTION_CATEGORIES } from '../../types/token';
@@ -72,7 +72,7 @@ const CreateTokenActionModal: React.FC<CreateTokenActionModalProps> = ({
 
         setIsSubmitting(true);
         try {
-            await createTokenAction(
+            await tokenService.createTokenAction(
                 formData.action_id,
                 formData.amount,
                 formData.name,

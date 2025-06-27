@@ -6,8 +6,8 @@ export interface ResumeData {
         phone: string;
         location: string;
         summary: string;
-        profilePicture?: string;
-        socialLinks?: {
+        profilePicture: string | null;
+        socialLinks: {
             platform: 'linkedin' | 'github' | 'twitter' | 'leetcode' | 'medium' | 'stackoverflow' | 'peerlist' | 'other';
             url: string;
             label?: string;
@@ -484,7 +484,7 @@ export const templatePresets: Record<string, Partial<ResumeCustomizationOptions>
         colors: {
             accent: '#000000',
             text: '#000000',
-            headings: '#000000',
+            headings: '#0074E3',
         },
         spacing: {
             fontSize: 10.5,

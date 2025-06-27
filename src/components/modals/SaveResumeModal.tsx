@@ -1,5 +1,5 @@
-import { Save, X } from 'lucide-react';
-import React from 'react';
+import { Save, X, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import Button from '../ui/Button';
 
 interface Resume {
@@ -44,7 +44,85 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
     actionInfo,
     storageInfo
 }) => {
+    const [titleError, setTitleError] = useState<string>('');
+    const [isDuplicate, setIsDuplicate] = useState(false);
+
+    // Validate title on change
+    useEffect(() => {
+        if (!resumeTitle.trim()) {
+            setTitleError('');
+            setIsDuplicate(false);
+            return;
+        }
+
+        if (resumeTitle.trim().length > 100) {
+            setTitleError('Title must be less than 100 characters');
+            setIsDuplicate(false);
+            return;
+        }
+
+        // Check for duplicate titles (case-insensitive)
+        const duplicate = userResumes.some(resume =>
+            resume.title.toLowerCase() === resumeTitle.trim().toLowerCase()
+        );
+        setIsDuplicate(duplicate);
+        setTitleError(duplicate ? 'A resume with this title already exists' : '');
+    }, [resumeTitle, userResumes]);
+
+    // Reset errors when modal opens/closes
+    useEffect(() => {
+        if (!isOpen) {
+            setTitleError('');
+            setIsDuplicate(false);
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
+
+    const handleSave = () => {
+        if (saveMode === 'new') {
+            if (!resumeTitle.trim()) {
+                setTitleError('Please enter a resume title');
+                return;
+            }
+            if (titleError || isDuplicate) {
+                return;
+            }
+            onSaveDraft();
+        } else {
+            if (!selectedResumeId) {
+                return;
+            }
+            onReplaceResume();
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && !isSavingDraft && !titleError && !isDuplicate) {
+            handleSave();
+        } else if (e.key === 'Escape') {
+            onClose();
+        }
+    };
+
+    const getTitleValidationStatus = () => {
+        if (titleError) return 'error';
+        if (isDuplicate) return 'error';
+        if (resumeTitle.trim() && !titleError && !isDuplicate) return 'success';
+        return 'neutral';
+    };
+
+    const getValidationIcon = () => {
+        const status = getTitleValidationStatus();
+        switch (status) {
+            case 'error':
+                return <AlertCircle className="w-4 h-4 text-red-500" />;
+            case 'success':
+                return <CheckCircle className="w-4 h-4 text-green-500" />;
+            default:
+                return <Info className="w-4 h-4 text-slate-400" />;
+        }
+    };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -66,6 +144,7 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                         <button
                             onClick={onClose}
                             className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                            disabled={isSavingDraft}
                         >
                             <X className="w-5 h-5 text-white" />
                         </button>
@@ -85,32 +164,52 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                         type="text"
                                         value={resumeTitle}
                                         onChange={(e) => setResumeTitle((e.target as HTMLInputElement).value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !isSavingDraft) {
-                                                if (saveMode === 'new') {
-                                                    onSaveDraft();
-                                                } else {
-                                                    onReplaceResume();
-                                                }
-                                            } else if (e.key === 'Escape') {
-                                                onClose();
-                                                setResumeTitle('');
-                                            }
-                                        }}
-                                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-slate-900 placeholder-slate-400"
-                                        placeholder={saveMode === 'new' ? "e.g., Google v1" : "Leave empty to keep current title"}
+                                        onKeyDown={handleKeyDown}
+                                        className={`w-full px-4 py-3 pr-10 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-slate-900 placeholder-slate-400 ${titleError || isDuplicate
+                                            ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                                            : resumeTitle.trim() && !titleError && !isDuplicate
+                                                ? 'border-green-300 focus:border-green-500 focus:ring-green-200'
+                                                : 'border-slate-200'
+                                            }`}
+                                        placeholder={saveMode === 'new' ? "e.g., Google Software Engineer v1" : "Leave empty to keep current title"}
                                         autoFocus={saveMode === 'new'}
+                                        disabled={isSavingDraft}
+                                        maxLength={100}
                                     />
                                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                        <div className="w-2 h-2 bg-slate-300 rounded-full"></div>
+                                        {getValidationIcon()}
                                     </div>
                                 </div>
+
+                                {/* Validation messages */}
+                                {titleError && (
+                                    <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        {titleError}
+                                    </p>
+                                )}
+
+                                {isDuplicate && (
+                                    <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        A resume with this title already exists
+                                    </p>
+                                )}
+
+                                {resumeTitle.trim() && !titleError && !isDuplicate && (
+                                    <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+                                        <CheckCircle className="w-3 h-3" />
+                                        Title looks good!
+                                    </p>
+                                )}
+
                                 <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
-                                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                    <Info className="w-3 h-3" />
                                     Use a descriptive name like company name or target position
                                 </p>
                             </div>
                         )}
+
                         {saveMode === 'replace' && (
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-3">
@@ -132,10 +231,11 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                             <button
                                                 key={resume.id}
                                                 onClick={() => setSelectedResumeId(resume.id)}
+                                                disabled={isSavingDraft}
                                                 className={`w-full p-3 rounded-lg border-2 transition-all text-left ${selectedResumeId === resume.id
                                                     ? 'border-blue-500 bg-blue-50'
                                                     : 'border-slate-200 hover:border-slate-300'
-                                                    }`}
+                                                    } ${isSavingDraft ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div>
@@ -154,19 +254,23 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                 )}
                             </div>
                         )}
+
                         <div>
-                            <div className="flex items-center space-x-3">
-                                <input
-                                    type="checkbox"
-                                    id="replaceExisting"
-                                    checked={saveMode === 'replace'}
-                                    onChange={(e) => onSaveModeChange((e.target as HTMLInputElement).checked ? 'replace' : 'new')}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
-                                />
-                                <label htmlFor="replaceExisting" className="text-xs font-medium text-slate-700">
-                                    I want to use an existing space
-                                </label>
-                            </div>
+                            {userResumes.length > 0 && (
+                                <div className="flex items-center space-x-3">
+                                    <input
+                                        type="checkbox"
+                                        id="replaceExisting"
+                                        checked={saveMode === 'replace'}
+                                        onChange={(e) => onSaveModeChange((e.target as HTMLInputElement).checked ? 'replace' : 'new')}
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                                        disabled={isSavingDraft}
+                                    />
+                                    <label htmlFor="replaceExisting" className="text-xs font-medium text-slate-700">
+                                        I want to use an existing space
+                                    </label>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex justify-center gap-3 pt-2">
@@ -180,14 +284,14 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                 }}
                                 className="flex-1"
                                 size="lg"
+                                disabled={isSavingDraft}
                             >
                                 Cancel
                             </Button>
                             <Button
-                                onClick={saveMode === 'new' ? onSaveDraft : onReplaceResume}
-                                disabled={
-                                    isSavingDraft ||
-                                    (saveMode === 'new' && !resumeTitle.trim()) ||
+                                onClick={handleSave}
+                                disabled={isSavingDraft ||
+                                    (saveMode === 'new' && (!resumeTitle.trim() || !!titleError || isDuplicate)) ||
                                     (saveMode === 'replace' && !selectedResumeId)
                                 }
                                 isLoading={isSavingDraft}

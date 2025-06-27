@@ -20,6 +20,12 @@ api.interceptors.request.use(async (config) => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Remove Content-Type header for FormData requests to let browser set it automatically
+    if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+    }
+
     return config;
 });
 
@@ -97,12 +103,14 @@ export async function analyzeResume(
     jobDescription?: string
 ): Promise<AIAnalysisResult> {
     try {
-        const response = await api.post('/resume/analyze', null, {
-            params: {
-                resume_text: resumeText,
-                job_description: jobDescription
-            }
-        });
+        const params: any = {
+            resume_text: resumeText
+        };
+        if (jobDescription) {
+            params.job_description = jobDescription;
+        }
+
+        const response = await api.post('/resume/analyze', null, { params });
 
         return response.data;
     } catch (error) {
@@ -140,13 +148,21 @@ export async function enhanceResumeFromFile(
     file: File
 ): Promise<EnhancedResumeData> {
     try {
+        // Validate file
+        if (!file || !(file instanceof File)) {
+            throw new Error('Invalid file provided');
+        }
+
+        console.log('Enhancing file:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+
         const formData = new FormData();
         formData.append('file', file);
 
         const response = await api.post('/resume/enhance-file', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
             timeout: 120000, // Increase timeout to 2 minutes
             validateStatus: status => true, // Don't throw on error status codes
             signal: undefined, // Remove any existing signal to prevent cancellation
@@ -212,9 +228,21 @@ export async function enhanceResumeFromFile(
 
 export async function processResumeFile(
     file: File,
-    jobDescription?: string
+    jobDescription?: string,
+    returnText: boolean = false
 ): Promise<AIAnalysisResult> {
     try {
+        // Validate file
+        if (!file || !(file instanceof File)) {
+            throw new Error('Invalid file provided');
+        }
+
+        console.log('Processing file:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -222,11 +250,13 @@ export async function processResumeFile(
             formData.append('job_description', jobDescription);
         }
 
-        const response = await api.post('/resume/process-file', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        // Add return_text as a query parameter
+        const params = new URLSearchParams();
+        if (returnText) {
+            params.append('return_text', 'true');
+        }
+
+        const response = await api.post(`/resume/process-file?${params.toString()}`, formData);
 
         return response.data;
     } catch (error) {
@@ -243,15 +273,22 @@ export async function checkResumeFile(
     returnText: boolean = false
 ): Promise<ResumeCheckResult> {
     try {
+        // Validate file
+        if (!file || !(file instanceof File)) {
+            throw new Error('Invalid file provided');
+        }
+
+        console.log('Checking file:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('return_text', returnText.toString());
 
-        const response = await api.post('/resume/check-file', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        const response = await api.post('/resume/check-file', formData);
 
         return response.data;
     } catch (error) {
@@ -288,11 +325,7 @@ export async function updateResumeVersion(resumeId: string, file: File): Promise
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await api.put(`/resume/versions/${resumeId}`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        const response = await api.put(`/resume/versions/${resumeId}`, formData);
         return response.data;
     } catch (error) {
         console.error('Error updating resume version:', error);
