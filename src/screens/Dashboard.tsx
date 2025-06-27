@@ -108,7 +108,6 @@ const Dashboard = () => {
     const { user, isAuthenticated } = useUserStore()
     const { documents, setDocuments, setResumeData, setCustomizationOptions, setSelectedDocument, resetStore, updateDocument } = useResumeStore()
     const [activeTab, setActiveTab] = useState<'resumes' | 'cover-letters'>('resumes')
-    const [isLoading, setIsLoading] = useState(true)
     const [editingTitle, setEditingTitle] = useState<string | null>(null)
     const [newTitle, setNewTitle] = useState('')
     const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; resumeId: string | null }>({
@@ -124,6 +123,9 @@ const Dashboard = () => {
     const buyTokensMutation = useBuyTokens()
     const deleteResumeMutation = useDeleteResume()
     const saveResumeMutation = useSaveResume()
+
+    // Use React Query loading state for shimmer effect
+    const isLoading = isResumeVersionsLoading && isAuthenticated && user
 
     // Debug logging
     console.log('Dashboard Debug:', {
@@ -277,10 +279,8 @@ const Dashboard = () => {
                 // If authenticated but no resume versions, set empty documents
                 setDocuments([])
             }
-            setIsLoading(false)
         } else {
-            // If not authenticated, set loading to false and clear documents
-            setIsLoading(false)
+            // If not authenticated, clear documents
             setDocuments([])
         }
     }, [resumeVersions, isAuthenticated, user, setDocuments])
