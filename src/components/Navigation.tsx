@@ -2,9 +2,10 @@ import { ChevronDown, FileDown, FileText, Loader2, LogIn, LogOut, Menu, Save, Se
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useStorage } from '../hooks/useStorage';
-import { useTokens } from '../hooks/useTokens';
+import { useStorageAndActionInfo } from '../hooks/queries/useStorageQueries';
 import { useTokenActions } from '../hooks/useTokenActions';
+import { useTokenBalance, useBuyTokens } from '../hooks/queries/useTokenQueries';
+import { useSaveResume, useResumeVersions } from '../hooks/queries/useResumeQueries';
 import { getSession, getUser, signInWithGoogle, signOut } from '../lib/supabase';
 import { getPageFromPath } from '../routes';
 import { useResumeStore } from '../store/resumeStore';
@@ -16,8 +17,8 @@ import StorageLimitModal from './modals/StorageLimitModal';
 import AutoSaveIndicator from './ui/AutoSaveIndicator';
 import Button from './ui/Button';
 import ExportConfirmationModal from './ui/ExportConfirmationModal';
-import { saveDraft, updateResumeDraft, getResumeVersions } from '../utils/api';
 import SaveResumeModal from './modals/SaveResumeModal';
+import { resumeService } from '../services/resumeService';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -39,10 +40,24 @@ const Navigation: React.FC = () => {
   const currentPage = getPageFromPath(location.pathname);
   const isCreateResumePage = location.pathname === '/create-resume';
   const { user, isAuthenticated, setUser, setIsAuthenticated, setLoginError } = useUserStore();
-  const { resetStore, resumeData, isSavingDraft, selectedDocument, isAutoSaving, lastSavedTime, customizationOptions } = useResumeStore();
-  const { actionInfo, storageInfo } = useStorage();
+  const {
+    resumeData,
+    selectedDocument,
+    customizationOptions,
+    save: { isAutoSaving, lastSavedTime, isSavingDraft }
+  } = useResumeStore();
+  const { actionInfo, storageInfo } = useStorageAndActionInfo();
   const { executeAction } = useTokenActions();
-  const { tokenBalance, refreshBalance, setBuyModalOpen, buyAmount, setBuyAmount, handleBuyTokens, buyLoading, buyModalOpen } = useTokens();
+  const { data: tokenBalance = 0, refetch: refreshBalance } = useTokenBalance();
+  const buyTokensMutation = useBuyTokens();
+  const saveResumeMutation = useSaveResume();
+  const [buyModalOpen, setBuyModalOpen] = useState(false);
+  const [buyAmount, setBuyAmount] = useState(100);
+
+  // Defensive: ensure actionInfo is always an array
+  const resumeStorageAction = Array.isArray(actionInfo)
+    ? actionInfo.find(action => action.id === 'resume_storage_space')
+    : undefined;
 
   // Centralized modal management
   const closeAllModals = () => {
@@ -95,11 +110,47 @@ const Navigation: React.FC = () => {
     }
   };
 
+  const handleSaveClick = () => {
+    // Check if user is authenticated
+    if (!isAuthenticated || !user) {
+      toast.error('Please sign in to save your resume');
+      handleLogin();
+      return;
+    }
+
+    // Check if resume data exists
+    if (!resumeData || Object.keys(resumeData).length === 0) {
+      toast.error('No resume data to save');
+      return;
+    }
+
+    // Check if resume has minimum required content
+    const hasMinimumContent = resumeData.personalInfo?.name?.trim() ||
+      resumeData.workExperience?.length > 0 ||
+      resumeData.education?.length > 0;
+
+    if (!hasMinimumContent) {
+      toast.error('Please add some content to your resume before saving');
+      return;
+    }
+
+    // If we have a selected document with a meaningful title, save directly
+    if (selectedDocument?.title && selectedDocument.title !== 'Untitled') {
+      handleSaveDraftDirect();
+    } else {
+      // For new resumes or untitled resumes, show the modal
+      openSaveModal();
+    }
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
+      console.log('Navigation: Checking authentication...')
       const { session } = await getSession();
+      console.log('Navigation: Session found:', !!session)
       if (session) {
         const user = await getUser();
+        console.log('Navigation: User found:', !!user)
         setUser({
           id: user.id,
           email: user.email || '',
@@ -109,9 +160,11 @@ const Navigation: React.FC = () => {
           updated_at: user.updated_at
         });
         setIsAuthenticated(true);
+        console.log('Navigation: Authentication set to true')
       } else {
         setUser(null);
         setIsAuthenticated(false);
+        console.log('Navigation: Authentication set to false')
       }
     };
     checkAuth();
@@ -143,7 +196,7 @@ const Navigation: React.FC = () => {
       removeToken();
       setLoginError(null);
       navigate('/');
-      resetStore();
+      useResumeStore.getState().resetStore();
     } catch (error) {
       console.error('Logout error:', error);
       setLoginError('Failed to logout');
@@ -173,176 +226,116 @@ const Navigation: React.FC = () => {
     }
   };
 
-  const handleSaveDraft = async () => {
-    if (!resumeTitle.trim()) {
-      toast.error('Please enter a resume title');
-      return;
-    }
-
-    try {
-      const { resumeData, customizationOptions } = useResumeStore.getState();
-
-      // Convert ResumeData to EnhancedResumeData format
-      const enhancedData = {
-        personalInfo: {
-          ...resumeData.personalInfo,
-          summary: resumeData.personalInfo.summary || '',
-          profilePicture: resumeData.personalInfo.profilePicture || null,
-          socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
-            ...link,
-            platform: link.platform === 'peerlist' ? 'other' : link.platform
-          })) as any
-        },
-        workExperience: resumeData.workExperience,
-        education: resumeData.education,
-        skills: resumeData.skills,
-        projects: resumeData.projects,
-        achievements: resumeData.achievements,
-        publications: resumeData.publications,
-        certifications: resumeData.certifications
-      };
-
-      // Use executeAction to handle token spending automatically
-      await executeAction('resume_storage_space', () =>
-        saveDraft(enhancedData, resumeTitle, customizationOptions)
-      );
-
-      // Refresh token balance after successful save
-      await refreshBalance();
-
-      setIsSaveModalOpen(false);
-      setResumeTitle('');
-      toast.success('Draft saved successfully');
-    } catch (error) {
-      console.error('Failed to save draft:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
-
-      // Handle different types of errors
-      if (errorMessage.includes('Storage limit reached')) {
-        setIsStorageLimitModalOpen(true);
-      } else if (errorMessage.includes('Insufficient tokens')) {
-        // For insufficient tokens, open the buy tokens modal
-        setBuyAmount(100); // Set a default amount
-        setBuyModalOpen(true);
-      } else {
-        toast.error(errorMessage);
-      }
-    }
-  };
-
   const handleSaveDraftWithTitle = async () => {
+    // Validate title
     if (!resumeTitle.trim()) {
       toast.error('Please enter a resume title');
       return;
     }
 
+    // Validate title length
+    if (resumeTitle.trim().length > 100) {
+      toast.error('Resume title must be less than 100 characters');
+      return;
+    }
+
+    // Check for duplicate titles
+    const isDuplicate = userResumes.some(resume =>
+      resume.title.toLowerCase() === resumeTitle.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error('A resume with this title already exists. Please choose a different title.');
+      return;
+    }
+
     try {
-      const { resumeData, customizationOptions } = useResumeStore.getState();
+      // Show saving indicator
+      const saveToast = toast.loading('Saving your resume...');
 
-      // Convert ResumeData to EnhancedResumeData format
-      const enhancedData = {
-        personalInfo: {
-          ...resumeData.personalInfo,
-          summary: resumeData.personalInfo.summary || '',
-          profilePicture: resumeData.personalInfo.profilePicture || null,
-          socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
-            ...link,
-            platform: link.platform === 'peerlist' ? 'other' : link.platform
-          })) as any
-        },
-        workExperience: resumeData.workExperience,
-        education: resumeData.education,
-        skills: resumeData.skills,
-        projects: resumeData.projects,
-        achievements: resumeData.achievements,
-        publications: resumeData.publications,
-        certifications: resumeData.certifications
-      };
+      await saveResumeMutation.mutateAsync({
+        resumeData,
+        title: resumeTitle.trim(),
+        customizationOptions,
+      });
 
-      // Use executeAction to handle token spending automatically
-      await executeAction('resume_storage_space', () =>
-        saveDraft(enhancedData, resumeTitle, customizationOptions)
-      );
-      // Refresh token balance after successful save
-      await refreshBalance();
+      // Dismiss loading toast and show success
+      toast.dismiss(saveToast);
 
       closeAllModals();
-      toast.success('Draft saved successfully');
+
+      // Refresh user resumes list
+      fetchUserResumes();
     } catch (error) {
+      console.error('Save draft error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
+
       if (errorMessage.includes('Storage limit reached')) {
+        toast.error('Storage limit reached. Please upgrade your plan or delete some resumes.');
         openStorageLimitModal();
-      } else if (errorMessage.includes('Failed to reserve tokens. Please try again.') || errorMessage.includes('Insufficient tokens')) {
+      } else if (errorMessage.includes('Failed to reserve tokens') || errorMessage.includes('Insufficient tokens')) {
+        toast.error('Insufficient tokens. Please purchase more tokens to continue.');
         setPendingSaveAfterPurchase(true);
         openBuyModal(100);
+      } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
+        toast.error('Session expired. Please sign in again.');
+        handleLogout();
       } else {
-        toast.error(errorMessage);
+        toast.error(`Save failed: ${errorMessage}`);
       }
-    }
-  };
-
-  const handleSaveClick = () => {
-    const { selectedDocument } = useResumeStore.getState();
-
-    // If we have a selected document with a meaningful title, save directly
-    if (selectedDocument?.title && selectedDocument.title !== 'Untitled') {
-      handleSaveDraftDirect();
-    } else {
-      // For new resumes or untitled resumes, show the modal
-      openSaveModal();
     }
   };
 
   const handleSaveDraftDirect = async () => {
+    const title = selectedDocument?.title;
+    const id = selectedDocument?.id;
+    if (!id || !title || title.trim() === '' || title === 'Untitled') {
+      openSaveModal();
+      return;
+    }
     try {
-      const { resumeData, customizationOptions, selectedDocument } = useResumeStore.getState();
+      // Show saving indicator
+      const saveToast = toast.loading('Saving your resume...');
 
-      // Convert ResumeData to EnhancedResumeData format
-      const enhancedData = {
-        personalInfo: {
-          ...resumeData.personalInfo,
-          summary: resumeData.personalInfo.summary || '',
-          profilePicture: resumeData.personalInfo.profilePicture || null,
-          socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
-            ...link,
-            platform: link.platform === 'peerlist' ? 'other' : link.platform
-          })) as any
-        },
-        workExperience: resumeData.workExperience,
-        education: resumeData.education,
-        skills: resumeData.skills,
-        projects: resumeData.projects,
-        achievements: resumeData.achievements,
-        publications: resumeData.publications,
-        certifications: resumeData.certifications
-      };
+      await saveResumeMutation.mutateAsync({
+        resumeData,
+        title,
+        customizationOptions,
+        resumeId: id,
+      });
 
-      // If we have a selected document ID, it's an update (no token cost)
-      // If no ID, it's a new resume (requires token)
-      if (selectedDocument?.id) {
-        await saveDraft(enhancedData, selectedDocument?.title || 'Updated Resume', customizationOptions, selectedDocument?.id);
-      } else {
-        // Use executeAction for new resumes to handle token spending
-        await executeAction('resume_storage_space', () =>
-          saveDraft(enhancedData, selectedDocument?.title || 'Updated Resume', customizationOptions)
-        );
-        // Refresh token balance after successful save
-        await refreshBalance();
-      }
+      // Dismiss loading toast and show success
+      toast.dismiss(saveToast);
 
-      toast.success('Draft saved successfully');
+      // Update last saved time in store
+      useResumeStore.getState().setSavingState({
+        isSavingDraft: false,
+        lastSavedTime: new Date()
+      });
     } catch (error) {
       console.error('Failed to save draft:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
 
       // Handle different types of errors
       if (errorMessage.includes('Storage limit reached')) {
+        toast.error('Storage limit reached. Please upgrade your plan or delete some resumes.');
         openStorageLimitModal();
-      } else if (errorMessage.includes('Insufficient tokens') || errorMessage.includes('Failed to reserve tokens. Please try again.')) {
+      } else if (errorMessage.includes('Insufficient tokens') || errorMessage.includes('Failed to reserve tokens')) {
+        toast.error('Insufficient tokens. Please purchase more tokens to continue.');
         setPendingSaveAfterPurchase(true);
         openBuyModal(100);
+      } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
+        toast.error('Session expired. Please sign in again.');
+        handleLogout();
+      } else if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
+        toast.error('Resume not found. It may have been deleted. Please save as a new resume.');
+        openSaveModal();
       } else {
-        toast.error(errorMessage);
+        toast.error(`Save failed: ${errorMessage}`);
       }
     }
   };
@@ -350,7 +343,7 @@ const Navigation: React.FC = () => {
   const fetchUserResumes = async () => {
     try {
       setIsLoadingResumes(true);
-      const resumes = await getResumeVersions();
+      const resumes = await resumeService.getResumeVersions();
       setUserResumes(resumes);
     } catch (error) {
       console.error('Failed to fetch resumes:', error);
@@ -361,9 +354,15 @@ const Navigation: React.FC = () => {
   };
 
   const handleSaveModeChange = (mode: 'new' | 'replace') => {
+    console.log('Save mode changed to:', mode);
     setSaveMode(mode);
     if (mode === 'replace') {
+      console.log('Fetching user resumes for replace mode...');
       fetchUserResumes();
+    } else {
+      // Clear the resume list when switching back to new mode
+      setUserResumes([]);
+      setSelectedResumeId('');
     }
   };
 
@@ -373,35 +372,46 @@ const Navigation: React.FC = () => {
       return;
     }
 
+    // Validate title if provided
+    if (resumeTitle.trim() && resumeTitle.trim().length > 100) {
+      toast.error('Resume title must be less than 100 characters');
+      return;
+    }
+
     try {
-      const { resumeData, customizationOptions } = useResumeStore.getState();
+      // Show saving indicator
+      const saveToast = toast.loading('Updating your resume...');
 
-      // Convert ResumeData to EnhancedResumeData format
-      const enhancedData = {
-        personalInfo: {
-          ...resumeData.personalInfo,
-          summary: resumeData.personalInfo.summary || '',
-          profilePicture: resumeData.personalInfo.profilePicture || null,
-          socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
-            ...link,
-            platform: link.platform === 'peerlist' ? 'other' : link.platform
-          })) as any
-        },
-        workExperience: resumeData.workExperience,
-        education: resumeData.education,
-        skills: resumeData.skills,
-        projects: resumeData.projects,
-        achievements: resumeData.achievements,
-        publications: resumeData.publications,
-        certifications: resumeData.certifications
-      };
+      await saveResumeMutation.mutateAsync({
+        resumeData,
+        title: resumeTitle.trim() || 'Updated Resume',
+        customizationOptions,
+        resumeId: selectedResumeId,
+      });
 
-      await updateResumeDraft(selectedResumeId, enhancedData, resumeTitle || 'Updated Resume', customizationOptions);
+      // Dismiss loading toast and show success
+      toast.dismiss(saveToast);
+      toast.success(`Resume updated successfully!`);
+
       closeAllModals();
-      toast.success('Resume updated successfully');
+
+      // Refresh user resumes list
+      fetchUserResumes();
     } catch (error) {
       console.error('Failed to replace resume:', error);
-      toast.error('Failed to update resume');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update resume';
+
+      if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
+        toast.error('Selected resume not found. It may have been deleted. Please try again.');
+        fetchUserResumes();
+      } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
+        toast.error('Session expired. Please sign in again.');
+        handleLogout();
+      } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error(`Update failed: ${errorMessage}`);
+      }
     }
   };
 
@@ -477,7 +487,7 @@ const Navigation: React.FC = () => {
         isLoadingResumes={isLoadingResumes}
         selectedResumeId={selectedResumeId}
         setSelectedResumeId={setSelectedResumeId}
-        actionInfo={actionInfo}
+        actionInfo={resumeStorageAction}
         storageInfo={storageInfo}
       />
 
@@ -519,15 +529,17 @@ const Navigation: React.FC = () => {
               <button
                 onClick={async () => {
                   try {
-                    await handleBuyTokens(handleTokenPurchaseSuccess);
+                    await buyTokensMutation.mutateAsync(buyAmount);
+                    // The success handler in useBuyTokens will close the modal and refresh balance
+                    // We'll handle the pending save in the success callback
                   } catch (error) {
                     console.error('Payment failed:', error);
                   }
                 }}
-                disabled={buyLoading || !buyAmount}
+                disabled={buyTokensMutation.isPending || !buyAmount}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {buyLoading ? (
+                {buyTokensMutation.isPending ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
@@ -733,7 +745,7 @@ const Navigation: React.FC = () => {
                     onClick={handleSaveClick}
                     disabled={isSavingDraft}
                     isLoading={isSavingDraft}
-                    tokenAmount={storageInfo && !storageInfo.can_create_new ? actionInfo?.amount : undefined}
+                    tokenAmount={storageInfo && !storageInfo.can_create_new ? resumeStorageAction?.amount : undefined}
                     fullWidth
                     size="lg"
                   >

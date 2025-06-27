@@ -4,11 +4,11 @@ import { useResumeStore } from '../store/resumeStore'
 import { useUserStore } from '../store/userStore'
 import { defaultCustomizationOptions, initialResumeData, ResumeData } from '../types/resume'
 import { FileText, Plus, Briefcase, Coins, History, RefreshCw, PiggyBank, FileSearch, FileEdit, FileCheck, Sparkles, Wand2, Lightbulb, MessageSquare, BookOpen, Target, GraduationCap, Wallet } from 'lucide-react'
-import { getResumeVersions, deleteResumeVersion, saveDraft } from '../utils/api'
 import { toast } from 'react-hot-toast'
 import type { EnhancedResumeData } from '../utils/types'
-import { useTokens } from '../hooks/useTokens'
-import { useStorage } from '../hooks/useStorage'
+import { useTokenBalance, useTokenTransactions, useBuyTokens } from '../hooks/queries/useTokenQueries'
+import { useResumeVersions, useDeleteResume, useSaveResume } from '../hooks/queries/useResumeQueries'
+import { useStorageAndActionInfo } from '../hooks/queries/useStorageQueries'
 import { DeleteConfirmModal } from '../components/dashboard/DeleteConfirmModal'
 import { ResumeCard, ResumeCardSkeleton } from '../components/dashboard/ResumeCard'
 import { StatsCard } from '../components/dashboard/StatsCard'
@@ -116,42 +116,36 @@ const Dashboard = () => {
         resumeId: null
     })
 
-    const {
+    // React Query hooks
+    const { data: tokenBalance = 0, isLoading: isBalanceLoading, error } = useTokenBalance()
+    const { data: transactions = [], isLoading: historyLoading } = useTokenTransactions()
+    const { data: resumeVersions, isLoading: isResumeVersionsLoading } = useResumeVersions()
+    const { storageInfo, actionInfo, isLoading: isStorageLoading } = useStorageAndActionInfo()
+    const buyTokensMutation = useBuyTokens()
+    const deleteResumeMutation = useDeleteResume()
+    const saveResumeMutation = useSaveResume()
+
+    // Debug logging
+    console.log('Dashboard Debug:', {
+        isAuthenticated,
+        user: !!user,
         tokenBalance,
         isBalanceLoading,
-        error,
-        transactions,
-        historyLoading,
-        buyModalOpen,
-        setBuyModalOpen,
-        buyAmount,
-        setBuyAmount,
-        buyLoading,
-        handleBuyTokens,
-        openHistoryModal,
-        historyModalOpen,
-        setHistoryModalOpen,
-        refreshBalance
-    } = useTokens()
+        resumeVersions: resumeVersions?.length,
+        isResumeVersionsLoading,
+        isLoading
+    })
 
-    const { refreshStorageInfo } = useStorage()
+    // State for buy modal
+    const [buyModalOpen, setBuyModalOpen] = useState(false)
+    const [buyAmount, setBuyAmount] = useState(100)
+    const [historyModalOpen, setHistoryModalOpen] = useState(false)
 
+    // Process resume versions when data changes
     useEffect(() => {
         if (isAuthenticated && user) {
-            refreshBalance()
-        }
-    }, [refreshBalance, isAuthenticated, user])
-
-    useEffect(() => {
-        const fetchResumes = async () => {
-            if (!isAuthenticated || !user) {
-                setIsLoading(false)
-                return
-            }
-
-            try {
-                const resumes = await getResumeVersions()
-                setDocuments(resumes.map(resume => ({
+            if (resumeVersions) {
+                setDocuments(resumeVersions.map(resume => ({
                     id: resume.id,
                     title: resume.title || resume.filename,
                     createdAt: resume.created_at,
@@ -206,8 +200,7 @@ const Dashboard = () => {
                                 showStartMonth: newEdu.showStartMonth !== false,
                                 showEndMonth: newEdu.showEndMonth !== false,
                                 description: newEdu.description || '',
-                                degreeLink: newEdu.degreeLink,
-                                institutionLink: newEdu.institutionLink
+                                educationLink: newEdu.educationLink
                             }
                         }),
                         skills: (() => {
@@ -280,16 +273,17 @@ const Dashboard = () => {
                         return mergedOptions;
                     })()
                 })))
-            } catch (error) {
-                console.error('Failed to fetch resumes:', error)
-                toast.error('Failed to load resumes')
-            } finally {
-                setIsLoading(false)
+            } else {
+                // If authenticated but no resume versions, set empty documents
+                setDocuments([])
             }
+            setIsLoading(false)
+        } else {
+            // If not authenticated, set loading to false and clear documents
+            setIsLoading(false)
+            setDocuments([])
         }
-
-        fetchResumes()
-    }, [isAuthenticated, user])
+    }, [resumeVersions, isAuthenticated, user, setDocuments])
 
     const resumes = documents.filter(doc => doc.type === 'resume')
     const coverLetters = documents.filter(doc => doc.type === 'coverLetter')
@@ -403,16 +397,9 @@ const Dashboard = () => {
     }
 
     const handleDeleteResume = async (resumeId: string) => {
-        if (!isAuthenticated || !user) {
-            toast.error('Please login to delete resumes')
-            return
-        }
-
         try {
-            const response = await deleteResumeVersion(resumeId)
+            await deleteResumeMutation.mutateAsync(resumeId)
             setDocuments(documents.filter(doc => doc.id !== resumeId))
-            await refreshStorageInfo()
-            toast.success('Deleted successfully')
         } catch (error) {
             console.error('Failed to delete resume:', error)
             toast.error('Failed to delete resume')
@@ -532,7 +519,12 @@ const Dashboard = () => {
                 certifications: resume.resumeData.certifications
             }
 
-            await saveDraft(enhancedResumeData, newTitle, resume.customizationOptions, resumeId)
+            await saveResumeMutation.mutateAsync({
+                resumeData: enhancedResumeData,
+                title: newTitle,
+                customizationOptions: resume.customizationOptions,
+                resumeId
+            })
             updateDocument(resumeId, { title: newTitle })
             toast.success('Title updated successfully')
         } catch (error) {
@@ -617,7 +609,7 @@ const Dashboard = () => {
                                         Buy
                                     </Button>
                                     <Button
-                                        onClick={openHistoryModal}
+                                        onClick={() => setHistoryModalOpen(true)}
                                         variant="ghost"
                                         className="group p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                                         title="Transaction History"
@@ -784,11 +776,18 @@ const Dashboard = () => {
                                 <p className="text-sm text-slate-600">You will receive {buyAmount} tokens</p>
                             </div>
                             <button
-                                onClick={handleBuyTokens}
-                                disabled={buyLoading || !buyAmount}
+                                onClick={async () => {
+                                    try {
+                                        await buyTokensMutation.mutateAsync(buyAmount);
+                                        setBuyModalOpen(false);
+                                    } catch (error) {
+                                        console.error('Payment failed:', error);
+                                    }
+                                }}
+                                disabled={buyTokensMutation.isPending || !buyAmount}
                                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                             >
-                                {buyLoading ? (
+                                {buyTokensMutation.isPending ? (
                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                                 ) : (
                                     <>
@@ -854,13 +853,13 @@ const Dashboard = () => {
                                                             {new Date(transaction.timestamp).toLocaleString()}
                                                         </p>
                                                         <p className="text-xs text-slate-400 mt-0.5">
-                                                            Balance: {transaction.available_token || '-'} {transaction.available_token && <Coins className="inline-block h-3 w-3" />}
+                                                            Transaction ID: {transaction.id}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col items-end">
-                                                    <div className={`font-semibold text-base ${transaction.action_id === 'add_token' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                                        {transaction.action_id === 'add_token' ? '+' : '-'}{Math.abs(transaction.token)} <Coins className="inline-block h-4 w-4" />
+                                                    <div className={`font-semibold text-base ${transaction.token > 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                        {transaction.token > 0 ? '+' : ''}{transaction.token} <Coins className="inline-block h-4 w-4" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -872,8 +871,8 @@ const Dashboard = () => {
                     </div>
                 </div>
             )}
-        </div >
+        </div>
     )
 }
 
-export default Dashboard 
+export default Dashboard

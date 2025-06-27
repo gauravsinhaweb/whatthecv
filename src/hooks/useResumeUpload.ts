@@ -57,7 +57,7 @@ export function useResumeUpload(jobDescription: string) {
 
         try {
             // Process the file directly through the backend
-            const analysis = await processResume(selectedFile, jobDescription || undefined);
+            const analysis = await processResume(selectedFile, jobDescription || undefined, true);
 
             if (!analysis) {
                 throw new Error('Failed to analyze the resume. Please try again.');

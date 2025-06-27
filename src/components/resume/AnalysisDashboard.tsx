@@ -50,9 +50,8 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
 
     // Use Zustand store instead of local state
     const {
-        isEnhancing,
+        ui: { isEnhancing, enhancementStage },
         setIsEnhancing,
-        enhancementStage,
         setEnhancementStage,
         setEnhancedResumeData
     } = useResumeStore();

@@ -104,10 +104,8 @@ const ResumeEditor: React.FC = () => {
 
     const {
         resumeData,
-        activeSection,
-        expandedSections,
+        ui: { activeSection, expandedSections, fieldVisibility },
         customizationOptions,
-        fieldVisibility,
         toggleSection,
         updatePersonalInfo,
         updateWorkExperience,
@@ -136,6 +134,21 @@ const ResumeEditor: React.FC = () => {
         setCustomizationOptions,
         toggleFieldVisibility
     } = useResumeStore();
+
+    // Add defensive check for resumeData
+    if (!resumeData || !resumeData.personalInfo) {
+        return (
+            <div className="bg-white rounded-lg shadow-md border border-slate-200">
+                <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
+                    <h2 className="text-xl font-bold text-blue-800">Content</h2>
+                </div>
+                <div className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-slate-600">Loading resume data...</p>
+                </div>
+            </div>
+        );
+    }
 
     const hasValidProfilePic = resumeData.personalInfo.profilePicture &&
         resumeData.personalInfo.profilePicture.startsWith('data:image');
