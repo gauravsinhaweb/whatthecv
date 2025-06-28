@@ -30,12 +30,21 @@ interface ResumeStore {
     updateWorkExperience: (id: string, field: string, value: string | boolean) => void;
     updateEducation: (id: string, field: string, value: string) => void;
     updateProject: (id: string, field: string, value: string) => void;
+    updateAchievement: (id: string, field: string, value: string) => void;
+    updatePublication: (id: string, field: string, value: string) => void;
+    updateCertification: (id: string, field: string, value: string) => void;
     addWorkExperience: () => void;
     addEducation: () => void;
     addProject: () => void;
+    addAchievement: () => void;
+    addPublication: () => void;
+    addCertification: () => void;
     removeWorkExperience: (id: string) => void;
     removeEducation: (id: string) => void;
     removeProject: (id: string) => void;
+    removeAchievement: (id: string) => void;
+    removePublication: (id: string) => void;
+    removeCertification: (id: string) => void;
 
     // Enhanced resume data
     enhancedResumeData: EnhancedResumeData | null;
@@ -62,6 +71,11 @@ interface ResumeStore {
     setPreviewScale: (scale: number) => void;
     handleZoomIn: () => void;
     handleZoomOut: () => void;
+
+    // Field visibility state
+    fieldVisibility: Record<string, boolean>;
+    setFieldVisibility: (visibility: Record<string, boolean>) => void;
+    toggleFieldVisibility: (fieldKey: string) => void;
 
     // Draft saving state
     isSavingDraft: boolean;
@@ -149,6 +163,33 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         },
     })),
 
+    updateAchievement: (id, field, value) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            achievements: state.resumeData.achievements.map((item) =>
+                item.id === id ? { ...item, [field]: value } : item
+            ),
+        },
+    })),
+
+    updatePublication: (id, field, value) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            publications: state.resumeData.publications.map((item) =>
+                item.id === id ? { ...item, [field]: value } : item
+            ),
+        },
+    })),
+
+    updateCertification: (id, field, value) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            certifications: state.resumeData.certifications.map((item) =>
+                item.id === id ? { ...item, [field]: value } : item
+            ),
+        },
+    })),
+
     addWorkExperience: () => set((state) => {
         const newId = String(state.resumeData.workExperience.length + 1);
         return {
@@ -161,9 +202,13 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                         position: '',
                         company: '',
                         location: '',
-                        startDate: '',
-                        endDate: '',
+                        startMonth: '',
+                        startYear: '',
+                        endMonth: '',
+                        endYear: '',
                         current: false,
+                        showStartMonth: true,
+                        showEndMonth: true,
                         description: '',
                         experienceLink: '',
                     },
@@ -184,8 +229,13 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                         degree: '',
                         institution: '',
                         location: '',
-                        startDate: '',
-                        endDate: '',
+                        startMonth: '',
+                        startYear: '',
+                        endMonth: '',
+                        endYear: '',
+                        current: false,
+                        showStartMonth: true,
+                        showEndMonth: true,
                         description: '',
                         degreeLink: '',
                         institutionLink: '',
@@ -208,6 +258,100 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                         description: '',
                         technologies: '',
                         link: '',
+                        startMonth: '',
+                        startYear: '',
+                        endMonth: '',
+                        endYear: '',
+                        current: false,
+                        showStartMonth: true,
+                        showEndMonth: true,
+                    },
+                ],
+            },
+        };
+    }),
+
+    addAchievement: () => set((state) => {
+        const newId = String(state.resumeData.achievements.length + 1);
+        return {
+            resumeData: {
+                ...state.resumeData,
+                achievements: [
+                    ...state.resumeData.achievements,
+                    {
+                        id: newId,
+                        title: '',
+                        description: '',
+                        month: '',
+                        year: '',
+                        current: false,
+                        showMonth: true,
+                        organization: '',
+                        link: '',
+                        showOrganization: true,
+                        showDescription: true,
+                        showLink: true,
+                    },
+                ],
+            },
+        };
+    }),
+
+    addPublication: () => set((state) => {
+        const newId = String(state.resumeData.publications.length + 1);
+        return {
+            resumeData: {
+                ...state.resumeData,
+                publications: [
+                    ...state.resumeData.publications,
+                    {
+                        id: newId,
+                        title: '',
+                        authors: '',
+                        journal: '',
+                        month: '',
+                        year: '',
+                        current: false,
+                        showMonth: true,
+                        doi: '',
+                        link: '',
+                        description: '',
+                        showAuthors: true,
+                        showJournal: true,
+                        showDoi: true,
+                        showLink: true,
+                        showDescription: true,
+                    },
+                ],
+            },
+        };
+    }),
+
+    addCertification: () => set((state) => {
+        const newId = String(state.resumeData.certifications.length + 1);
+        return {
+            resumeData: {
+                ...state.resumeData,
+                certifications: [
+                    ...state.resumeData.certifications,
+                    {
+                        id: newId,
+                        name: '',
+                        issuer: '',
+                        month: '',
+                        year: '',
+                        current: false,
+                        showMonth: true,
+                        expiryMonth: '',
+                        expiryYear: '',
+                        showExpiryMonth: true,
+                        credentialId: '',
+                        link: '',
+                        description: '',
+                        showIssuer: true,
+                        showCredentialId: true,
+                        showLink: true,
+                        showDescription: true,
                     },
                 ],
             },
@@ -235,6 +379,27 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         },
     })),
 
+    removeAchievement: (id) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            achievements: state.resumeData.achievements.filter((item) => item.id !== id),
+        },
+    })),
+
+    removePublication: (id) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            publications: state.resumeData.publications.filter((item) => item.id !== id),
+        },
+    })),
+
+    removeCertification: (id) => set((state) => ({
+        resumeData: {
+            ...state.resumeData,
+            certifications: state.resumeData.certifications.filter((item) => item.id !== id),
+        },
+    })),
+
     // Enhanced resume data
     enhancedResumeData: null,
     setEnhancedResumeData: (data) => set({ enhancedResumeData: data }),
@@ -259,6 +424,9 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         education: false,
         skills: false,
         projects: false,
+        achievements: false,
+        publications: false,
+        certifications: false,
     },
     setExpandedSections: (sections: Record<string, boolean>) => set({ expandedSections: sections }),
 
@@ -294,6 +462,77 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         previewScale: Math.max(state.previewScale - 10, 50)
     })),
 
+    // Field visibility state
+    fieldVisibility: {
+        // Personal Info fields
+        'personalInfo.phone': true,
+        'personalInfo.location': true,
+        'personalInfo.socialLinks': true,
+        'personalInfo.summary': true,
+
+        // Work Experience fields
+        'workExperience.experienceLink': true,
+        'workExperience.location': true,
+        'workExperience.startMonth': true,
+        'workExperience.startYear': true,
+        'workExperience.endMonth': true,
+        'workExperience.endYear': true,
+        'workExperience.description': true,
+
+        // Education fields
+        'education.institutionLink': true,
+        'education.location': true,
+        'education.startMonth': true,
+        'education.startYear': true,
+        'education.endMonth': true,
+        'education.endYear': true,
+        'education.description': true,
+
+        // Skills fields
+        'skills.format': true,
+
+        // Projects fields
+        'projects.link': true,
+        'projects.technologies': true,
+        'projects.startMonth': true,
+        'projects.startYear': true,
+        'projects.endMonth': true,
+        'projects.endYear': true,
+
+        // Achievements fields
+        'achievements.organization': true,
+        'achievements.description': true,
+        'achievements.link': true,
+        'achievements.month': true,
+        'achievements.year': true,
+
+        // Publications fields
+        'publications.authors': true,
+        'publications.journal': true,
+        'publications.doi': true,
+        'publications.link': true,
+        'publications.description': true,
+        'publications.month': true,
+        'publications.year': true,
+
+        // Certifications fields
+        'certifications.issuer': true,
+        'certifications.credentialId': true,
+        'certifications.link': true,
+        'certifications.description': true,
+        'certifications.month': true,
+        'certifications.year': true,
+        'certifications.expiryMonth': true,
+        'certifications.expiryYear': true,
+    },
+    setFieldVisibility: (visibility: Record<string, boolean>) => set({ fieldVisibility: visibility }),
+    toggleFieldVisibility: (fieldKey: string) => set((state) => ({
+        fieldVisibility: {
+            ...state.fieldVisibility,
+            [fieldKey]: !state.fieldVisibility[fieldKey]
+        }
+    })),
+
     // Draft saving state
     isSavingDraft: false,
     lastSavedDraftId: null,
@@ -314,8 +553,11 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 },
                 workExperience: resumeData.workExperience,
                 education: resumeData.education,
-                skills: resumeData.skills.flatMap(category => category.skills),
-                projects: resumeData.projects
+                skills: resumeData.skills,
+                projects: resumeData.projects,
+                achievements: resumeData.achievements,
+                publications: resumeData.publications,
+                certifications: resumeData.certifications
             };
 
             // Use provided title or generate a default one
@@ -336,6 +578,19 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     lastSavedTime: null,
     autoSaveDraft: async () => {
         const { resumeData, selectedDocument, lastSavedDraftId } = get();
+
+        // Only auto-save if we have an existing resume
+        if (!selectedDocument && !lastSavedDraftId) {
+            console.log('Auto-save skipped: No existing resume to update');
+            return;
+        }
+
+        // For auto-save, we must have the original title from selectedDocument
+        if (!selectedDocument?.title) {
+            console.log('Auto-save skipped: No original title found');
+            return;
+        }
+
         set({ isAutoSaving: true });
         try {
             // Convert ResumeData to EnhancedResumeData format
@@ -351,18 +606,22 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 },
                 workExperience: resumeData.workExperience,
                 education: resumeData.education,
-                skills: resumeData.skills.flatMap(category => category.skills),
-                projects: resumeData.projects
+                skills: resumeData.skills,
+                projects: resumeData.projects,
+                achievements: resumeData.achievements,
+                publications: resumeData.publications,
+                certifications: resumeData.certifications
             };
 
             // Use existing document ID for auto-save (update existing resume)
-            const documentId = selectedDocument?.id || lastSavedDraftId;
+            const documentId = selectedDocument.id;
 
-            // Use existing title or create a simple auto-save title
-            const resumeTitle = selectedDocument?.title || `Auto-saved ${new Date().toLocaleString()}`;
+            // Always preserve the exact original title for auto-save
+            const resumeTitle = selectedDocument.title;
 
             const response = await saveDraft(enhancedData, resumeTitle, get().customizationOptions, documentId);
             set({ lastSavedDraftId: response.id, lastSavedTime: new Date() });
+            console.log('Auto-save completed successfully with original title:', resumeTitle);
         } catch (error) {
             console.error('Error auto-saving draft:', error);
             throw error;
@@ -373,35 +632,107 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
     setLastSavedTime: (time: Date | null) => set({ lastSavedTime: time }),
 
-    resetStore: () => set({
-        documents: [],
-        selectedDocument: null,
-        resumeData: {
-            ...initialResumeData,
-            skills: (initialResumeData.skills as any[]).map((cat) => ({
-                id: cat.id,
-                name: cat.name,
-                skills: [...cat.skills]
-            }))
-        },
-        enhancedResumeData: null,
-        customizationOptions: defaultCustomizationOptions,
-        isEnhancing: false,
-        enhancementStage: 'extracting',
-        activeSection: 'personalInfo',
-        expandedSections: {
-            personalInfo: true,
-            workExperience: false,
-            education: false,
-            skills: false,
-            projects: false,
-        },
-        previewScale: 70,
-        isSavingDraft: false,
-        lastSavedDraftId: null,
-        isAutoSaving: false,
-        lastSavedTime: null
-    }),
+    resetStore: () => {
+        // First clear all data including enhancedResumeData
+        set({
+            documents: [],
+            selectedDocument: null,
+            enhancedResumeData: null,
+            isEnhancing: false,
+            enhancementStage: 'extracting',
+            isSavingDraft: false,
+            lastSavedDraftId: null,
+            isAutoSaving: false,
+            lastSavedTime: null,
+        });
+
+        // Then set the default resume data and customization options
+        set({
+            resumeData: {
+                ...initialResumeData,
+                skills: (initialResumeData.skills as any[]).map((cat) => ({
+                    id: cat.id,
+                    name: cat.name,
+                    skills: [...cat.skills]
+                }))
+            },
+            customizationOptions: defaultCustomizationOptions,
+            activeSection: 'personalInfo',
+            expandedSections: {
+                personalInfo: true,
+                workExperience: false,
+                education: false,
+                skills: false,
+                projects: false,
+                achievements: false,
+                publications: false,
+                certifications: false,
+            },
+            previewScale: 70,
+            fieldVisibility: {
+                // Personal Info fields
+                'personalInfo.phone': true,
+                'personalInfo.location': true,
+                'personalInfo.socialLinks': true,
+                'personalInfo.summary': true,
+
+                // Work Experience fields
+                'workExperience.experienceLink': true,
+                'workExperience.location': true,
+                'workExperience.startMonth': true,
+                'workExperience.startYear': true,
+                'workExperience.endMonth': true,
+                'workExperience.endYear': true,
+                'workExperience.description': true,
+
+                // Education fields
+                'education.institutionLink': true,
+                'education.location': true,
+                'education.startMonth': true,
+                'education.startYear': true,
+                'education.endMonth': true,
+                'education.endYear': true,
+                'education.description': true,
+
+                // Skills fields
+                'skills.format': true,
+
+                // Projects fields
+                'projects.link': true,
+                'projects.technologies': true,
+                'projects.startMonth': true,
+                'projects.startYear': true,
+                'projects.endMonth': true,
+                'projects.endYear': true,
+
+                // Achievements fields
+                'achievements.organization': true,
+                'achievements.description': true,
+                'achievements.link': true,
+                'achievements.month': true,
+                'achievements.year': true,
+
+                // Publications fields
+                'publications.authors': true,
+                'publications.journal': true,
+                'publications.doi': true,
+                'publications.link': true,
+                'publications.description': true,
+                'publications.month': true,
+                'publications.year': true,
+
+                // Certifications fields
+                'certifications.issuer': true,
+                'certifications.credentialId': true,
+                'certifications.link': true,
+                'certifications.description': true,
+                'certifications.month': true,
+                'certifications.year': true,
+                'certifications.expiryMonth': true,
+                'certifications.expiryYear': true,
+            },
+        });
+    },
 
     addSkillCategory: (name) => set((state) => {
         const newId = (Date.now() + Math.random()).toString();

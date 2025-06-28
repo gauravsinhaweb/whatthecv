@@ -1,6 +1,5 @@
-import { Brush, Laptop, Pen } from 'lucide-react';
+import { Brush, Pen } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 import { useResumeState } from '../../../hooks/useResumeState';
@@ -19,17 +18,21 @@ const CreateResume: React.FC = () => {
         activeSection,
         expandedSections,
         customizationOptions,
+        fieldVisibility,
         handlers,
         previewScale,
         isAutoSaving,
         lastSavedTime
     } = useResumeState();
-    const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft } = useResumeStore();
+    const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft, selectedDocument } = useResumeStore();
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+    // Check if this is an existing resume (has been saved before with a title)
+    const isExistingResume = selectedDocument?.title;
 
     const setPreviewScaleRef = useRef(handlers.setPreviewScale);
     setPreviewScaleRef.current = handlers.setPreviewScale;
@@ -72,22 +75,22 @@ const CreateResume: React.FC = () => {
         };
     }, []);
 
-    // Track unsaved changes when resume data changes
+    // Track unsaved changes when resume data changes (only for existing resumes)
     useEffect(() => {
-        if (resumeData) {
+        if (resumeData && isExistingResume) {
             setHasUnsavedChanges(true);
         }
-    }, [resumeData]);
+    }, [resumeData, isExistingResume]);
 
-    // Reset unsaved changes when auto-save occurs
+    // Reset unsaved changes when auto-save occurs (only for existing resumes)
     useEffect(() => {
-        if (lastSavedTime) {
+        if (lastSavedTime && isExistingResume) {
             setHasUnsavedChanges(false);
         }
-    }, [lastSavedTime]);
+    }, [lastSavedTime, isExistingResume]);
 
-    // Check if there are actually unsaved changes (more recent than last save)
-    const hasActualUnsavedChanges = hasUnsavedChanges && (!lastSavedTime ||
+    // Check if there are actually unsaved changes (more recent than last save) - only for existing resumes
+    const hasActualUnsavedChanges = isExistingResume && hasUnsavedChanges && (!lastSavedTime ||
         new Date().getTime() - lastSavedTime.getTime() > 5000); // 5 seconds buffer
 
     // Push a dummy state to the history when component mounts
@@ -95,7 +98,7 @@ const CreateResume: React.FC = () => {
         window.history.pushState(null, '', window.location.pathname);
     }, []);
 
-    // Handle back button and history navigation
+    // Handle back button and history navigation (only for existing resumes)
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
             if (hasActualUnsavedChanges && !isSavingDraft) {
@@ -120,7 +123,7 @@ const CreateResume: React.FC = () => {
         };
     }, [hasActualUnsavedChanges, isSavingDraft, navigate]);
 
-    // Handle beforeunload event to show confirmation dialog
+    // Handle beforeunload event to show confirmation dialog (only for existing resumes)
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (hasActualUnsavedChanges && !isSavingDraft) {
@@ -146,7 +149,6 @@ const CreateResume: React.FC = () => {
             const convertedData: ResumeData = {
                 personalInfo: {
                     ...enhancedResumeData.personalInfo,
-                    // Move summary from top level to personalInfo if it exists
                     summary: enhancedResumeData.personalInfo.summary || ''
                 },
                 workExperience: enhancedResumeData.workExperience,
@@ -155,18 +157,17 @@ const CreateResume: React.FC = () => {
                     if (!enhancedResumeData.skills || enhancedResumeData.skills.length === 0) {
                         return [];
                     }
-
-                    // Check if skills is already in the new categorized format
                     const firstSkill = enhancedResumeData.skills[0];
                     if (firstSkill !== null && firstSkill !== undefined && typeof firstSkill === 'object' && 'skills' in (firstSkill as object) && Array.isArray((firstSkill as any).skills)) {
-                        // Already in categorized format, use as is
                         return enhancedResumeData.skills as unknown as { id: string; name: string; skills: string[] }[];
                     } else {
-                        // Convert from flat list to categorized format
                         return [{ id: '1', name: 'Technical Skills', skills: enhancedResumeData.skills as unknown as string[] }];
                     }
                 })(),
                 projects: enhancedResumeData.projects,
+                achievements: [],
+                publications: [],
+                certifications: [],
             };
 
             // Update resume data with the enhanced content
@@ -225,16 +226,6 @@ const CreateResume: React.FC = () => {
         exportResumeToPDF(resumeData, customizationOptions);
     };
 
-    const handleSaveDraft = async () => {
-        try {
-            await saveAsDraft();
-            setHasUnsavedChanges(false);
-            toast.success('Draft saved successfully');
-        } catch (error) {
-            toast.error('Failed to save draft');
-        }
-    };
-
     return (
         <div className="h-full flex flex-col overflow-hidden">
             <ResumeFullScreenModal
@@ -287,11 +278,7 @@ const CreateResume: React.FC = () => {
                         <div className="flex-1 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                             <div className="h-full overflow-y-auto">
                                 {activeTab === 'content' ? (
-                                    <ResumeEditor
-                                        {...editorProps}
-                                        customizationOptions={customizationOptions}
-                                        onCustomizationChange={handlers.setCustomizationOptions}
-                                    />
+                                    <ResumeEditor />
                                 ) : (
                                     <ResumeCustomizationPanel
                                         options={customizationOptions}
@@ -310,7 +297,8 @@ const CreateResume: React.FC = () => {
                                 resumeData,
                                 customizationOptions,
                                 previewScale,
-                                setIsFullScreenPreview
+                                setIsFullScreenPreview,
+                                { fieldVisibility }
                             )}
                         </div>
                     </div>

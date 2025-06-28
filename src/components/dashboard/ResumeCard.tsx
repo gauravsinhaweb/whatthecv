@@ -55,9 +55,10 @@ export const ResumeCard = ({
 
     return (
         <div
-            className="group bg-white  shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
+            className="group bg-white shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
             onClick={() => !hovered && onEdit(id)}
         >
+            {/* Card Preview */}
             <div className="px-2 py-1 flex items-center justify-center bg-slate-200 group-hover:bg-slate-100 transition-colors duration-200 relative">
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-10">
                     <div className="flex flex-row items-center gap-2">
@@ -83,7 +84,9 @@ export const ResumeCard = ({
                     />
                 </div>
             </div>
-            <div className="p-4 pb-12 border-t border-slate-100">
+
+            {/* Card Footer: Title, Date, and Three-dot Menu */}
+            <div className="p-4 pb-3 border-t border-slate-100">
                 {editingTitle === id ? (
                     <div className="flex items-center space-x-2">
                         <input
@@ -104,10 +107,10 @@ export const ResumeCard = ({
                         />
                     </div>
                 ) : (
-                    <div className="absolute flex items-center justify-between">
+                    <div className="flex items-start justify-between">
                         <div>
                             <h3
-                                className="text-sm font-medium text-slate-900 truncate cursor-pointer hover:text-blue-600 max-w-[180px]"
+                                className="text-sm font-medium text-slate-900 truncate cursor-pointer hover:text-blue-600 max-w-[140px]"
                                 onClick={(e) => {
                                     e.stopPropagation()
                                     onTitleEdit(id, title)
@@ -119,7 +122,7 @@ export const ResumeCard = ({
                                 {format(new Date(updatedAt), 'MMM d, yyyy · h:mm a')}
                             </p>
                         </div>
-                        <div className="relative">
+                        <div className="relative ml-2">
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation()
@@ -139,7 +142,7 @@ export const ResumeCard = ({
                                         }}
                                     />
                                     <div
-                                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-slate-200"
+                                        className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-slate-200"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         <button
