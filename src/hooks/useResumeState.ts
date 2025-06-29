@@ -1,15 +1,31 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useResumeStore } from '../store/resumeStore';
-import { saveResumeData, saveCompleteResumeData } from '../utils/resumeSaveUtils';
-import { formatBulletPoints, formatAllDescriptions } from '../utils/resumeFormatUtils';
-import { ResumeCustomizationOptions } from '../types/resume';
-import { saveDraft } from '../utils/api';
+import { useCallback, useEffect, useRef } from 'react'
+import { useResumeStore } from '../store/resumeStore'
+import { useSaveResume, useDeleteResume, useResumeVersions } from './queries/useResumeQueries'
+import { useTokenActions } from './useTokenActions'
+import { useStorageAndActionInfo } from './queries/useStorageQueries'
+import { toast } from 'react-hot-toast'
+import { EnhancedResumeData } from '../utils/types'
 
 export const useResumeState = () => {
     const {
-        // Resume data
+        // Store state
         resumeData,
+        enhancedResumeData,
+        selectedDocument,
+        customizationOptions,
+        ui,
+        save,
+
+        // Store actions
         setResumeData,
+        setEnhancedResumeData,
+        setSelectedDocument,
+        setCustomizationOptions,
+        setSavingState,
+        setLastSavedTime,
+        resetStore,
+
+        // Resume data actions
         updatePersonalInfo,
         updateWorkExperience,
         updateEducation,
@@ -17,6 +33,8 @@ export const useResumeState = () => {
         updateAchievement,
         updatePublication,
         updateCertification,
+
+        // Add/Remove actions
         addWorkExperience,
         addEducation,
         addProject,
@@ -29,16 +47,15 @@ export const useResumeState = () => {
         removeAchievement,
         removePublication,
         removeCertification,
+
+        // Skills actions
         addSkillCategory,
         removeSkillCategory,
         addSkillToCategory,
         removeSkillFromCategory,
         updateSkillCategoryName,
 
-        // UI state
-        activeSection,
-        expandedSections,
-        previewScale,
+        // UI actions
         setActiveSection,
         setExpandedSections,
         toggleSection,
@@ -46,231 +63,293 @@ export const useResumeState = () => {
         setPreviewScale,
         handleZoomIn,
         handleZoomOut,
-
-        // Customization
-        customizationOptions,
-        setCustomizationOptions,
-
-        // Field visibility
-        fieldVisibility,
+        setFieldVisibility,
         toggleFieldVisibility,
 
-        // Auto-save state
-        isAutoSaving,
-        lastSavedTime,
-        autoSaveDraft,
-        setLastSavedTime,
+        // Enhancement actions
+        setIsEnhancing,
+        setEnhancementStage,
+    } = useResumeStore()
 
-        // Draft state
-        selectedDocument,
-        lastSavedDraftId,
-    } = useResumeStore();
+    // React Query hooks
+    const saveResumeMutation = useSaveResume()
+    const deleteResumeMutation = useDeleteResume()
+    const { data: resumeVersions, isLoading: isLoadingVersions } = useResumeVersions()
 
-    // Local state for skill input (keep this in component level as it's purely UI input state)
-    const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // Token and storage hooks
+    const { getAmount, hasSufficientTokens, executeAction } = useTokenActions()
+    const { storageInfo, actionInfo } = useStorageAndActionInfo()
 
-    // Auto-save functionality
-    const triggerAutoSave = useCallback(() => {
-        if (autoSaveTimeoutRef.current) {
-            clearTimeout(autoSaveTimeoutRef.current);
+    // Auto-save refs
+    const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
+    const lastSaveDataRef = useRef<string>('')
+
+    // Check if data has changed for auto-save
+    const hasDataChanged = useCallback(() => {
+        const currentData = JSON.stringify({ resumeData, customizationOptions })
+        return currentData !== lastSaveDataRef.current
+    }, [resumeData, customizationOptions])
+
+    // Auto-save function
+    const autoSave = useCallback(async () => {
+        if (!hasDataChanged() || !selectedDocument?.title || save.isAutoSaving) {
+            console.log('Auto-save skipped:', {
+                hasDataChanged: hasDataChanged(),
+                hasTitle: !!selectedDocument?.title,
+                isAutoSaving: save.isAutoSaving
+            });
+            return
         }
 
-        autoSaveTimeoutRef.current = setTimeout(async () => {
-            try {
-                // Only auto-save existing resumes with a title (not new ones)
-                const isExistingResume = selectedDocument?.title;
+        console.log('Auto-save triggered for resume:', selectedDocument.title);
+        try {
+            setSavingState({ isAutoSaving: true })
 
-                if (isExistingResume) {
-                    console.log('Triggering auto-save for existing resume with title:', selectedDocument.title);
-                    await autoSaveDraft();
-                } else {
-                    console.log('Auto-save skipped: This is a new resume that needs manual save first');
-                }
-            } catch (error) {
-                console.error('Auto-save failed:', error);
+            const enhancedData: EnhancedResumeData = {
+                personalInfo: {
+                    ...resumeData.personalInfo,
+                    summary: resumeData.personalInfo.summary || '',
+                    profilePicture: resumeData.personalInfo.profilePicture || null,
+                    socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
+                        ...link,
+                        platform: link.platform === 'peerlist' ? 'other' : link.platform
+                    })) as EnhancedResumeData['personalInfo']['socialLinks']
+                },
+                workExperience: resumeData.workExperience,
+                education: resumeData.education,
+                skills: resumeData.skills,
+                projects: resumeData.projects,
+                achievements: resumeData.achievements,
+                publications: resumeData.publications,
+                certifications: resumeData.certifications
             }
-        }, 2000);
-    }, [autoSaveDraft, selectedDocument]);
 
-    // Auto-format bullet points when editing descriptions
-    useEffect(() => {
-        const formattedData = formatAllDescriptions(resumeData);
-        if (JSON.stringify(formattedData) !== JSON.stringify(resumeData)) {
-            setResumeData(formattedData);
+            await saveResumeMutation.mutateAsync({
+                resumeData: enhancedData,
+                title: selectedDocument.title,
+                customizationOptions,
+                resumeId: selectedDocument.id,
+            })
+
+            setLastSavedTime(new Date())
+            lastSaveDataRef.current = JSON.stringify({ resumeData, customizationOptions })
+            console.log('Auto-save completed successfully');
+
+        } catch (error) {
+            console.error('Auto-save failed:', error)
+            // Don't show toast for auto-save failures to avoid spam
+        } finally {
+            setSavingState({ isAutoSaving: false })
         }
-    }, [resumeData, setResumeData]);
+    }, [
+        hasDataChanged,
+        selectedDocument,
+        save.isAutoSaving,
+        resumeData,
+        customizationOptions,
+        saveResumeMutation,
+        setSavingState,
+        setLastSavedTime,
+    ])
 
-    // Trigger auto-save when resume data changes (but only for existing resumes with titles)
+    // Setup auto-save effect
     useEffect(() => {
-        // Only trigger auto-save for existing resumes with titles
-        const isExistingResume = selectedDocument?.title;
+        if (selectedDocument?.title && hasDataChanged()) {
+            console.log('Setting up auto-save timeout for:', selectedDocument.title);
+            // Clear existing timeout
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current)
+            }
 
-        if (isExistingResume && resumeData && Object.keys(resumeData).length > 0) {
-            console.log('Resume data changed, triggering auto-save...');
-            triggerAutoSave();
+            // Set new timeout for auto-save
+            autoSaveTimeoutRef.current = setTimeout(autoSave, 5000) // 5 second delay
         }
 
         return () => {
             if (autoSaveTimeoutRef.current) {
-                clearTimeout(autoSaveTimeoutRef.current);
+                clearTimeout(autoSaveTimeoutRef.current)
             }
-        };
-    }, [resumeData, triggerAutoSave, selectedDocument]);
+        }
+    }, [resumeData, customizationOptions, selectedDocument, autoSave, hasDataChanged])
 
-    const handlePersonalInfoChange = useCallback((field: string, value: string) => {
-        // Handle socialLinks as a special case since it comes as a JSON string
-        if (field === 'socialLinks') {
-            try {
-                const parsedLinks = JSON.parse(value);
-                updatePersonalInfo(field, parsedLinks);
-            } catch (error) {
-                console.error('Error parsing social links:', error);
+    // Manual save function
+    const saveResume = useCallback(async (title?: string, resumeId?: string) => {
+        if (!title && !selectedDocument?.title) {
+            toast.error('Please provide a title for the resume')
+            return
+        }
+
+        try {
+            setSavingState({ isSavingDraft: true })
+
+            const enhancedData: EnhancedResumeData = {
+                personalInfo: {
+                    ...resumeData.personalInfo,
+                    summary: resumeData.personalInfo.summary || '',
+                    profilePicture: resumeData.personalInfo.profilePicture || null,
+                    socialLinks: resumeData.personalInfo.socialLinks?.map(link => ({
+                        ...link,
+                        platform: link.platform === 'peerlist' ? 'other' : link.platform
+                    })) as EnhancedResumeData['personalInfo']['socialLinks']
+                },
+                workExperience: resumeData.workExperience,
+                education: resumeData.education,
+                skills: resumeData.skills,
+                projects: resumeData.projects,
+                achievements: resumeData.achievements,
+                publications: resumeData.publications,
+                certifications: resumeData.certifications
             }
-        } else {
-            updatePersonalInfo(field, value);
+
+            const response = await saveResumeMutation.mutateAsync({
+                resumeData: enhancedData,
+                title: title || selectedDocument?.title || 'Untitled Resume',
+                customizationOptions,
+                resumeId: resumeId || selectedDocument?.id,
+            })
+
+            setLastSavedTime(new Date())
+            lastSaveDataRef.current = JSON.stringify({ resumeData, customizationOptions })
+
+            return response
+        } catch (error) {
+            console.error('Save failed:', error)
+            throw error
+        } finally {
+            setSavingState({ isSavingDraft: false })
         }
-    }, [updatePersonalInfo]);
+    }, [
+        selectedDocument,
+        resumeData,
+        customizationOptions,
+        saveResumeMutation,
+        setSavingState,
+        setLastSavedTime,
+    ])
 
-    const handleWorkExperienceChange = useCallback((id: string, field: string, value: string | boolean) => {
-        // Apply formatting to description fields
-        if (field === 'description' && typeof value === 'string') {
-            value = formatBulletPoints(value);
+    // Delete resume function
+    const deleteResume = useCallback(async (id: string) => {
+        try {
+            await deleteResumeMutation.mutateAsync(id)
+
+            // If deleting the currently selected document, clear selection
+            if (selectedDocument?.id === id) {
+                setSelectedDocument(null)
+            }
+        } catch (error) {
+            console.error('Delete failed:', error)
+            throw error
         }
-        updateWorkExperience(id, field, value);
-    }, [updateWorkExperience]);
+    }, [deleteResumeMutation, selectedDocument, setSelectedDocument])
 
-    const handleEducationChange = useCallback((id: string, field: string, value: string) => {
-        // Apply formatting to description fields
-        if (field === 'description') {
-            value = formatBulletPoints(value);
+    // Load resume function
+    const loadResume = useCallback((resume: any) => {
+        setResumeData(resume.resume_data)
+        setCustomizationOptions(resume.customization_options || {})
+        setSelectedDocument({
+            id: resume.id,
+            title: resume.title,
+            createdAt: resume.created_at,
+            updatedAt: resume.updated_at,
+            template: 'default',
+            type: 'resume',
+            resumeData: resume.resume_data,
+            customizationOptions: resume.customization_options || {},
+        })
+        setLastSavedTime(new Date(resume.updated_at))
+        lastSaveDataRef.current = JSON.stringify({
+            resumeData: resume.resume_data,
+            customizationOptions: resume.customization_options || {}
+        })
+    }, [setResumeData, setCustomizationOptions, setSelectedDocument, setLastSavedTime])
+
+    // Check if user can save (has sufficient tokens and storage)
+    const canSave = useCallback(() => {
+        if (!storageInfo?.can_create_new && !selectedDocument) {
+            return { canSave: false, reason: 'Storage limit reached' }
         }
-        updateEducation(id, field, value);
-    }, [updateEducation]);
 
-    const handleProjectChange = useCallback((id: string, field: string, value: string) => {
-        // Apply formatting to description fields
-        if (field === 'description') {
-            value = formatBulletPoints(value);
+        const tokenAmount = getAmount('resume_save')
+        if (!hasSufficientTokens('resume_save')) {
+            return { canSave: false, reason: 'Insufficient tokens', required: tokenAmount }
         }
-        updateProject(id, field, value);
-    }, [updateProject]);
 
-    const handleAchievementChange = useCallback((id: string, field: string, value: string) => {
-        // Apply formatting to description fields
-        if (field === 'description') {
-            value = formatBulletPoints(value);
-        }
-        updateAchievement(id, field, value);
-    }, [updateAchievement]);
-
-    const handlePublicationChange = useCallback((id: string, field: string, value: string) => {
-        // Apply formatting to description fields
-        if (field === 'description') {
-            value = formatBulletPoints(value);
-        }
-        updatePublication(id, field, value);
-    }, [updatePublication]);
-
-    const handleCertificationChange = useCallback((id: string, field: string, value: string) => {
-        // Apply formatting to description fields
-        if (field === 'description') {
-            value = formatBulletPoints(value);
-        }
-        updateCertification(id, field, value);
-    }, [updateCertification]);
-
-    const saveResume = useCallback(() => {
-        // Format all descriptions before saving
-        const formattedData = formatAllDescriptions(resumeData);
-        saveResumeData(formattedData);
-    }, [resumeData]);
-
-    const saveResumeWithOptions = useCallback(() => {
-        // Format all descriptions before saving
-        const formattedData = formatAllDescriptions(resumeData);
-        saveCompleteResumeData(formattedData, customizationOptions);
-    }, [resumeData, customizationOptions]);
-
-    const handleSaveAsDraft = useCallback(() => {
-        // Format all descriptions before saving
-        const formattedData = formatAllDescriptions(resumeData);
-
-        // Convert ResumeData to EnhancedResumeData format
-        const enhancedData = {
-            personalInfo: {
-                ...formattedData.personalInfo,
-                profilePicture: formattedData.personalInfo.profilePicture || null,
-                socialLinks: formattedData.personalInfo.socialLinks?.map(link => ({
-                    ...link,
-                    platform: link.platform === 'peerlist' ? 'other' : link.platform
-                })) || []
-            },
-            workExperience: formattedData.workExperience,
-            education: formattedData.education,
-            skills: formattedData.skills, // Preserve structured format
-            projects: formattedData.projects,
-            achievements: formattedData.achievements,
-            publications: formattedData.publications,
-            certifications: formattedData.certifications
-        };
-
-        saveDraft(enhancedData, `Draft ${new Date().toLocaleString()}`, customizationOptions);
-        alert('Resume saved as draft');
-    }, [resumeData, customizationOptions]);
-
-    // Update customization options with a fresh object reference to trigger re-renders
-    const handleCustomizationChange = useCallback((newOptions: ResumeCustomizationOptions) => {
-        // Create a completely new object to ensure reference changes
-        setCustomizationOptions({ ...newOptions });
-    }, [setCustomizationOptions]);
+        return { canSave: true }
+    }, [storageInfo, selectedDocument, getAmount, hasSufficientTokens])
 
     return {
+        // State
         resumeData,
-        activeSection,
-        expandedSections,
+        enhancedResumeData,
+        selectedDocument,
         customizationOptions,
-        previewScale,
-        isAutoSaving,
-        lastSavedTime,
-        fieldVisibility,
-        handlers: {
-            setResumeData,
-            setActiveSection,
-            setExpandedSections,
-            setCustomizationOptions: handleCustomizationChange,
-            setPreviewScale,
-            handleZoomIn,
-            handleZoomOut,
-            handlePersonalInfoChange,
-            handleWorkExperienceChange,
-            handleEducationChange,
-            handleProjectChange,
-            handleAchievementChange,
-            handlePublicationChange,
-            handleCertificationChange,
-            addWorkExperience,
-            addEducation,
-            addProject,
-            addAchievement,
-            addPublication,
-            addCertification,
-            removeWorkExperience,
-            removeEducation,
-            removeProject,
-            removeAchievement,
-            removePublication,
-            removeCertification,
-            addSkillCategory,
-            removeSkillCategory,
-            addSkillToCategory,
-            removeSkillFromCategory,
-            updateSkillCategoryName,
-            saveResume,
-            saveResumeWithOptions,
-            saveAsDraft: handleSaveAsDraft,
-            toggleSection,
-            editSection,
-            toggleFieldVisibility,
-        }
-    };
-}; 
+        ui,
+        save,
+        resumeVersions,
+        isLoadingVersions,
+        storageInfo,
+        actionInfo,
+
+        // Actions
+        setResumeData,
+        setEnhancedResumeData,
+        setSelectedDocument,
+        setCustomizationOptions,
+        resetStore,
+
+        // Resume data actions
+        updatePersonalInfo,
+        updateWorkExperience,
+        updateEducation,
+        updateProject,
+        updateAchievement,
+        updatePublication,
+        updateCertification,
+
+        // Add/Remove actions
+        addWorkExperience,
+        addEducation,
+        addProject,
+        addAchievement,
+        addPublication,
+        addCertification,
+        removeWorkExperience,
+        removeEducation,
+        removeProject,
+        removeAchievement,
+        removePublication,
+        removeCertification,
+
+        // Skills actions
+        addSkillCategory,
+        removeSkillCategory,
+        addSkillToCategory,
+        removeSkillFromCategory,
+        updateSkillCategoryName,
+
+        // UI actions
+        setActiveSection,
+        setExpandedSections,
+        toggleSection,
+        editSection,
+        setPreviewScale,
+        handleZoomIn,
+        handleZoomOut,
+        setFieldVisibility,
+        toggleFieldVisibility,
+
+        // Enhancement actions
+        setIsEnhancing,
+        setEnhancementStage,
+
+        // Save/Delete actions
+        saveResume,
+        deleteResume,
+        loadResume,
+        canSave,
+
+        // Mutations
+        saveResumeMutation,
+        deleteResumeMutation,
+    }
+} 

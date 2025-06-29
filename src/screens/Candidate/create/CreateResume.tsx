@@ -2,9 +2,9 @@ import { Brush, Pen } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
+import StorageLimitModal from '../../../components/modals/StorageLimitModal';
 import { useResumeState } from '../../../hooks/useResumeState';
-import { useResumeStore } from '../../../store/resumeStore';
-import { ResumeData } from '../../../types/resume';
+import { ResumeData, initialResumeData } from '../../../types/resume';
 import { exportResumeToPDF } from '../../../utils/resumeExport';
 import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../../../utils/resumeUI';
 import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
@@ -15,27 +15,324 @@ const CreateResume: React.FC = () => {
     const navigate = useNavigate();
     const {
         resumeData,
-        activeSection,
-        expandedSections,
+        ui: { activeSection, expandedSections, previewScale },
         customizationOptions,
-        fieldVisibility,
-        handlers,
-        previewScale,
-        isAutoSaving,
-        lastSavedTime
+        ui: { fieldVisibility },
+        save: { isAutoSaving, lastSavedTime },
+        selectedDocument,
+        enhancedResumeData,
+        setResumeData,
+        setCustomizationOptions,
+        setActiveSection,
+        setExpandedSections,
+        setPreviewScale,
+        setFieldVisibility,
+        setEnhancedResumeData,
+        save: { isSavingDraft }
     } = useResumeState();
-    const { enhancedResumeData, setEnhancedResumeData, setResumeData, isSavingDraft, saveAsDraft, selectedDocument } = useResumeStore();
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [isStorageLimitModalOpen, setIsStorageLimitModalOpen] = useState(false);
 
     // Check if this is an existing resume (has been saved before with a title)
     const isExistingResume = selectedDocument?.title;
 
+    // Ensure new resumes start with initialResumeData
+    useEffect(() => {
+        if (!selectedDocument && (!resumeData || Object.keys(resumeData).length === 0)) {
+            setResumeData(initialResumeData);
+        }
+    }, [selectedDocument, resumeData, setResumeData]);
+
+    // Create handlers object from store actions
+    const handlers = {
+        setPreviewScale,
+        setActiveSection,
+        setExpandedSections,
+        setCustomizationOptions,
+        handleZoomIn: () => setPreviewScale(Math.min(previewScale + 0.1, 1)),
+        handleZoomOut: () => setPreviewScale(Math.max(previewScale - 0.1, 0.3)),
+        handlePersonalInfoChange: (field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                personalInfo: { ...resumeData.personalInfo, [field]: value }
+            });
+        },
+        handleWorkExperienceChange: (id: string, field: string, value: string | boolean) => {
+            setResumeData({
+                ...resumeData,
+                workExperience: resumeData.workExperience.map(exp =>
+                    exp.id === id ? { ...exp, [field]: value } : exp
+                )
+            });
+        },
+        handleEducationChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                education: resumeData.education.map(edu =>
+                    edu.id === id ? { ...edu, [field]: value } : edu
+                )
+            });
+        },
+        handleProjectChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                projects: resumeData.projects.map(proj =>
+                    proj.id === id ? { ...proj, [field]: value } : proj
+                )
+            });
+        },
+        handleAchievementChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                achievements: resumeData.achievements.map(ach =>
+                    ach.id === id ? { ...ach, [field]: value } : ach
+                )
+            });
+        },
+        handlePublicationChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                publications: resumeData.publications.map(pub =>
+                    pub.id === id ? { ...pub, [field]: value } : pub
+                )
+            });
+        },
+        handleCertificationChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                certifications: resumeData.certifications.map(cert =>
+                    cert.id === id ? { ...cert, [field]: value } : cert
+                )
+            });
+        },
+        addWorkExperience: () => {
+            const newExp = {
+                id: `work-${Date.now()}`,
+                position: '',
+                company: '',
+                location: '',
+                startMonth: '',
+                startYear: '',
+                endMonth: '',
+                endYear: '',
+                current: false,
+                showStartMonth: true,
+                showEndMonth: true,
+                description: ''
+            };
+            setResumeData({
+                ...resumeData,
+                workExperience: [...resumeData.workExperience, newExp]
+            });
+        },
+        addEducation: () => {
+            const newEdu = {
+                id: `edu-${Date.now()}`,
+                degree: '',
+                institution: '',
+                location: '',
+                startMonth: '',
+                startYear: '',
+                endMonth: '',
+                endYear: '',
+                current: false,
+                showStartMonth: true,
+                showEndMonth: true,
+                description: ''
+            };
+            setResumeData({
+                ...resumeData,
+                education: [...resumeData.education, newEdu]
+            });
+        },
+        addProject: () => {
+            const newProj = {
+                id: `proj-${Date.now()}`,
+                name: '',
+                description: '',
+                technologies: '',
+                link: '',
+                startMonth: '',
+                startYear: '',
+                endMonth: '',
+                endYear: '',
+                current: false,
+                showStartMonth: true,
+                showEndMonth: true
+            };
+            setResumeData({
+                ...resumeData,
+                projects: [...resumeData.projects, newProj]
+            });
+        },
+        addAchievement: () => {
+            const newAch = {
+                id: `ach-${Date.now()}`,
+                title: '',
+                organization: '',
+                description: '',
+                link: '',
+                month: '',
+                year: ''
+            };
+            setResumeData({
+                ...resumeData,
+                achievements: [...resumeData.achievements, newAch]
+            });
+        },
+        addPublication: () => {
+            const newPub = {
+                id: `pub-${Date.now()}`,
+                title: '',
+                authors: '',
+                journal: '',
+                doi: '',
+                link: '',
+                description: '',
+                month: '',
+                year: ''
+            };
+            setResumeData({
+                ...resumeData,
+                publications: [...resumeData.publications, newPub]
+            });
+        },
+        addCertification: () => {
+            const newCert = {
+                id: `cert-${Date.now()}`,
+                name: '',
+                issuer: '',
+                credentialId: '',
+                link: '',
+                description: '',
+                month: '',
+                year: '',
+                expiryMonth: '',
+                expiryYear: ''
+            };
+            setResumeData({
+                ...resumeData,
+                certifications: [...resumeData.certifications, newCert]
+            });
+        },
+        removeWorkExperience: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                workExperience: resumeData.workExperience.filter(exp => exp.id !== id)
+            });
+        },
+        removeEducation: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                education: resumeData.education.filter(edu => edu.id !== id)
+            });
+        },
+        removeProject: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                projects: resumeData.projects.filter(proj => proj.id !== id)
+            });
+        },
+        removeAchievement: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                achievements: resumeData.achievements.filter(ach => ach.id !== id)
+            });
+        },
+        removePublication: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                publications: resumeData.publications.filter(pub => pub.id !== id)
+            });
+        },
+        removeCertification: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                certifications: resumeData.certifications.filter(cert => cert.id !== id)
+            });
+        },
+        addSkillCategory: (name: string) => {
+            const newCategory = {
+                id: `skill-${Date.now()}`,
+                name,
+                skills: []
+            };
+            setResumeData({
+                ...resumeData,
+                skills: [...resumeData.skills, newCategory]
+            });
+        },
+        removeSkillCategory: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                skills: resumeData.skills.filter(skill => skill.id !== id)
+            });
+        },
+        addSkillToCategory: (categoryId: string, skill: string) => {
+            setResumeData({
+                ...resumeData,
+                skills: resumeData.skills.map(skillCategory =>
+                    skillCategory.id === categoryId
+                        ? { ...skillCategory, skills: [...skillCategory.skills, skill] }
+                        : skillCategory
+                )
+            });
+        },
+        removeSkillFromCategory: (categoryId: string, skillToRemove: string) => {
+            setResumeData({
+                ...resumeData,
+                skills: resumeData.skills.map(skillCategory =>
+                    skillCategory.id === categoryId
+                        ? { ...skillCategory, skills: skillCategory.skills.filter(s => s !== skillToRemove) }
+                        : skillCategory
+                )
+            });
+        },
+        updateSkillCategoryName: (id: string, name: string) => {
+            setResumeData({
+                ...resumeData,
+                skills: resumeData.skills.map(skill =>
+                    skill.id === id ? { ...skill, name } : skill
+                )
+            });
+        },
+        toggleSection: (section: string) => {
+            setExpandedSections({
+                ...expandedSections,
+                [section]: !expandedSections[section]
+            });
+        },
+        editSection: (section: string) => {
+            setActiveSection(section);
+        },
+        toggleFieldVisibility: (fieldKey: string) => {
+            setFieldVisibility({
+                ...fieldVisibility,
+                [fieldKey]: !fieldVisibility[fieldKey]
+            });
+        }
+    };
+
     const setPreviewScaleRef = useRef(handlers.setPreviewScale);
     setPreviewScaleRef.current = handlers.setPreviewScale;
+
+    // Add loading state check
+    const isLoading = !resumeData || !handlers;
+
+    if (isLoading) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-lg text-slate-600">Loading resume editor...</p>
+                </div>
+            </div>
+        );
+    }
 
     useEffect(() => {
         const handleResize = () => {
@@ -217,10 +514,6 @@ const CreateResume: React.FC = () => {
         [resumeData, activeSection, expandedSections, handlers]
     );
 
-    const handleExportPDF = () => {
-        setIsExportModalOpen(true);
-    };
-
     const handleConfirmExport = () => {
         setIsExportModalOpen(false);
         exportResumeToPDF(resumeData, customizationOptions);
@@ -241,6 +534,14 @@ const CreateResume: React.FC = () => {
                 isOpen={isExportModalOpen}
                 onClose={() => setIsExportModalOpen(false)}
                 onConfirm={handleConfirmExport}
+            />
+            <StorageLimitModal
+                isOpen={isStorageLimitModalOpen}
+                onClose={() => setIsStorageLimitModalOpen(false)}
+                onPurchaseSuccess={() => {
+                    setIsStorageLimitModalOpen(false);
+                    // Optionally retry the save operation
+                }}
             />
 
             <div className="flex-1 p-6 pb-0 overflow-hidden">
@@ -283,8 +584,6 @@ const CreateResume: React.FC = () => {
                                     <ResumeCustomizationPanel
                                         options={customizationOptions}
                                         onChange={handlers.setCustomizationOptions}
-                                        onSave={handlers.saveResumeWithOptions}
-                                        onSaveAsDraft={handlers.saveAsDraft}
                                     />
                                 )}
                             </div>

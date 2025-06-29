@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useResumeStore } from '../store/resumeStore'
+import { useUserStore } from '../store/userStore'
 import { defaultCustomizationOptions, initialResumeData, ResumeData } from '../types/resume'
 import { FileText, Plus, Briefcase, Coins, History, RefreshCw, PiggyBank, FileSearch, FileEdit, FileCheck, Sparkles, Wand2, Lightbulb, MessageSquare, BookOpen, Target, GraduationCap, Wallet } from 'lucide-react'
-import { getResumeVersions, deleteResumeVersion, saveDraft } from '../utils/api'
 import { toast } from 'react-hot-toast'
 import type { EnhancedResumeData } from '../utils/types'
-import { useTokens } from '../hooks/useTokens'
+import { useTokenBalance, useTokenTransactions, useBuyTokens } from '../hooks/queries/useTokenQueries'
+import { useResumeVersions, useDeleteResume, useSaveResume } from '../hooks/queries/useResumeQueries'
+import { useStorageAndActionInfo } from '../hooks/queries/useStorageQueries'
 import { DeleteConfirmModal } from '../components/dashboard/DeleteConfirmModal'
 import { ResumeCard, ResumeCardSkeleton } from '../components/dashboard/ResumeCard'
 import { StatsCard } from '../components/dashboard/StatsCard'
@@ -103,9 +105,9 @@ const getActionDetails = (actionId: string) => {
 
 const Dashboard = () => {
     const navigate = useNavigate()
+    const { user, isAuthenticated } = useUserStore()
     const { documents, setDocuments, setResumeData, setCustomizationOptions, setSelectedDocument, resetStore, updateDocument } = useResumeStore()
     const [activeTab, setActiveTab] = useState<'resumes' | 'cover-letters'>('resumes')
-    const [isLoading, setIsLoading] = useState(true)
     const [editingTitle, setEditingTitle] = useState<string | null>(null)
     const [newTitle, setNewTitle] = useState('')
     const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; resumeId: string | null }>({
@@ -113,33 +115,39 @@ const Dashboard = () => {
         resumeId: null
     })
 
-    const {
+    // React Query hooks
+    const { data: tokenBalance = 0, isLoading: isBalanceLoading, error } = useTokenBalance()
+    const { data: transactions = [], isLoading: historyLoading } = useTokenTransactions()
+    const { data: resumeVersions, isLoading: isResumeVersionsLoading } = useResumeVersions()
+    const { storageInfo, actionInfo, isLoading: isStorageLoading } = useStorageAndActionInfo()
+    const buyTokensMutation = useBuyTokens()
+    const deleteResumeMutation = useDeleteResume()
+    const saveResumeMutation = useSaveResume()
+
+    // Use React Query loading state for shimmer effect
+    const isLoading = isResumeVersionsLoading && isAuthenticated && user
+
+    // Debug logging
+    console.log('Dashboard Debug:', {
+        isAuthenticated,
+        user: !!user,
         tokenBalance,
         isBalanceLoading,
-        error,
-        transactions,
-        historyLoading,
-        buyModalOpen,
-        setBuyModalOpen,
-        buyAmount,
-        setBuyAmount,
-        buyLoading,
-        handleBuyTokens,
-        openHistoryModal,
-        historyModalOpen,
-        setHistoryModalOpen,
-        refreshBalance
-    } = useTokens()
+        resumeVersions: resumeVersions?.length,
+        isResumeVersionsLoading,
+        isLoading
+    })
 
-    useEffect(() => {
-        refreshBalance()
-    }, [refreshBalance])
+    // State for buy modal
+    const [buyModalOpen, setBuyModalOpen] = useState(false)
+    const [buyAmount, setBuyAmount] = useState(100)
+    const [historyModalOpen, setHistoryModalOpen] = useState(false)
 
+    // Process resume versions when data changes
     useEffect(() => {
-        const fetchResumes = async () => {
-            try {
-                const resumes = await getResumeVersions()
-                setDocuments(resumes.map(resume => ({
+        if (isAuthenticated && user) {
+            if (resumeVersions) {
+                setDocuments(resumeVersions.map(resume => ({
                     id: resume.id,
                     title: resume.title || resume.filename,
                     createdAt: resume.created_at,
@@ -194,30 +202,25 @@ const Dashboard = () => {
                                 showStartMonth: newEdu.showStartMonth !== false,
                                 showEndMonth: newEdu.showEndMonth !== false,
                                 description: newEdu.description || '',
-                                degreeLink: newEdu.degreeLink,
-                                institutionLink: newEdu.institutionLink
+                                educationLink: newEdu.educationLink
                             }
                         }),
                         skills: (() => {
                             const skillsData = resume.content?.skills;
                             if (!skillsData) return [];
 
-                            // Ensure skills have the correct SkillCategory structure
                             if (Array.isArray(skillsData)) {
                                 return skillsData
                                     .filter(skill => skill !== null && skill !== undefined)
                                     .map((skill, index) => {
-                                        // If it's already a SkillCategory object with correct structure
                                         if (typeof skill === 'object' && skill && 'id' in skill && 'name' in skill && 'skills' in skill) {
                                             return skill as any;
                                         }
 
-                                        // If it's a string, convert to SkillCategory
                                         if (typeof skill === 'string') {
                                             return { id: `skill-${index}`, name: skill, skills: [skill] };
                                         }
 
-                                        // If it's an object but missing required fields, fix it
                                         if (typeof skill === 'object') {
                                             const skillObj = skill as any;
                                             return {
@@ -258,7 +261,6 @@ const Dashboard = () => {
                         const savedOptions = resume.customization_options || {};
                         const mergedOptions = { ...defaultCustomizationOptions };
 
-                        // Deep merge the saved options with defaults
                         Object.keys(savedOptions).forEach(key => {
                             if (typeof savedOptions[key] === 'object' && savedOptions[key] !== null && !Array.isArray(savedOptions[key])) {
                                 mergedOptions[key] = {
@@ -273,16 +275,15 @@ const Dashboard = () => {
                         return mergedOptions;
                     })()
                 })))
-            } catch (error) {
-                console.error('Failed to fetch resumes:', error)
-                toast.error('Failed to load resumes')
-            } finally {
-                setIsLoading(false)
+            } else {
+                // If authenticated but no resume versions, set empty documents
+                setDocuments([])
             }
+        } else {
+            // If not authenticated, clear documents
+            setDocuments([])
         }
-
-        fetchResumes()
-    }, [])
+    }, [resumeVersions, isAuthenticated, user, setDocuments])
 
     const resumes = documents.filter(doc => doc.type === 'resume')
     const coverLetters = documents.filter(doc => doc.type === 'coverLetter')
@@ -397,9 +398,8 @@ const Dashboard = () => {
 
     const handleDeleteResume = async (resumeId: string) => {
         try {
-            await deleteResumeVersion(resumeId)
+            await deleteResumeMutation.mutateAsync(resumeId)
             setDocuments(documents.filter(doc => doc.id !== resumeId))
-            toast.success('Deleted successfully')
         } catch (error) {
             console.error('Failed to delete resume:', error)
             toast.error('Failed to delete resume')
@@ -417,6 +417,11 @@ const Dashboard = () => {
     }
 
     const handleTitleSave = async (resumeId: string) => {
+        if (!isAuthenticated || !user) {
+            toast.error('Please login to update resume titles')
+            return
+        }
+
         try {
             const resume = documents.find(doc => doc.id === resumeId)
             if (!resume) return
@@ -468,22 +473,18 @@ const Dashboard = () => {
                     const skillsData = resume.resumeData.skills;
                     if (!skillsData) return [];
 
-                    // Ensure skills have the correct SkillCategory structure
                     if (Array.isArray(skillsData)) {
                         return skillsData
                             .filter(skill => skill !== null && skill !== undefined)
                             .map((skill, index) => {
-                                // If it's already a SkillCategory object with correct structure
                                 if (typeof skill === 'object' && skill && 'id' in skill && 'name' in skill && 'skills' in skill) {
                                     return skill as any;
                                 }
 
-                                // If it's a string, convert to SkillCategory
                                 if (typeof skill === 'string') {
                                     return { id: `skill-${index}`, name: skill, skills: [skill] };
                                 }
 
-                                // If it's an object but missing required fields, fix it
                                 if (typeof skill === 'object') {
                                     const skillObj = skill as any;
                                     return {
@@ -518,7 +519,12 @@ const Dashboard = () => {
                 certifications: resume.resumeData.certifications
             }
 
-            await saveDraft(enhancedResumeData, newTitle, resume.customizationOptions, resumeId)
+            await saveResumeMutation.mutateAsync({
+                resumeData: enhancedResumeData,
+                title: newTitle,
+                customizationOptions: resume.customizationOptions,
+                resumeId
+            })
             updateDocument(resumeId, { title: newTitle })
             toast.success('Title updated successfully')
         } catch (error) {
@@ -531,187 +537,196 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header Section */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900">Welcome Back!</h1>
-                    <p className="mt-2 text-slate-600">Manage your assets in one place</p>
-                </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-                    <StatsCard
-                        title="Total Resumes"
-                        value={resumes.length}
-                        icon={FileText}
-                        iconBgColor="bg-blue-100"
-                        iconColor="text-blue-600"
-                    />
-                    <StatsCard
-                        title="Cover Letters"
-                        value={coverLetters.length}
-                        icon={Briefcase}
-                        iconBgColor="bg-green-100"
-                        iconColor="text-green-600"
-                    />
-                    <StatsCard
-                        title="Token Balance"
-                        value={
-                            isBalanceLoading ? (
-                                <div className="flex items-center space-x-2">
-                                    <div className="animate-pulse h-8 w-20 bg-slate-200 rounded-lg"></div>
-                                    <div className="animate-pulse h-4 w-4 bg-slate-200 rounded-full"></div>
-                                </div>
-                            ) : error ? (
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-red-500 text-sm font-medium">{error}</span>
-                                    <button
-                                        onClick={() => window.location.reload()}
-                                        className="p-1 hover:bg-red-50 rounded-full transition-colors"
-                                        title="Retry"
-                                    >
-                                        <RefreshCw className="h-4 w-4 text-red-500" />
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="flex items-center space-x-2">
-                                    <span className="font-semibold text-lg bg-gradient-to-r from-yellow-600 to-yellow-500 bg-clip-text text-transparent">
-                                        {tokenBalance}
-                                    </span>
-                                    <span className="text-sm text-slate-500">tokens</span>
-                                </div>
-                            )
-                        }
-                        icon={Coins}
-                        iconBgColor="bg-gradient-to-br from-yellow-100 to-yellow-50"
-                        iconColor="text-yellow-600"
-                        actions={
-                            <div className="flex items-center space-x-2">
-                                <Button
-                                    onClick={() => setBuyModalOpen(true)}
-                                    className="group relative px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md flex items-center space-x-2"
-                                    rightIcon={<Plus className="h-4 w-4 group-hover:scale-110 transition-transform" />}
-                                >
-                                    Buy
-                                </Button>
-                                <Button
-                                    onClick={openHistoryModal}
-                                    variant="ghost"
-                                    className="group p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-                                    title="Transaction History"
-                                    rightIcon={<History className="h-4 w-4 group-hover:scale-110 transition-transform" />}
-                                >
-                                    <span className="sr-only">Transaction History</span>
-                                </Button>
-                            </div>
-                        }
-                    />
-                </div>
-
-                {/* Tabs and Create Button */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-8">
-                    <div className="px-6 py-4">
-                        <div className="flex justify-between items-center">
-                            <nav className="flex space-x-8">
-                                <button
-                                    onClick={() => setActiveTab('resumes')}
-                                    className={`${activeTab === 'resumes'
-                                        ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
-                                >
-                                    Resumes
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('cover-letters')}
-                                    className={`${activeTab === 'cover-letters'
-                                        ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
-                                >
-                                    Cover Letters
-                                </button>
-                            </nav>
-                            <button
-                                onClick={handleCreateResume}
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Create New
-                            </button>
-                        </div>
+            {!isAuthenticated || !user ? (
+                <div className="flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                        <p className="mt-4 text-lg text-slate-600">Loading dashboard...</p>
                     </div>
                 </div>
+            ) : (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Header Section */}
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-slate-900">Welcome Back!</h1>
+                        <p className="mt-2 text-slate-600">Manage your assets in one place</p>
+                    </div>
 
-                <div className="w-full">
-                    {activeTab === 'resumes' ? (
-                        isLoading ? (
-                            <div className="flex justify-start items-center flex-wrap gap-6">
-                                {Array.apply(null, Array(3)).map((index) => (
-                                    <ResumeCardSkeleton key={index} />
-                                ))}
-                            </div>
-                        ) : resumes.length === 0 ? (
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
-                                <div className="bg-slate-50 rounded-full p-4 inline-flex mb-4">
-                                    <FileText className="h-8 w-8 text-slate-400" />
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+                        <StatsCard
+                            title="Total Resumes"
+                            value={resumes.length}
+                            icon={FileText}
+                            iconBgColor="bg-blue-100"
+                            iconColor="text-blue-600"
+                        />
+                        <StatsCard
+                            title="Cover Letters"
+                            value={coverLetters.length}
+                            icon={Briefcase}
+                            iconBgColor="bg-green-100"
+                            iconColor="text-green-600"
+                        />
+                        <StatsCard
+                            title="Token Balance"
+                            value={
+                                isBalanceLoading ? (
+                                    <div className="flex items-center space-x-2">
+                                        <div className="animate-pulse h-8 w-20 bg-slate-200 rounded-lg"></div>
+                                        <div className="animate-pulse h-4 w-4 bg-slate-200 rounded-full"></div>
+                                    </div>
+                                ) : error ? (
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-red-500 text-sm font-medium">{error}</span>
+                                        <button
+                                            onClick={() => window.location.reload()}
+                                            className="p-1 hover:bg-red-50 rounded-full transition-colors"
+                                            title="Retry"
+                                        >
+                                            <RefreshCw className="h-4 w-4 text-red-500" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center space-x-2">
+                                        <span className="font-semibold text-lg bg-gradient-to-r from-yellow-600 to-yellow-500 bg-clip-text text-transparent">
+                                            {tokenBalance}
+                                        </span>
+                                        <span className="text-sm text-slate-500">tokens</span>
+                                    </div>
+                                )
+                            }
+                            icon={Coins}
+                            iconBgColor="bg-gradient-to-br from-yellow-100 to-yellow-50"
+                            iconColor="text-yellow-600"
+                            actions={
+                                <div className="flex items-center space-x-2">
+                                    <Button
+                                        onClick={() => setBuyModalOpen(true)}
+                                        className="group relative px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md flex items-center space-x-2"
+                                        rightIcon={<Plus className="h-4 w-4 group-hover:scale-110 transition-transform" />}
+                                    >
+                                        Buy
+                                    </Button>
+                                    <Button
+                                        onClick={() => setHistoryModalOpen(true)}
+                                        variant="ghost"
+                                        className="group p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                                        title="Transaction History"
+                                        rightIcon={<History className="h-4 w-4 group-hover:scale-110 transition-transform" />}
+                                    >
+                                        <span className="sr-only">Transaction History</span>
+                                    </Button>
                                 </div>
-                                <h3 className="text-lg font-medium text-slate-900 mb-1">No resumes yet</h3>
-                                <p className="text-slate-500 mb-6">Create your first resume to get started</p>
+                            }
+                        />
+                    </div>
+
+                    {/* Tabs and Create Button */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-8">
+                        <div className="px-6 py-4">
+                            <div className="flex justify-between items-center">
+                                <nav className="flex space-x-8">
+                                    <button
+                                        onClick={() => setActiveTab('resumes')}
+                                        className={`${activeTab === 'resumes'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                                            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                                    >
+                                        Resumes
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('cover-letters')}
+                                        className={`${activeTab === 'cover-letters'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                                            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                                    >
+                                        Cover Letters
+                                    </button>
+                                </nav>
                                 <button
                                     onClick={handleCreateResume}
                                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
-                                    Create Resume
+                                    Create New
                                 </button>
                             </div>
-                        ) : (
-                            <div className="flex justify-start items-center flex-wrap gap-6">
-                                {resumes.map((resume) => (
-                                    <ResumeCard
-                                        key={resume.id}
-                                        id={resume.id}
-                                        title={resume.title}
-                                        updatedAt={resume.updatedAt}
-                                        resumeData={{
-                                            ...resume.resumeData,
-                                            personalInfo: {
-                                                ...resume.resumeData.personalInfo,
-                                                profilePicture: resume.resumeData.personalInfo.profilePicture || null,
-                                                socialLinks: resume.resumeData.personalInfo.socialLinks || []
-                                            }
-                                        }}
-                                        customizationOptions={resume.customizationOptions}
-                                        onEdit={handleResumeClick}
-                                        onDelete={(id) => setDeleteConfirmModal({ isOpen: true, resumeId: id })}
-                                        onTitleEdit={handleTitleEdit}
-                                        onTitleSave={handleTitleSave}
-                                        editingTitle={editingTitle}
-                                        newTitle={newTitle}
-                                        setNewTitle={setNewTitle}
-                                    />
-                                ))}
-                            </div>
-                        )
-                    ) : (
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
-                            <div className="bg-slate-50 rounded-full p-4 inline-flex mb-4">
-                                <FileText className="h-8 w-8 text-slate-400" />
-                            </div>
-                            <h3 className="text-lg font-medium text-slate-900 mb-1">No Cover Letters yet</h3>
-                            <p className="text-slate-500 mb-6">Create your first cover letter to get started</p>
-                            <button
-                                onClick={handleCreateResume}
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Create Letter
-                            </button>
                         </div>
-                    )}
+                    </div>
+
+                    <div className="w-full">
+                        {activeTab === 'resumes' ? (
+                            isLoading ? (
+                                <div className="flex justify-start items-center flex-wrap gap-6">
+                                    {Array.apply(null, Array(3)).map((index) => (
+                                        <ResumeCardSkeleton key={index} />
+                                    ))}
+                                </div>
+                            ) : resumes.length === 0 ? (
+                                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
+                                    <div className="bg-slate-50 rounded-full p-4 inline-flex mb-4">
+                                        <FileText className="h-8 w-8 text-slate-400" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-slate-900 mb-1">No resumes yet</h3>
+                                    <p className="text-slate-500 mb-6">Create your first resume to get started</p>
+                                    <button
+                                        onClick={handleCreateResume}
+                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Create Resume
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex justify-start items-center flex-wrap gap-6">
+                                    {resumes.map((resume) => (
+                                        <ResumeCard
+                                            key={resume.id}
+                                            id={resume.id}
+                                            title={resume.title}
+                                            updatedAt={resume.updatedAt}
+                                            resumeData={{
+                                                ...resume.resumeData,
+                                                personalInfo: {
+                                                    ...resume.resumeData.personalInfo,
+                                                    profilePicture: resume.resumeData.personalInfo.profilePicture || null,
+                                                    socialLinks: resume.resumeData.personalInfo.socialLinks || []
+                                                }
+                                            }}
+                                            customizationOptions={resume.customizationOptions}
+                                            onEdit={handleResumeClick}
+                                            onDelete={(id) => setDeleteConfirmModal({ isOpen: true, resumeId: id })}
+                                            onTitleEdit={handleTitleEdit}
+                                            onTitleSave={handleTitleSave}
+                                            editingTitle={editingTitle}
+                                            newTitle={newTitle}
+                                            setNewTitle={setNewTitle}
+                                        />
+                                    ))}
+                                </div>
+                            )
+                        ) : (
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
+                                <div className="bg-slate-50 rounded-full p-4 inline-flex mb-4">
+                                    <FileText className="h-8 w-8 text-slate-400" />
+                                </div>
+                                <h3 className="text-lg font-medium text-slate-900 mb-1">No Cover Letters yet</h3>
+                                <p className="text-slate-500 mb-6">Create your first cover letter to get started</p>
+                                <button
+                                    onClick={handleCreateResume}
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Create Letter
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Modals */}
             <DeleteConfirmModal
@@ -761,11 +776,18 @@ const Dashboard = () => {
                                 <p className="text-sm text-slate-600">You will receive {buyAmount} tokens</p>
                             </div>
                             <button
-                                onClick={handleBuyTokens}
-                                disabled={buyLoading || !buyAmount}
+                                onClick={async () => {
+                                    try {
+                                        await buyTokensMutation.mutateAsync(buyAmount);
+                                        setBuyModalOpen(false);
+                                    } catch (error) {
+                                        console.error('Payment failed:', error);
+                                    }
+                                }}
+                                disabled={buyTokensMutation.isPending || !buyAmount}
                                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                             >
-                                {buyLoading ? (
+                                {buyTokensMutation.isPending ? (
                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                                 ) : (
                                     <>
@@ -831,13 +853,13 @@ const Dashboard = () => {
                                                             {new Date(transaction.timestamp).toLocaleString()}
                                                         </p>
                                                         <p className="text-xs text-slate-400 mt-0.5">
-                                                            Balance: {transaction.available_token || '-'} {transaction.available_token && <Coins className="inline-block h-3 w-3" />}
+                                                            Transaction ID: {transaction.id}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col items-end">
-                                                    <div className={`font-semibold text-base ${transaction.action_id === 'add_token' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                                        {transaction.action_id === 'add_token' ? '+' : '-'}{Math.abs(transaction.token)} <Coins className="inline-block h-4 w-4" />
+                                                    <div className={`font-semibold text-base ${transaction.token > 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                        {transaction.token > 0 ? '+' : ''}{transaction.token} <Coins className="inline-block h-4 w-4" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -849,8 +871,8 @@ const Dashboard = () => {
                     </div>
                 </div>
             )}
-        </div >
+        </div>
     )
 }
 
-export default Dashboard 
+export default Dashboard

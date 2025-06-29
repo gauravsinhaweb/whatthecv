@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../ui/Button';
 import { useTokenActions } from '../../hooks/useTokenActions';
-import { updateTokenAmount, deleteTokenAction, toggleActionLock } from '../../utils/api';
+import { tokenService } from '../../services/tokenService';
 import { toast } from 'react-hot-toast';
 import { Edit, Save, X, Plus, Trash2, Lock, Unlock, Settings, AlertTriangle, Coins } from 'lucide-react';
 import CreateTokenActionModal from './CreateTokenActionModal';
@@ -96,7 +96,7 @@ const TokenAdminPanel: React.FC = () => {
 
         setUpdating(actionId);
         try {
-            await updateTokenAmount(actionId, newAmount);
+            await tokenService.updateTokenAmount(actionId, newAmount);
             await refreshActions();
             setEditingAction(null);
             toast.success(`Token amount updated for ${actionId}`);
@@ -133,7 +133,7 @@ const TokenAdminPanel: React.FC = () => {
         setShowDeleteModal(false);
 
         try {
-            await deleteTokenAction(actionToDelete.id);
+            await tokenService.deleteTokenAction(actionToDelete.id);
             await refreshActions();
             toast.success(`Token action "${actionToDelete.name}" deleted successfully`);
         } catch (error) {
@@ -148,7 +148,7 @@ const TokenAdminPanel: React.FC = () => {
     const handleToggleLock = async (actionId: string) => {
         setLocking(actionId);
         try {
-            const result = await toggleActionLock(actionId);
+            const result = await tokenService.toggleActionLock(actionId);
             await refreshActions();
             const status = result.locked ? 'locked' : 'unlocked';
             toast.success(`Action "${actionId}" ${status} successfully`);

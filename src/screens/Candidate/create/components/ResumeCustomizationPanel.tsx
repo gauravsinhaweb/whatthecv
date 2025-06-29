@@ -1,12 +1,16 @@
 import {
     AlignCenter,
     AlignLeft,
+    ArrowUpDown,
     Award,
     BoldIcon,
+    BookOpen,
     Briefcase,
     Check,
-    Link as ChainLink,
+    ChevronDown,
+    ChevronUp,
     CircleUser,
+    Code,
     Columns,
     ExternalLink,
     Eye,
@@ -14,35 +18,26 @@ import {
     FileText,
     GraduationCap,
     GripVertical,
-    LayoutGrid,
     Lightbulb,
     Lock,
     Maximize,
+    Minus,
     Move,
     Palette,
     Ruler,
-    SlidersHorizontal,
     SquareDot,
     Text,
     TextCursorInput,
-    Type,
-    Minus,
-    ArrowUpDown,
-    Sparkles,
-    Crown,
-    Zap,
-    Code,
     Trophy,
-    BookOpen,
-    ChevronUp,
-    ChevronDown
+    Type
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import RadioGroup from '../../../../components/ui/RadioGroup';
 import Slider from '../../../../components/ui/Slider';
+import TemplateSelector from '../../../../components/resume/TemplateSelector';
 import { ResumeCustomizationOptions, templatePresets } from '../../../../types/resume';
-import ClassicSingleColumnTemplate from '../../../../assets/single-column.png';
-import ClassicDoubleColumnTemplate from '../../../../assets/double-column.png';
+import { COLOR_PRESETS, ACCENT_COLORS, HEADING_COLORS, TEXT_COLORS } from '../../../../config/colors';
+import { getFontOptions } from '../../../../config/fonts';
 
 export interface SectionInfo {
     id: string;
@@ -64,25 +59,16 @@ const SECTION_MAP: SectionInfo[] = [
 interface ResumeCustomizationPanelProps {
     options: ResumeCustomizationOptions;
     onChange: (options: ResumeCustomizationOptions) => void;
-    onSave: () => void;
-    onSaveAsDraft: () => void;
 }
 
 const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
     options,
     onChange,
-    onSave,
-    onSaveAsDraft,
 }) => {
     const [draggedSection, setDraggedSection] = useState<string | null>(null);
     const [dragOverSection, setDragOverSection] = useState<string | null>(null);
-    const [activeSection, setActiveSection] = useState('layout');
     const [previewFont, setPreviewFont] = useState<string | null>(null);
     const [syncMargins, setSyncMargins] = useState(false);
-
-    const accentColors = ['#000000', '#0074E3', '#1c398e', '#6f42c1', '#e83e8c', '#fd7e14', '#dc3545'];
-    const headingColors = ['#1A1A1A', '#0074E3', '#1c398e', '#343a40', '#495057', '#000000'];
-    const textColors = ['#333333', '#2E3A59', '#495057', '#6c757d', '#000000'];
 
     const handleChange = <T extends keyof ResumeCustomizationOptions>(
         section: T,
@@ -271,118 +257,10 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                 <Columns className="w-5 h-5 text-blue-600" />
                                 Templates
                             </h3>
-                            <div className="relative">
-                                <div className="flex gap-4 overflow-x-auto p-4 hide-scrollbar">
-                                    <button
-                                        onClick={() => handleChange('layout', 'templates', 'classic')}
-                                        className={`relative flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'classic'
-                                            ? 'border-blue-200 shadow-lg'
-                                            : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
-                                            }`}
-                                    >
-                                        <div className="h-full flex flex-col">
-                                            <div className="flex items-center justify-between p-2 border-b border-slate-100">
-                                                <AlignLeft className="w-4 h-4 text-slate-600" />
-                                                <span className="text-xs font-medium text-slate-700">Classic</span>
-                                            </div>
-                                            <div className="flex-1 relative">
-                                                <img
-                                                    src={ClassicSingleColumnTemplate}
-                                                    alt="Classic Template"
-                                                    className="w-full h-full aspect-[210/297] object-cover rounded-b"
-                                                />
-                                            </div>
-                                        </div>
-                                        <span className="absolute bottom-2 right-2 bg-gradient-to-r from-blue-400 to-indigo-600 text-white text-[10px] font-semibold px-3 py-1 shadow-md z-10" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 80%)' }}>Recommended</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleChange('layout', 'templates', 'modern')}
-                                        className={`flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'modern'
-                                            ? 'border-blue-200 shadow-lg'
-                                            : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
-                                            }`}
-                                    >
-                                        <div className="h-full flex flex-col">
-                                            <div className="flex items-center justify-between p-2 border-b border-slate-100">
-                                                <Zap className="w-4 h-4 text-slate-600" />
-                                                <span className="text-xs font-medium text-slate-700">Modern</span>
-                                            </div>
-                                            <div className="flex-1 relative">
-                                                <img
-                                                    src={ClassicDoubleColumnTemplate}
-                                                    alt="Modern Template"
-                                                    className="w-full h-full aspect-[210/297] object-cover rounded-b"
-                                                />
-                                            </div>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => handleChange('layout', 'templates', 'minimal')}
-                                        className={`flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'minimal'
-                                            ? 'border-blue-200 shadow-lg'
-                                            : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
-                                            }`}
-                                    >
-                                        <div className="h-full flex flex-col">
-                                            <div className="flex items-center justify-between p-2 border-b border-slate-100">
-                                                <Minus className="w-4 h-4 text-slate-600" />
-                                                <span className="text-xs font-medium text-slate-700">Minimal</span>
-                                            </div>
-                                            <div className="flex-1 relative">
-                                                <img
-                                                    src={ClassicSingleColumnTemplate}
-                                                    alt="Minimal Template"
-                                                    className="w-full h-full aspect-[210/297] object-cover rounded-b"
-                                                />
-                                            </div>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => handleChange('layout', 'templates', 'professional')}
-                                        className={`flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'professional'
-                                            ? 'border-blue-200 shadow-lg'
-                                            : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
-                                            }`}
-                                    >
-                                        <div className="relative h-full flex flex-col">
-                                            <div className="flex items-center justify-between p-2 border-b border-slate-100">
-                                                <Briefcase className="w-4 h-4 text-slate-600" />
-                                                <span className="text-xs font-medium text-slate-700">Professional</span>
-                                            </div>
-                                            <div className="flex-1 relative">
-                                                <img
-                                                    src={ClassicSingleColumnTemplate}
-                                                    alt="Professional Template"
-                                                    className="w-full h-full aspect-[210/297] object-cover rounded-b"
-                                                />
-                                            </div>
-                                            <span className="absolute bottom-2 right-2 bg-gradient-to-r from-pink-400 to-purple-600 text-white text-[10px] font-semibold px-3 py-1 shadow-md z-10" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 80%)' }}>Most popular</span>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => handleChange('layout', 'templates', 'creative')}
-                                        className={`flex-shrink-0 max-w-56 bg-white rounded-lg border-2 transition-all ${options.layout.templates === 'creative'
-                                            ? 'border-blue-200 shadow-lg'
-                                            : 'border-slate-200 hover:border-blue-200 hover:shadow-md'
-                                            }`}
-                                    >
-                                        <div className="h-full flex flex-col">
-                                            <div className="flex items-center justify-between p-2 border-b border-slate-100">
-                                                <Sparkles className="w-4 h-4 text-slate-600" />
-                                                <span className="text-xs font-medium text-slate-700">Creative</span>
-                                            </div>
-                                            <div className="flex-1 relative">
-                                                <img
-                                                    src={ClassicDoubleColumnTemplate}
-                                                    alt="Creative Template"
-                                                    className="w-full h-full aspect-[210/297] object-cover rounded-b"
-                                                />
-                                            </div>
-                                        </div>
-                                    </button>
-
-                                </div>
-                            </div>
+                            <TemplateSelector
+                                selectedTemplate={options.layout.templates}
+                                onTemplateSelect={(templateId) => handleChange('layout', 'templates', templateId)}
+                            />
                         </div>
 
                         <div className="bg-slate-50 p-4 rounded-xl">
@@ -840,49 +718,22 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                             <div>
                                 <label className="block text-base font-medium text-slate-700 mb-3">Specific Font</label>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                    {(() => {
-                                        let fontOptions = [];
-                                        if (options.font.family === 'serif') {
-                                            fontOptions = [
-                                                'Bitter',
-                                                'Times New Roman', 'Georgia',
-                                                'Baskerville',
-                                                'Source Serif Pro', 'Noto Serif'
-                                            ];
-                                        } else {
-                                            fontOptions = [
-                                                'Lato', 'Raleway',
-                                                'Exo 2', 'Chivo', 'Montserrat',
-                                                'Roboto', 'Poppins',
-                                                'Work Sans', 'Inter', 'Calibri', 'Helvetica',
-                                                'Source Sans Pro', 'Noto Sans'
-                                            ];
-                                        }
-
-                                        return fontOptions.map((font) => {
-                                            const description =
-                                                font === 'Arimo' ? 'Arial-like font' :
-                                                    font === 'Tinos' ? 'Times New Roman-like font' :
-                                                        font === 'Gelasio' ? 'Georgia-like font' : '';
-
-                                            return (
-                                                <button
-                                                    key={font}
-                                                    className={`flex items-center justify-between w-full p-3 text-sm rounded-lg border ${previewFont === font ? 'bg-blue-50 text-blue-700 border-blue-200' : options.font.specificFont === font ? 'bg-white text-slate-800 border-blue-400 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}
-                                                    style={{ fontFamily: font }}
-                                                    onClick={() => handleChange('font', 'specificFont', font)}
-                                                    onMouseEnter={() => handleFontPreview(font)}
-                                                    onMouseLeave={() => handleFontPreview(null)}
-                                                >
-                                                    <div className="flex-col items-start text-left">
-                                                        <div>{font}</div>
-                                                        {description && <div className="text-xs text-slate-500">{description}</div>}
-                                                    </div>
-                                                    {options.font.specificFont === font && <Check className="w-4 h-4 text-blue-600" />}
-                                                </button>
-                                            );
-                                        });
-                                    })()}
+                                    {getFontOptions(options.font.family).map((font) => (
+                                        <button
+                                            key={font.name}
+                                            className={`flex items-center justify-between w-full p-3 text-sm rounded-lg border ${previewFont === font.name ? 'bg-blue-50 text-blue-700 border-blue-200' : options.font.specificFont === font.name ? 'bg-white text-slate-800 border-blue-400 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}
+                                            style={{ fontFamily: font.name }}
+                                            onClick={() => handleChange('font', 'specificFont', font.name)}
+                                            onMouseEnter={() => handleFontPreview(font.name)}
+                                            onMouseLeave={() => handleFontPreview(null)}
+                                        >
+                                            <div className="flex-col items-start text-left">
+                                                <div>{font.name}</div>
+                                                {font.description && <div className="text-xs text-slate-500">{font.description}</div>}
+                                            </div>
+                                            {options.font.specificFont === font.name && <Check className="w-4 h-4 text-blue-600" />}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -897,52 +748,38 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                 Color Themes
                             </h3>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-                                {[
-                                    {
-                                        name: 'Professional Blue',
-                                        accent: '#000000',   // Rich Navy Blue
-                                        headings: '#0074E3', // Deep Blue
-                                        text: '#2E3A59'      // Slate Gray-Blue
-                                    },
-                                    {
-                                        name: 'Classic Black',
-                                        accent: '#222222',   // Soft Black
-                                        headings: '#1A1A1A', // Off-Black
-                                        text: '#333333'      // Dark Gray
-                                    }
-                                ]
-                                    .map((theme) => (
-                                        <button
-                                            key={theme.name}
-                                            className={`p-4 rounded-xl border-2 ${theme.accent === options.colors.accent &&
-                                                theme.headings === options.colors.headings &&
-                                                theme.text === options.colors.text
-                                                ? 'border-blue-400 bg-blue-50'
-                                                : 'border-slate-200 bg-white hover:border-blue-300'
-                                                } transition-all flex flex-col`}
-                                            onClick={() => {
-                                                onChange({
-                                                    ...options,
-                                                    colors: {
-                                                        accent: theme.accent,
-                                                        headings: theme.headings,
-                                                        text: theme.text
-                                                    }
-                                                });
-                                            }}
-                                        >
-                                            <div className="flex justify-between gap-2 mb-4">
-                                                <div className="w-12 h-12 rounded-full" style={{ backgroundColor: theme.accent }}></div>
-                                                <div className="flex-1 flex flex-col gap-1.5">
-                                                    <div className="h-4 rounded" style={{ backgroundColor: theme.headings }}></div>
-                                                    <div className="h-3 rounded-sm" style={{ backgroundColor: theme.text }}></div>
-                                                    <div className="h-3 rounded-sm" style={{ backgroundColor: theme.text, opacity: 0.7 }}></div>
-                                                    <div className="h-3 rounded-sm" style={{ backgroundColor: theme.text, opacity: 0.5 }}></div>
-                                                </div>
+                                {COLOR_PRESETS.map((theme) => (
+                                    <button
+                                        key={theme.name}
+                                        className={`p-4 rounded-xl border-2 ${theme.accent === options.colors.accent &&
+                                            theme.headings === options.colors.headings &&
+                                            theme.text === options.colors.text
+                                            ? 'border-blue-400 bg-blue-50'
+                                            : 'border-slate-200 bg-white hover:border-blue-300'
+                                            } transition-all flex flex-col`}
+                                        onClick={() => {
+                                            onChange({
+                                                ...options,
+                                                colors: {
+                                                    accent: theme.accent,
+                                                    headings: theme.headings,
+                                                    text: theme.text
+                                                }
+                                            });
+                                        }}
+                                    >
+                                        <div className="flex justify-between gap-2 mb-4">
+                                            <div className="w-12 h-12 rounded-full" style={{ backgroundColor: theme.accent }}></div>
+                                            <div className="flex-1 flex flex-col gap-1.5">
+                                                <div className="h-4 rounded" style={{ backgroundColor: theme.headings }}></div>
+                                                <div className="h-3 rounded-sm" style={{ backgroundColor: theme.text }}></div>
+                                                <div className="h-3 rounded-sm" style={{ backgroundColor: theme.text, opacity: 0.7 }}></div>
+                                                <div className="h-3 rounded-sm" style={{ backgroundColor: theme.text, opacity: 0.5 }}></div>
                                             </div>
-                                            <span className="text-sm text-slate-700 font-medium">{theme.name}</span>
-                                        </button>
-                                    ))}
+                                        </div>
+                                        <span className="text-sm text-slate-700 font-medium">{theme.name}</span>
+                                    </button>
+                                ))}
                             </div>
 
                             <div className="mt-8 space-y-8">
@@ -953,7 +790,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                     <div>
                                         <label className="block text-base font-medium text-slate-700 mb-3">Accent</label>
                                         <div className="flex flex-wrap gap-3 items-center">
-                                            {accentColors.map((color) => (
+                                            {ACCENT_COLORS.map((color) => (
                                                 <button
                                                     key={color}
                                                     type="button"
@@ -970,7 +807,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                                     className="w-full h-full rounded-lg border-2 opacity-0 absolute inset-0 cursor-pointer"
                                                 />
                                                 <div
-                                                    className={`w-full h-full rounded-lg border-2 ${!accentColors.includes(options.colors.accent) ? 'border-blue-500 scale-110' : 'border-gray-300'}`}
+                                                    className={`w-full h-full rounded-lg border-2 ${!ACCENT_COLORS.includes(options.colors.accent) ? 'border-blue-500 scale-110' : 'border-gray-300'}`}
                                                     style={{ background: 'conic-gradient(from 180deg at 50% 50%, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' }}
                                                 />
                                             </div>
@@ -982,7 +819,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                     <div>
                                         <label className="block text-base font-medium text-slate-700 mb-3">Headings</label>
                                         <div className="flex flex-wrap gap-3 items-center">
-                                            {headingColors.map((color) => (
+                                            {HEADING_COLORS.map((color) => (
                                                 <button
                                                     key={color}
                                                     type="button"
@@ -999,7 +836,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                                     className="w-full h-full rounded-lg border-2 opacity-0 absolute inset-0 cursor-pointer"
                                                 />
                                                 <div
-                                                    className={`w-full h-full rounded-lg border-2 ${!headingColors.includes(options.colors.headings) ? 'border-blue-500 scale-110' : 'border-gray-300'}`}
+                                                    className={`w-full h-full rounded-lg border-2 ${!HEADING_COLORS.includes(options.colors.headings) ? 'border-blue-500 scale-110' : 'border-gray-300'}`}
                                                     style={{ background: 'conic-gradient(from 180deg at 50% 50%, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' }}
                                                 />
                                             </div>
@@ -1011,7 +848,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                     <div>
                                         <label className="block text-base font-medium text-slate-700 mb-3">Body Text</label>
                                         <div className="flex flex-wrap gap-3 items-center">
-                                            {textColors.map((color) => (
+                                            {TEXT_COLORS.map((color) => (
                                                 <button
                                                     key={color}
                                                     type="button"
@@ -1028,7 +865,7 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
                                                     className="w-full h-full rounded-lg border-2 opacity-0 absolute inset-0 cursor-pointer"
                                                 />
                                                 <div
-                                                    className={`w-full h-full rounded-lg border-2 ${!textColors.includes(options.colors.text) ? 'border-blue-500 scale-110' : 'border-gray-300'}`}
+                                                    className={`w-full h-full rounded-lg border-2 ${!TEXT_COLORS.includes(options.colors.text) ? 'border-blue-500 scale-110' : 'border-gray-300'}`}
                                                     style={{ background: 'conic-gradient(from 180deg at 50% 50%, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' }}
                                                 />
                                             </div>

@@ -67,8 +67,10 @@ export const useTokenActions = (): UseTokenActionsReturn => {
             // Phase 2: Execute the service
             const result = await serviceFunction();
 
-            // Phase 3: Confirm token usage
-            await confirmTokenUsage(reservationId);
+            // Phase 3: Confirm token usage (skip for resume_storage_space as backend handles it)
+            if (actionId !== 'resume_storage_space') {
+                await confirmTokenUsage(reservationId);
+            }
             return result;
 
         } catch (error) {

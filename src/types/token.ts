@@ -7,14 +7,15 @@ export interface TokenAction {
     locked?: boolean;
 }
 
-export type TokenActionCategory = 'resume' | 'analysis' | 'template' | 'premium' | 'custom';
+export type TokenActionCategory = 'resume' | 'analysis' | 'template' | 'premium' | 'custom' | 'storage';
 
 export const TOKEN_ACTION_CATEGORIES: TokenActionCategory[] = [
     'resume',
     'analysis',
     'template',
     'premium',
-    'custom'
+    'custom',
+    'storage'
 ];
 
 export interface TokenTransaction {

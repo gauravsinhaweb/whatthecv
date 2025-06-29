@@ -22,7 +22,7 @@ interface UseTokensReturn {
     buyAmount: number
     setBuyAmount: (amount: number) => void
     buyLoading: boolean
-    handleBuyTokens: () => Promise<void>
+    handleBuyTokens: (onSuccess?: () => void) => Promise<void>
     openHistoryModal: () => Promise<void>
     historyModalOpen: boolean
     setHistoryModalOpen: (open: boolean) => void
@@ -59,7 +59,7 @@ export const useTokens = (): UseTokensReturn => {
         refreshBalance()
     }, [refreshBalance])
 
-    const handleBuyTokens = useCallback(async () => {
+    const handleBuyTokens = useCallback(async (onSuccess?: () => void) => {
         if (buyAmount < 1) {
             toast.error('Please enter a valid amount')
             return
@@ -88,6 +88,9 @@ export const useTokens = (): UseTokensReturn => {
                         await refreshBalance()
                         setBuyModalOpen(false)
                         toast.success('Payment successful! Tokens added to your account.')
+                        if (onSuccess) {
+                            onSuccess()
+                        }
                     } catch (error) {
                         console.error('Payment verification failed:', error)
                         toast.error('Payment verification failed. Please contact support.')

@@ -25,7 +25,8 @@ export async function suggestImprovements(
 
 export async function processResume(
   file: File,
-  jobDescription?: string
+  jobDescription?: string,
+  returnText: boolean = false
 ): Promise<AIAnalysisResult> {
   try {
     // Enforce maximum size limit
@@ -37,7 +38,7 @@ export async function processResume(
     }
 
     // Send file directly to backend for processing
-    return processResumeFile(file, jobDescription);
+    return processResumeFile(file, jobDescription, returnText);
   } catch (error) {
     console.error('Resume processing failed:', error);
     throw error;
