@@ -28,6 +28,7 @@ const CreateResume: React.FC = () => {
         setPreviewScale,
         setFieldVisibility,
         setEnhancedResumeData,
+        setShouldShowSaveModal,
         save: { isSavingDraft }
     } = useResumeState();
     const [activeTab, setActiveTab] = useState<string>('content');
@@ -46,6 +47,19 @@ const CreateResume: React.FC = () => {
             setResumeData(initialResumeData);
         }
     }, [selectedDocument, resumeData, setResumeData]);
+
+    // Auto-show save modal when coming from enhancement flow
+    useEffect(() => {
+        if (
+            resumeData &&
+            Object.keys(resumeData).length > 0 &&
+            !selectedDocument &&
+            resumeData.personalInfo?.name &&
+            resumeData.personalInfo.name !== 'Alex Johnson'
+        ) {
+            setShouldShowSaveModal(true);
+        }
+    }, [resumeData, selectedDocument, setShouldShowSaveModal]);
 
     // Create handlers object from store actions
     const handlers = {

@@ -65,12 +65,14 @@ export const useSaveResume = () => {
             // Invalidate and refetch resume versions
             queryClient.invalidateQueries({ queryKey: queryKeys.resumes.versions() })
 
+            // Force refetch to ensure we get the latest data
+            queryClient.refetchQueries({ queryKey: queryKeys.resumes.versions() })
+
             // If updating existing resume, invalidate its detail
             if (variables.resumeId) {
                 queryClient.invalidateQueries({ queryKey: queryKeys.resumes.detail(variables.resumeId) })
             }
 
-            toast.success('Resume saved successfully')
         },
         onError: (error) => {
             handleApiError(error, 'Failed to save resume')

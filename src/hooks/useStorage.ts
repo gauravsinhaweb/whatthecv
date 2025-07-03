@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { getStorageInfo, purchaseStorageSpace, getStorageActionInfo } from '../utils/api';
 import { useTokens } from './useTokens';
 import { useTokenActions } from './useTokenActions';
+import { useInsufficientTokens } from './useInsufficientTokens';
 
 interface StorageInfo {
     free_limit: number;
@@ -30,6 +31,10 @@ interface UseStorageReturn {
     purchaseSpace: () => Promise<void>;
     hasSufficientTokens: boolean;
     requiredTokens: number;
+    isBuyModalOpen: boolean;
+    closeBuyModal: () => void;
+    currentActionId: string | null;
+    onSuccessCallback: (() => void) | null;
 }
 
 export const useStorage = (): UseStorageReturn => {
@@ -40,6 +45,7 @@ export const useStorage = (): UseStorageReturn => {
 
     const { tokenBalance, refreshBalance } = useTokens();
     const { getAmount, hasSufficientTokens: checkSufficientTokens } = useTokenActions();
+    const { isBuyModalOpen, closeBuyModal, checkAndHandleInsufficientTokens, currentActionId, onSuccessCallback } = useInsufficientTokens();
 
     const refreshStorageInfo = useCallback(async () => {
         try {
@@ -63,8 +69,9 @@ export const useStorage = (): UseStorageReturn => {
             return;
         }
 
-        if (!checkSufficientTokens('resume_storage_space', tokenBalance)) {
-            toast.error(`Insufficient tokens. You have ₹${tokenBalance}, but need ₹${actionInfo.amount} to purchase storage space.`);
+        if (!checkAndHandleInsufficientTokens('resume_storage_space', async () => {
+            await purchaseSpace();
+        })) {
             return;
         }
 
@@ -82,7 +89,7 @@ export const useStorage = (): UseStorageReturn => {
         } finally {
             setIsPurchasing(false);
         }
-    }, [actionInfo, tokenBalance, checkSufficientTokens, refreshStorageInfo, refreshBalance]);
+    }, [actionInfo, checkAndHandleInsufficientTokens, refreshStorageInfo, refreshBalance]);
 
     useEffect(() => {
         refreshStorageInfo();
@@ -99,6 +106,10 @@ export const useStorage = (): UseStorageReturn => {
         refreshStorageInfo,
         purchaseSpace,
         hasSufficientTokens,
-        requiredTokens
+        requiredTokens,
+        isBuyModalOpen,
+        closeBuyModal,
+        currentActionId,
+        onSuccessCallback
     };
 }; 

@@ -23,6 +23,7 @@ interface UIState {
     fieldVisibility: Record<string, boolean>;
     isEnhancing: boolean;
     enhancementStage: 'extracting' | 'enhancing' | 'finalizing' | 'error';
+    shouldShowSaveModal: boolean;
 }
 
 interface SaveState {
@@ -106,6 +107,7 @@ interface ResumeStore {
     // Enhancement actions
     setIsEnhancing: (isEnhancing: boolean) => void;
     setEnhancementStage: (stage: 'extracting' | 'enhancing' | 'finalizing' | 'error') => void;
+    setShouldShowSaveModal: (shouldShow: boolean) => void;
 
     // Save actions
     setSavingState: (state: Partial<SaveState>) => void;
@@ -178,6 +180,7 @@ const initialUIState: UIState = {
     },
     isEnhancing: false,
     enhancementStage: 'extracting',
+    shouldShowSaveModal: false,
 };
 
 // Initial save state
@@ -630,6 +633,10 @@ export const useResumeStore = create<ResumeStore>()(
 
                 setEnhancementStage: (stage) => set((state) => ({
                     ui: { ...state.ui, enhancementStage: stage }
+                })),
+
+                setShouldShowSaveModal: (shouldShow) => set((state) => ({
+                    ui: { ...state.ui, shouldShowSaveModal: shouldShow }
                 })),
 
                 // Save actions
