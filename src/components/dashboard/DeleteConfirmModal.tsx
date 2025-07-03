@@ -12,7 +12,7 @@ export const DeleteConfirmModal = ({ isOpen, onClose, onConfirm }: DeleteConfirm
     return (
         <>
             <div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-200"
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[55] transition-opacity duration-200"
                 onClick={onClose}
             />
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 transition-all duration-200">

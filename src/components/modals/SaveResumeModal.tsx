@@ -1,6 +1,7 @@
 import { Save, X, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import Button from '../ui/Button';
+import BuyTokenModal from './BuyTokenModal';
 
 interface Resume {
     id: string;
@@ -17,7 +18,7 @@ interface SaveResumeModalProps {
     resumeTitle: string;
     setResumeTitle: (title: string) => void;
     isSavingDraft: boolean;
-    onSaveDraft: () => void;
+    onSaveDraft: () => Promise<void>;
     onReplaceResume: () => void;
     userResumes: Resume[];
     fetchUserResumes: () => void;
@@ -25,6 +26,10 @@ interface SaveResumeModalProps {
     selectedResumeId: string;
     setSelectedResumeId: (id: string) => void;
     tokenAmount?: number;
+    hasExistingResume?: boolean;
+    canCreateNew?: boolean;
+    refetchStorageInfo?: () => void;
+    onInsufficientTokens?: (actionId: string, onSuccess?: () => void) => void;
 }
 
 const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
@@ -42,14 +47,24 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
     isLoadingResumes,
     selectedResumeId,
     setSelectedResumeId,
-    tokenAmount
+    tokenAmount,
+    hasExistingResume = false,
+    canCreateNew = true,
+    refetchStorageInfo,
+    onInsufficientTokens
 }) => {
     const [titleError, setTitleError] = useState<string>('');
     const [isDuplicate, setIsDuplicate] = useState(false);
+    const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+    const [pendingSaveAfterPurchase, setPendingSaveAfterPurchase] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             fetchUserResumes();
+            // Refetch storage info to get latest token amounts
+            if (refetchStorageInfo) {
+                refetchStorageInfo();
+            }
         }
     }, [isOpen])
 
@@ -66,13 +81,18 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
             return;
         }
 
-        // Check for duplicate titles (case-insensitive)
-        const duplicate = userResumes.some(resume =>
-            resume.title.toLowerCase() === resumeTitle.trim().toLowerCase()
-        );
-        setIsDuplicate(duplicate);
-        setTitleError(duplicate ? 'A resume with this title already exists' : '');
-    }, [resumeTitle, userResumes]);
+        // Check for duplicate titles only for new resumes (not for existing resume updates)
+        if (!hasExistingResume) {
+            const duplicate = userResumes.some(resume =>
+                resume.title.toLowerCase() === resumeTitle.trim().toLowerCase()
+            );
+            setIsDuplicate(duplicate);
+            setTitleError(duplicate ? 'A resume with this title already exists' : '');
+        } else {
+            setIsDuplicate(false);
+            setTitleError('');
+        }
+    }, [resumeTitle, userResumes, hasExistingResume]);
 
     // Reset errors when modal opens/closes
     useEffect(() => {
@@ -84,9 +104,10 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
 
     if (!isOpen) return null;
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (saveMode === 'new') {
-            if (!resumeTitle.trim()) {
+            // For new resumes, title is required
+            if (!hasExistingResume && !resumeTitle.trim()) {
                 setTitleError('Please enter a resume title');
                 return;
             }
@@ -94,14 +115,41 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                 return;
             }
 
-            // Let the Navigation component handle token execution flow
-            onSaveDraft();
+            try {
+                // Call the save function and handle errors here
+                await onSaveDraft();
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
+
+                if (errorMessage.includes('Failed to reserve tokens') || errorMessage.includes('Insufficient tokens') || errorMessage === 'Insufficient tokens') {
+                    // Handle insufficient tokens by showing BuyTokenModal
+                    setPendingSaveAfterPurchase(true);
+                    setIsBuyModalOpen(true);
+                } else {
+                    // Re-throw other errors to be handled by Navigation component
+                    throw error;
+                }
+            }
         } else {
             if (!selectedResumeId) {
                 return;
             }
             onReplaceResume();
         }
+    };
+
+    const handleInsufficientTokens = (actionId: string, onSuccess?: () => void) => {
+        setPendingSaveAfterPurchase(true);
+        setIsBuyModalOpen(true);
+    };
+
+    const handleTokenPurchaseSuccess = () => {
+        setIsBuyModalOpen(false);
+        setPendingSaveAfterPurchase(false);
+        // Retry the save operation
+        setTimeout(() => {
+            handleSave();
+        }, 500);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -133,6 +181,16 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
 
     return (
         <>
+            {/* Buy Token Modal */}
+            <BuyTokenModal
+                isOpen={isBuyModalOpen}
+                onClose={() => setIsBuyModalOpen(false)}
+                actionId="resume_storage_space"
+                onSuccess={handleTokenPurchaseSuccess}
+                title="Insufficient Tokens for Resume Storage"
+                description="You need more tokens to save your resume. Purchase tokens to continue."
+            />
+
             <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
                     {/* Header */}
@@ -145,7 +203,12 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                 <div>
                                     <h3 className="text-lg font-semibold text-white">Save Resume</h3>
                                     <p className="text-blue-100 text-sm">
-                                        {saveMode === 'new' ? 'Create a new resume version' : 'Replace an existing resume'}
+                                        {hasExistingResume
+                                            ? 'Update your existing resume'
+                                            : saveMode === 'new'
+                                                ? 'Create a new resume version'
+                                                : 'Replace an existing resume'
+                                        }
                                     </p>
                                 </div>
                             </div>
@@ -165,7 +228,8 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                             {(saveMode === 'new' || (saveMode === 'replace' && selectedResumeId)) && (
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-3">
-                                        {saveMode === 'new' ? 'Resume Title' : 'New Title (Optional)'}
+                                        {hasExistingResume ? 'Update Title (Optional)' : 'Resume Title'}
+                                        {!hasExistingResume && <span className="text-red-500 ml-1">*</span>}
                                     </label>
                                     <div className="relative">
                                         <input
@@ -179,8 +243,8 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                                     ? 'border-green-300 focus:border-green-500 focus:ring-green-200'
                                                     : 'border-slate-200'
                                                 }`}
-                                            placeholder={saveMode === 'new' ? "e.g., Google Software Engineer v1" : "Leave empty to keep current title"}
-                                            autoFocus={saveMode === 'new'}
+                                            placeholder={hasExistingResume ? "Leave empty to keep current title" : "e.g., Google Software Engineer v1"}
+                                            autoFocus={!hasExistingResume}
                                             disabled={isSavingDraft}
                                             maxLength={100}
                                         />
@@ -215,6 +279,19 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                         <Info className="w-3 h-3" />
                                         Use a descriptive name like company name or target position
                                     </p>
+
+                                    {!canCreateNew && userResumes.length > 0 && (
+                                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                            <p className="text-xs text-amber-700 flex items-center gap-1">
+                                                <Info className="w-3 h-3" />
+                                                Storage limit reached. You can replace an existing resume or purchase more storage space.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div className="mt-3 text-xs text-slate-500">
+                                        <span className="text-red-500">*</span> Required field
+                                    </div>
                                 </div>
                             )}
 
@@ -264,7 +341,7 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                             )}
 
                             <div>
-                                {userResumes.length > 0 && (
+                                {userResumes.length > 0 && !hasExistingResume && (
                                     <div className="flex items-center space-x-3">
                                         <input
                                             type="checkbox"
@@ -275,7 +352,10 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                             disabled={isSavingDraft}
                                         />
                                         <label htmlFor="replaceExisting" className="text-xs font-medium text-slate-700">
-                                            I want to use an existing space
+                                            {!canCreateNew
+                                                ? 'Replace an existing resume (storage limit reached)'
+                                                : 'I want to use an existing space'
+                                            }
                                         </label>
                                     </div>
                                 )}
@@ -297,20 +377,20 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                     Cancel
                                 </Button>
                                 <Button
-                                    onClick={handleSave}
+                                    onClick={() => handleSave()}
                                     disabled={isSavingDraft ||
-                                        (saveMode === 'new' && (!resumeTitle.trim() || !!titleError || isDuplicate)) ||
+                                        (saveMode === 'new' && !hasExistingResume && (!resumeTitle.trim() || !!titleError || isDuplicate)) ||
                                         (saveMode === 'replace' && !selectedResumeId)
                                     }
                                     isLoading={isSavingDraft}
-                                    tokenAmount={tokenAmount}
+                                    tokenAmount={saveMode === 'new' ? tokenAmount : undefined}
                                     size="lg"
                                 >
                                     <Save className="h-5 w-5 mr-2" />
                                     {isSavingDraft
                                         ? 'Saving...'
                                         : saveMode === 'new'
-                                            ? 'Save'
+                                            ? (hasExistingResume ? 'Update' : 'Save')
                                             : 'Replace'
                                     }
                                 </Button>

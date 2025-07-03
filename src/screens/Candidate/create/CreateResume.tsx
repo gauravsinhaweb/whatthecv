@@ -29,6 +29,7 @@ const CreateResume: React.FC = () => {
         setFieldVisibility,
         setEnhancedResumeData,
         setShouldShowSaveModal,
+        setSelectedDocument,
         save: { isSavingDraft }
     } = useResumeState();
     const [activeTab, setActiveTab] = useState<string>('content');
@@ -47,6 +48,8 @@ const CreateResume: React.FC = () => {
             setResumeData(initialResumeData);
         }
     }, [selectedDocument, resumeData, setResumeData]);
+
+
 
     // Auto-show save modal when coming from enhancement flow
     useEffect(() => {

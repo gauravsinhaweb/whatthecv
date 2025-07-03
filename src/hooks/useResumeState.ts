@@ -141,6 +141,12 @@ export const useResumeState = () => {
         } catch (error) {
             console.error('Auto-save failed:', error)
             // Don't show toast for auto-save failures to avoid spam
+            // But handle specific errors that require state cleanup
+            const errorMessage = error instanceof Error ? error.message : '';
+            if (errorMessage.includes('Resume version not found') || errorMessage.includes('404')) {
+                // Clear the selected document since it doesn't exist
+                setSelectedDocument(null);
+            }
         } finally {
             setSavingState({ isAutoSaving: false })
         }
@@ -217,6 +223,12 @@ export const useResumeState = () => {
             return response
         } catch (error) {
             console.error('Save failed:', error)
+            // Handle specific errors that require state cleanup
+            const errorMessage = error instanceof Error ? error.message : '';
+            if (errorMessage.includes('Resume version not found') || errorMessage.includes('404')) {
+                // Clear the selected document since it doesn't exist
+                setSelectedDocument(null);
+            }
             throw error
         } finally {
             setSavingState({ isSavingDraft: false })
