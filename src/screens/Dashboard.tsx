@@ -568,7 +568,15 @@ const Dashboard = () => {
             toast.success('Title updated successfully')
         } catch (error) {
             console.error('Failed to update title:', error)
-            toast.error('Failed to update title')
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update title';
+
+            if (errorMessage.includes('Resume version not found') || errorMessage.includes('404')) {
+                toast.error('Resume not found. It may have been deleted.');
+                // Refresh the resume list to remove the deleted resume
+                refetchResumeVersions();
+            } else {
+                toast.error('Failed to update title');
+            }
         } finally {
             setEditingTitle(null)
         }
