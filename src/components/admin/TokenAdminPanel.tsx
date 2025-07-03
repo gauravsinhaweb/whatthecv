@@ -313,8 +313,8 @@ const TokenAdminPanel: React.FC = () => {
                                 ) : (
                                     <>
                                         <div className="flex gap-2 items-center rounded-lg p-3">
-                                            <div className="text-lg font-bold text-blue-600">{action.amount}</div>
-                                            <Coins className="h-6 w-6 text-blue-600" />
+                                            <div className="text-lg font-bold text-amber-600">{action.amount}</div>
+                                            <Coins className="h-6 w-6 text-amber-600" />
                                         </div>
                                         {/* Action Buttons */}
                                         <div className="flex mt-2 items-start space-x-2">

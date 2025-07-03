@@ -497,6 +497,18 @@ export const confirmTokenUsage = async (reservation_id: string) => {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             const message = error.response?.data?.detail || 'Failed to confirm token usage';
+
+            // Handle specific error cases
+            if (error.response?.status === 400) {
+                if (message.includes('expired') || message.includes('released')) {
+                    throw new Error('Token reservation expired. Please try again.');
+                } else if (message.includes('already been confirmed')) {
+                    throw new Error('Token reservation already confirmed.');
+                } else if (message.includes('Insufficient tokens')) {
+                    throw new Error(message);
+                }
+            }
+
             throw new Error(message);
         }
         throw new Error('Failed to confirm token usage. Please try again.');

@@ -35,8 +35,8 @@ class StorageService {
         return apiService.get<StorageInfo>('/resume/storage/info')
     }
 
-    async getStorageActionInfo(): Promise<StorageActionInfo[]> {
-        return apiService.get<StorageActionInfo[]>('/resume/storage/action-info')
+    async getStorageActionInfo(): Promise<StorageActionInfo> {
+        return apiService.get<StorageActionInfo>('/resume/storage/action-info')
     }
 
     // Storage operations
@@ -47,7 +47,7 @@ class StorageService {
     // Combined storage and action info
     async getStorageAndActionInfo(): Promise<{
         storageInfo: StorageInfo
-        actionInfo: StorageActionInfo[]
+        actionInfo: StorageActionInfo
     }> {
         const [storageInfo, actionInfo] = await Promise.all([
             this.getStorageInfo(),

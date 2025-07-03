@@ -44,9 +44,11 @@ const Navigation: React.FC = () => {
     resumeData,
     selectedDocument,
     customizationOptions,
-    save: { isAutoSaving, lastSavedTime, isSavingDraft }
+    save: { isAutoSaving, lastSavedTime, isSavingDraft },
+    ui,
+    setShouldShowSaveModal
   } = useResumeStore();
-  const { actionInfo, storageInfo } = useStorageAndActionInfo();
+  const { actionInfo, storageInfo, refetch: refetchStorageInfo } = useStorageAndActionInfo();
   const { executeAction } = useTokenActions();
   const { data: tokenBalance = 0, refetch: refreshBalance } = useTokenBalance();
   const buyTokensMutation = useBuyTokens();
@@ -54,10 +56,8 @@ const Navigation: React.FC = () => {
   const [buyModalOpen, setBuyModalOpen] = useState(false);
   const [buyAmount, setBuyAmount] = useState(100);
 
-  // Defensive: ensure actionInfo is always an array
-  const resumeStorageAction = Array.isArray(actionInfo)
-    ? actionInfo.find(action => action.id === 'resume_storage_space')
-    : undefined;
+  // Get the resume storage action info
+  const resumeStorageAction = actionInfo;
 
   // Centralized modal management
   const closeAllModals = () => {
@@ -145,12 +145,9 @@ const Navigation: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      console.log('Navigation: Checking authentication...')
       const { session } = await getSession();
-      console.log('Navigation: Session found:', !!session)
       if (session) {
         const user = await getUser();
-        console.log('Navigation: User found:', !!user)
         setUser({
           id: user.id,
           email: user.email || '',
@@ -160,11 +157,9 @@ const Navigation: React.FC = () => {
           updated_at: user.updated_at
         });
         setIsAuthenticated(true);
-        console.log('Navigation: Authentication set to true')
       } else {
         setUser(null);
         setIsAuthenticated(false);
-        console.log('Navigation: Authentication set to false')
       }
     };
     checkAuth();
@@ -249,25 +244,39 @@ const Navigation: React.FC = () => {
       return;
     }
 
+    let saveToast: string | undefined;
     try {
-      // Show saving indicator
-      const saveToast = toast.loading('Saving your resume...');
+      saveToast = toast.loading('Saving your resume...');
 
-      await saveResumeMutation.mutateAsync({
-        resumeData,
-        title: resumeTitle.trim(),
-        customizationOptions,
-      });
+      if (storageInfo && !storageInfo.can_create_new) {
+        // Use the generic token execution flow (like AnalysisDashboard)
+        await executeAction('resume_storage_space', async () => {
+          return saveResumeMutation.mutateAsync({
+            resumeData,
+            title: resumeTitle.trim(),
+            customizationOptions,
+          });
+        });
+      } else {
+        await saveResumeMutation.mutateAsync({
+          resumeData,
+          title: resumeTitle.trim(),
+          customizationOptions,
+        });
+      }
 
-      // Dismiss loading toast and show success
       toast.dismiss(saveToast);
-
+      toast.success('Resume saved successfully!');
       closeAllModals();
-
-      // Refresh user resumes list
       fetchUserResumes();
     } catch (error) {
       console.error('Save draft error:', error);
+
+      // Always dismiss the loading toast
+      if (saveToast) {
+        toast.dismiss(saveToast);
+      }
+
       const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
 
       if (errorMessage.includes('Storage limit reached')) {
@@ -282,9 +291,14 @@ const Navigation: React.FC = () => {
       } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
         toast.error('Session expired. Please sign in again.');
         handleLogout();
+      } else if (errorMessage.includes('Token reservation expired') || errorMessage.includes('released')) {
+        toast.error('Save operation timed out. Please try again.');
       } else {
         toast.error(`Save failed: ${errorMessage}`);
       }
+
+      // Close modal on any error to reset state
+      closeAllModals();
     }
   };
 
@@ -295,10 +309,13 @@ const Navigation: React.FC = () => {
       openSaveModal();
       return;
     }
+
+    let saveToast: string | undefined;
     try {
       // Show saving indicator
-      const saveToast = toast.loading('Saving your resume...');
+      saveToast = toast.loading('Saving your resume...');
 
+      // For existing resumes, no token deduction is needed
       await saveResumeMutation.mutateAsync({
         resumeData,
         title,
@@ -308,6 +325,7 @@ const Navigation: React.FC = () => {
 
       // Dismiss loading toast and show success
       toast.dismiss(saveToast);
+      toast.success('Resume saved successfully!');
 
       // Update last saved time in store
       useResumeStore.getState().setSavingState({
@@ -316,6 +334,12 @@ const Navigation: React.FC = () => {
       });
     } catch (error) {
       console.error('Failed to save draft:', error);
+
+      // Always dismiss the loading toast
+      if (saveToast) {
+        toast.dismiss(saveToast);
+      }
+
       const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
 
       // Handle different types of errors
@@ -334,6 +358,8 @@ const Navigation: React.FC = () => {
       } else if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
         toast.error('Resume not found. It may have been deleted. Please save as a new resume.');
         openSaveModal();
+      } else if (errorMessage.includes('Token reservation expired') || errorMessage.includes('released')) {
+        toast.error('Save operation timed out. Please try again.');
       } else {
         toast.error(`Save failed: ${errorMessage}`);
       }
@@ -354,7 +380,6 @@ const Navigation: React.FC = () => {
   };
 
   const handleSaveModeChange = (mode: 'new' | 'replace') => {
-    console.log('Save mode changed to:', mode);
     setSaveMode(mode);
     if (mode === 'replace') {
       console.log('Fetching user resumes for replace mode...');
@@ -378,10 +403,12 @@ const Navigation: React.FC = () => {
       return;
     }
 
+    let saveToast: string | undefined;
     try {
       // Show saving indicator
-      const saveToast = toast.loading('Updating your resume...');
+      saveToast = toast.loading('Updating your resume...');
 
+      // For replacing existing resumes, no token deduction is needed
       await saveResumeMutation.mutateAsync({
         resumeData,
         title: resumeTitle.trim() || 'Updated Resume',
@@ -399,6 +426,12 @@ const Navigation: React.FC = () => {
       fetchUserResumes();
     } catch (error) {
       console.error('Failed to replace resume:', error);
+
+      // Always dismiss the loading toast
+      if (saveToast) {
+        toast.dismiss(saveToast);
+      }
+
       const errorMessage = error instanceof Error ? error.message : 'Failed to update resume';
 
       if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
@@ -409,9 +442,14 @@ const Navigation: React.FC = () => {
         handleLogout();
       } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
         toast.error('Network error. Please check your connection and try again.');
+      } else if (errorMessage.includes('Token reservation expired') || errorMessage.includes('released')) {
+        toast.error('Update operation timed out. Please try again.');
       } else {
         toast.error(`Update failed: ${errorMessage}`);
       }
+
+      // Close modal on any error to reset state
+      closeAllModals();
     }
   };
 
@@ -459,6 +497,13 @@ const Navigation: React.FC = () => {
     setShowUserMenu(!showUserMenu);
   };
 
+  useEffect(() => {
+    if (ui.shouldShowSaveModal) {
+      openSaveModal();
+      setShouldShowSaveModal(false);
+    }
+  }, [ui.shouldShowSaveModal, setShouldShowSaveModal]);
+
   return (
     <nav className="bg-white shadow-sm h-16 flex-shrink-0">
       <ExportConfirmationModal
@@ -476,6 +521,7 @@ const Navigation: React.FC = () => {
       <SaveResumeModal
         isOpen={isSaveModalOpen}
         onClose={closeAllModals}
+        fetchUserResumes={fetchUserResumes}
         saveMode={saveMode}
         onSaveModeChange={handleSaveModeChange}
         resumeTitle={resumeTitle}
@@ -487,8 +533,7 @@ const Navigation: React.FC = () => {
         isLoadingResumes={isLoadingResumes}
         selectedResumeId={selectedResumeId}
         setSelectedResumeId={setSelectedResumeId}
-        actionInfo={resumeStorageAction}
-        storageInfo={storageInfo}
+        tokenAmount={storageInfo && !storageInfo.can_create_new ? resumeStorageAction?.amount : undefined}
       />
 
       {/* Buy Tokens Modal */}
@@ -543,7 +588,7 @@ const Navigation: React.FC = () => {
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
                   <>
-                    <Coins className="h-5 w-5 mr-2" />
+                    <Coins className="h-5 w-5 mr-2 text-amber-500" />
                     Credit Token
                   </>
                 )}
@@ -597,6 +642,7 @@ const Navigation: React.FC = () => {
                   <span>Export</span>
                 </button>
                 <button
+                  data-testid="save-button"
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                   onClick={handleSaveClick}
                   disabled={isSavingDraft}
@@ -742,6 +788,7 @@ const Navigation: React.FC = () => {
                 </button>
                 <div className="px-3 py-3">
                   <Button
+                    data-testid="save-button-mobile"
                     onClick={handleSaveClick}
                     disabled={isSavingDraft}
                     isLoading={isSavingDraft}

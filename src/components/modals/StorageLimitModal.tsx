@@ -82,17 +82,17 @@ const StorageLimitModal: React.FC<StorageLimitModalProps> = ({
                     </div>
 
                     {actionInfo && (
-                        <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                        <div className="bg-amber-50 rounded-lg p-4 mb-6">
                             <div className="flex items-center gap-2 mb-3">
-                                <Coins className="w-4 h-4 text-blue-600" />
-                                <span className="font-medium text-blue-700">Purchase Additional Space</span>
+                                <Coins className="w-4 h-4 text-amber-600" />
+                                <span className="font-medium text-amber-700">Purchase Additional Space</span>
                             </div>
-                            <p className="text-sm text-blue-600 mb-3">
+                            <p className="text-sm text-amber-600 mb-3">
                                 {actionInfo.description}
                             </p>
                             <div className="flex items-center justify-between">
-                                <span className="text-sm text-blue-600">Cost:</span>
-                                <span className="font-semibold text-blue-700">{actionInfo.amount} tokens</span>
+                                <span className="text-sm text-amber-600">Cost:</span>
+                                <span className="font-semibold text-amber-700">{actionInfo.amount} tokens</span>
                             </div>
                         </div>
                     )}

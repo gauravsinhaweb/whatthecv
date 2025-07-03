@@ -58,19 +58,59 @@ export const useTokenActions = (): UseTokenActionsReturn => {
         }
 
         let reservationId: string | null = null;
+        let retryCount = 0;
+        const maxRetries = 2;
 
         try {
             // Phase 1: Reserve tokens
+            console.log(`Reserving ${action.amount} tokens for action: ${actionId}`);
             const reservation = await reserveTokens(actionId, action.amount);
             reservationId = reservation.id;
+            console.log(`Reservation created: ${reservationId}`);
 
             // Phase 2: Execute the service
             const result = await serviceFunction();
 
-            // Phase 3: Confirm token usage (skip for resume_storage_space as backend handles it)
-            if (actionId !== 'resume_storage_space') {
-                await confirmTokenUsage(reservationId);
+            // Phase 3: Confirm token usage (with retry for expired reservations)
+            console.log(`Confirming token usage for reservation: ${reservationId}`);
+
+            while (retryCount <= maxRetries) {
+                try {
+                    await confirmTokenUsage(reservationId);
+                    console.log(`Token usage confirmed successfully on attempt ${retryCount + 1}`);
+                    break; // Success, exit retry loop
+                } catch (confirmError) {
+                    retryCount++;
+
+                    // Check if the error is due to expired/released reservation
+                    const errorMessage = confirmError instanceof Error ? confirmError.message : String(confirmError);
+                    const isExpiredError = errorMessage.includes('expired') ||
+                        errorMessage.includes('Cannot confirm reservation in status: released') ||
+                        errorMessage.includes('released');
+
+                    if (isExpiredError && retryCount <= maxRetries) {
+                        console.log(`Reservation expired (attempt ${retryCount}), creating new reservation for confirmation`);
+
+                        // Release the old reservation first
+                        try {
+                            await releaseTokens(reservationId);
+                        } catch (releaseError) {
+                            console.warn('Failed to release old reservation:', releaseError);
+                        }
+
+                        // Create a new reservation for confirmation
+                        const newReservation = await reserveTokens(actionId, action.amount);
+                        reservationId = newReservation.id;
+                        console.log(`New reservation created for confirmation: ${reservationId}`);
+
+                        continue; // Try again with new reservation
+                    } else {
+                        // If it's not an expiration error or we've exceeded retries, re-throw
+                        throw confirmError;
+                    }
+                }
             }
+
             return result;
 
         } catch (error) {
@@ -79,6 +119,7 @@ export const useTokenActions = (): UseTokenActionsReturn => {
             // Release tokens if reservation was made but service failed
             if (reservationId) {
                 try {
+                    console.log(`Releasing tokens for reservation: ${reservationId}`);
                     await releaseTokens(reservationId);
                     toast.success('Tokens have been refunded due to service failure.');
                 } catch (releaseError) {
