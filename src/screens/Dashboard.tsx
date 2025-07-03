@@ -1,4 +1,4 @@
-import { Briefcase, Coins, DatabaseZap, FileEdit, FileSearch, FileText, GraduationCap, HardDrive, History, Lightbulb, MessageSquare, Plus, RefreshCw, Settings, Sparkles, Wallet } from 'lucide-react'
+import { Briefcase, Coins, DatabaseZap, FileEdit, FileSearch, FileText, GraduationCap, HardDrive, History, Hourglass, Lightbulb, MessageSquare, Plus, RefreshCw, Settings, Sparkles, Timer, Wallet } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
@@ -9,6 +9,7 @@ import BuyTokenModal from '../components/modals/BuyTokenModal'
 import Button from '../components/ui/Button'
 import { useDeleteResume, useResumeVersions, useSaveResume } from '../hooks/queries/useResumeQueries'
 import { useTokenActions, useTokenBalance, useTokenTransactions } from '../hooks/queries/useTokenQueries'
+import { useStorageAndActionInfo } from '../hooks/queries/useStorageQueries'
 import { useResumeStore } from '../store/resumeStore'
 import { useUserStore } from '../store/userStore'
 import { defaultCustomizationOptions, initialResumeData, ResumeData } from '../types/resume'
@@ -141,6 +142,7 @@ const Dashboard = () => {
     const { data: transactions = [], isLoading: historyLoading } = useTokenTransactions()
     const { data: resumeVersions, isLoading: isResumeVersionsLoading, refetch: refetchResumeVersions } = useResumeVersions()
     const { data: tokenActions = {} } = useTokenActions()
+    const { storageInfo, isLoading: isStorageLoading } = useStorageAndActionInfo()
     const deleteResumeMutation = useDeleteResume()
     const saveResumeMutation = useSaveResume()
 
@@ -553,7 +555,6 @@ const Dashboard = () => {
             setEditingTitle(null)
         }
     }
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
             {!isAuthenticated || !user ? (
@@ -575,7 +576,27 @@ const Dashboard = () => {
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
                         <StatsCard
                             title="Total Resumes"
-                            value={resumes.length}
+                            value={
+                                isStorageLoading ? (
+                                    <div className="flex items-center space-x-2">
+                                        <div className="animate-pulse h-8 w-20 bg-slate-200 rounded-lg"></div>
+                                        <span className="text-sm text-slate-500">/</span>
+                                        <div className="animate-pulse h-8 w-16 bg-slate-200 rounded-lg"></div>
+                                    </div>
+                                ) : storageInfo ? (
+                                    <div className="flex items-center space-x-2">
+                                        <span className="font-semibold text-lg text-slate-900">
+                                            {resumes.length}
+                                        </span>
+                                        <span className="text-sm text-slate-500">/</span>
+                                        <span className="font-semibold text-lg text-slate-900">
+                                            {storageInfo.total_limit}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <span className="font-semibold text-lg text-slate-900">{resumes.length}</span>
+                                )
+                            }
                             icon={FileText}
                             iconBgColor="bg-blue-100"
                             iconColor="text-blue-600"
@@ -735,11 +756,12 @@ const Dashboard = () => {
                                 <h3 className="text-lg font-medium text-slate-900 mb-1">No Cover Letters yet</h3>
                                 <p className="text-slate-500 mb-6">Create your first cover letter to get started</p>
                                 <button
+                                    disabled
                                     onClick={handleCreateResume}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                    className="inline-flex cursor-progress items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                 >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Create Letter
+                                    <Timer className="h-4 w-4 mr-2" />
+                                    Coming soon
                                 </button>
                             </div>
                         )}

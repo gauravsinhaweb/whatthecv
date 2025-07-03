@@ -2,6 +2,8 @@ import { Save, X, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import Button from '../ui/Button';
 import BuyTokenModal from './BuyTokenModal';
+import { purchaseStorageSpace } from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
 interface Resume {
     id: string;
@@ -116,7 +118,18 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
             }
 
             try {
-                // Call the save function and handle errors here
+                // If storage is full, purchase storage before saving
+                if (!canCreateNew) {
+                    try {
+                        await purchaseStorageSpace();
+                        if (refetchStorageInfo) await refetchStorageInfo();
+                        toast.success('Storage space purchased successfully!');
+                    } catch (purchaseError) {
+                        toast.error('Failed to purchase storage space. Please try again.');
+                        return;
+                    }
+                }
+                // Now proceed to save
                 await onSaveDraft();
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
@@ -279,16 +292,6 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                         <Info className="w-3 h-3" />
                                         Use a descriptive name like company name or target position
                                     </p>
-
-                                    {!canCreateNew && userResumes.length > 0 && (
-                                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                                            <p className="text-xs text-amber-700 flex items-center gap-1">
-                                                <Info className="w-3 h-3" />
-                                                Storage limit reached. You can replace an existing resume or purchase more storage space.
-                                            </p>
-                                        </div>
-                                    )}
-
                                     <div className="mt-3 text-xs text-slate-500">
                                         <span className="text-red-500">*</span> Required field
                                     </div>
