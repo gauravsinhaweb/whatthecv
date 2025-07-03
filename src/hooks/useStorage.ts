@@ -4,6 +4,8 @@ import { getStorageInfo, purchaseStorageSpace, getStorageActionInfo } from '../u
 import { useTokens } from './useTokens';
 import { useTokenActions } from './useTokenActions';
 import { useInsufficientTokens } from './useInsufficientTokens';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../lib/queryClient';
 
 interface StorageInfo {
     free_limit: number;
@@ -46,6 +48,7 @@ export const useStorage = (): UseStorageReturn => {
     const { tokenBalance, refreshBalance } = useTokens();
     const { getAmount, hasSufficientTokens: checkSufficientTokens } = useTokenActions();
     const { isBuyModalOpen, closeBuyModal, checkAndHandleInsufficientTokens, currentActionId, onSuccessCallback } = useInsufficientTokens();
+    const queryClient = useQueryClient();
 
     const refreshStorageInfo = useCallback(async () => {
         try {
@@ -77,11 +80,22 @@ export const useStorage = (): UseStorageReturn => {
 
         try {
             setIsPurchasing(true);
-            await purchaseStorageSpace();
+            const result = await purchaseStorageSpace();
+
+            // Update local state
             await Promise.all([
                 refreshStorageInfo(),
                 refreshBalance()
             ]);
+
+            // Update React Query cache to ensure Dashboard shows updated data
+            if (result && typeof result === 'object') {
+                // The backend returns the updated storage info directly
+                queryClient.setQueryData(queryKeys.storage.info(), result);
+                // Also invalidate the query to ensure fresh data
+                queryClient.invalidateQueries({ queryKey: queryKeys.storage.info() });
+            }
+
             toast.success('Storage space purchased successfully!');
         } catch (error) {
             console.error('Failed to purchase storage space:', error);
@@ -89,7 +103,7 @@ export const useStorage = (): UseStorageReturn => {
         } finally {
             setIsPurchasing(false);
         }
-    }, [actionInfo, checkAndHandleInsufficientTokens, refreshStorageInfo, refreshBalance]);
+    }, [actionInfo, checkAndHandleInsufficientTokens, refreshStorageInfo, refreshBalance, queryClient]);
 
     useEffect(() => {
         refreshStorageInfo();
