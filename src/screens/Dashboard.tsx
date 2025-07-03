@@ -1,4 +1,4 @@
-import { Briefcase, Coins, FileEdit, FileSearch, FileText, GraduationCap, HardDrive, History, Lightbulb, MessageSquare, Plus, RefreshCw, Settings, Sparkles, Target, Wallet } from 'lucide-react'
+import { Briefcase, Coins, DatabaseZap, FileEdit, FileSearch, FileText, GraduationCap, HardDrive, History, Lightbulb, MessageSquare, Plus, RefreshCw, Settings, Sparkles, Wallet } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
@@ -92,34 +92,6 @@ const getActionDetails = (actionId: string, tokenActions: Record<string, any> = 
                 iconBgColor: 'bg-purple-50',
                 iconColor: 'text-purple-600'
             };
-        case 'job_description_analysis':
-            return {
-                text: 'Job Description Analysis',
-                icon: Target,
-                iconBgColor: 'bg-blue-50',
-                iconColor: 'text-blue-600'
-            };
-        case 'career_advice':
-            return {
-                text: 'Career Advice',
-                icon: Lightbulb,
-                iconBgColor: 'bg-yellow-50',
-                iconColor: 'text-yellow-600'
-            };
-        case 'interview_prep':
-            return {
-                text: 'Interview Preparation',
-                icon: MessageSquare,
-                iconBgColor: 'bg-green-50',
-                iconColor: 'text-green-600'
-            };
-        case 'skill_development':
-            return {
-                text: 'Skill Development',
-                icon: GraduationCap,
-                iconBgColor: 'bg-indigo-50',
-                iconColor: 'text-indigo-600'
-            };
         case 'resume_template':
             return {
                 text: 'Resume Template',
@@ -127,19 +99,19 @@ const getActionDetails = (actionId: string, tokenActions: Record<string, any> = 
                 iconBgColor: 'bg-pink-50',
                 iconColor: 'text-pink-600'
             };
-        case 'job_search':
-            return {
-                text: 'Job Search',
-                icon: Briefcase,
-                iconBgColor: 'bg-cyan-50',
-                iconColor: 'text-cyan-600'
-            };
         case 'resume_analysis':
             return {
                 text: 'Resume Analysis',
                 icon: FileSearch,
                 iconBgColor: 'bg-orange-50',
                 iconColor: 'text-orange-600'
+            };
+        case 'resume_storage_space':
+            return {
+                text: 'Storage Space',
+                icon: DatabaseZap,
+                iconBgColor: 'bg-gray-50',
+                iconColor: 'text-gray-600'
             };
         default:
             // Generic fallback for unknown actions
