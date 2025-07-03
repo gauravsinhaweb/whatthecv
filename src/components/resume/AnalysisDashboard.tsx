@@ -4,11 +4,13 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useTokenActions } from '../../hooks/useTokenActions';
 import { useTokens } from '../../hooks/useTokens';
+import { useInsufficientTokens } from '../../hooks/useInsufficientTokens';
 import { AnalysisCategory, performDetailedAnalysis } from '../../services/analysisService';
 import { useResumeStore } from '../../store/resumeStore';
 import { enhanceResumeFromFile } from '../../utils/api';
 import Button from '../ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/Tabs';
+import BuyTokenModal from '../modals/BuyTokenModal';
 import EnhancingLoader from './EnhancingLoader';
 
 interface AnalysisDashboardProps {
@@ -35,6 +37,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     const navigate = useNavigate();
     const { tokenBalance, refreshBalance } = useTokens();
     const { getAmount, hasSufficientTokens, executeAction, actions, isLoading: actionsLoading, refreshActions } = useTokenActions();
+    const { isBuyModalOpen, closeBuyModal, checkAndHandleInsufficientTokens, currentActionId, onSuccessCallback } = useInsufficientTokens();
     const tokenAmount = getAmount('resume_enhancement');
     const [activeTab, setActiveTab] = useState<AnalysisTab>('overview');
     const [analysisData, setAnalysisData] = useState<Record<AnalysisCategory, CategoryAnalysis>>({
@@ -218,6 +221,14 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     const handleEnhanceResume = async () => {
         if (!file || isEnhancing) return;
 
+        // Check for insufficient tokens first
+        if (!checkAndHandleInsufficientTokens('resume_enhancement', async () => {
+            // This callback will be executed after successful token purchase
+            await handleEnhanceResume();
+        })) {
+            return; // Modal is open, wait for user to buy tokens
+        }
+
         try {
             // Refresh token actions to ensure we have the latest values from admin panel
             await refreshActions();
@@ -226,7 +237,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
             await refreshBalance();
 
             if (!hasSufficientTokens('resume_enhancement', tokenBalance)) {
-                toast.error(`Insufficient tokens. You have ₹${tokenBalance}, but need ₹${tokenAmount} to continue.`);
+                toast.error(`Insufficient tokens. You have ${tokenBalance} tokens, but need ${tokenAmount} tokens to continue.`);
                 return;
             }
 
@@ -267,7 +278,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                 } else if (error.message.includes('Unsupported file type')) {
                     errorMessage = 'Please upload a PDF, DOCX, or TXT file.';
                 } else if (error.message.includes('Insufficient tokens')) {
-                    errorMessage = `Insufficient tokens. You have ₹${tokenBalance}, but need ₹${tokenAmount} to continue.`;
+                    errorMessage = `Insufficient tokens. You have ${tokenBalance} tokens, but need ${tokenAmount} tokens to continue.`;
                 } else {
                     errorMessage = error.message;
                 }
@@ -1038,6 +1049,16 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                 </div>
             )}
             {renderFileActions()}
+
+            {/* Buy Token Modal */}
+            <BuyTokenModal
+                isOpen={isBuyModalOpen}
+                onClose={closeBuyModal}
+                actionId={currentActionId}
+                onSuccess={onSuccessCallback}
+                title="Insufficient Tokens for Resume Enhancement"
+                description="You need more tokens to enhance your resume. Purchase tokens to continue."
+            />
         </div>
     );
 };

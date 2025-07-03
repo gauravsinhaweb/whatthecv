@@ -77,6 +77,7 @@ export const useReserveTokens = () => {
     return useMutation({
         mutationFn: ({ actionId, amount }: { actionId: string; amount: number }) =>
             tokenService.reserveTokens(actionId, amount),
+        retry: false, // Disable retries for token reservation
         onError: (error) => {
             handleApiError(error, 'Failed to reserve tokens')
         },
@@ -88,6 +89,7 @@ export const useConfirmTokenUsage = () => {
 
     return useMutation({
         mutationFn: (reservationId: string) => tokenService.confirmTokenUsage(reservationId),
+        retry: false, // Disable retries for token confirmation
         onSuccess: (data) => {
             // Update token balance in cache
             queryClient.setQueryData(queryKeys.tokens.balance(), data)
@@ -104,6 +106,7 @@ export const useConfirmTokenUsage = () => {
 export const useReleaseTokens = () => {
     return useMutation({
         mutationFn: (reservationId: string) => tokenService.releaseTokens(reservationId),
+        retry: false, // Disable retries for token release
         onSuccess: () => {
             toast.success('Tokens released successfully')
         },
@@ -147,7 +150,7 @@ export const useBuyTokens = () => {
     const createOrderMutation = useCreatePaymentOrder()
     const verifyPaymentMutation = useVerifyPayment()
 
-    const buyTokens = async (amount: number) => {
+    const buyTokens = async (amount: number, onSuccess?: () => void) => {
         try {
             // Create payment order
             const orderResponse = await createOrderMutation.mutateAsync(amount)
@@ -155,35 +158,48 @@ export const useBuyTokens = () => {
             // Initialize Razorpay payment
             const options = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                amount: amount * 100, // Convert to paise
-                currency: "INR",
-                name: "WhatTheCV",
-                description: `Purchase ${amount} tokens`,
+                amount: orderResponse.order.amount,
+                currency: orderResponse.order.currency,
                 order_id: orderResponse.order.id,
+                name: "WhatTheCV",
+                description: "Token Purchase",
                 handler: async function (response: any) {
                     try {
-                        // Verify payment
                         await verifyPaymentMutation.mutateAsync({
                             payment_id: response.razorpay_payment_id,
                             order_id: response.razorpay_order_id,
                             signature: response.razorpay_signature
                         })
+                        // Call the success callback to close modal
+                        if (onSuccess) {
+                            onSuccess()
+                        }
                     } catch (error) {
                         console.error('Payment verification failed:', error)
+                        toast.error('Payment verification failed. Please contact support.')
                         throw error
                     }
                 },
                 prefill: {
-                    name: "User",
                     email: "user@example.com",
                 },
-                theme: {
-                    color: "#3B82F6"
-                }
+                theme: { color: '#fbbf24' }
             }
 
-            const razorpay = new (window as any).Razorpay(options)
-            razorpay.open()
+            // Load Razorpay SDK
+            const script = document.createElement('script')
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+            script.async = true
+            script.onload = () => {
+                const rzp = new (window as any).Razorpay(options)
+                rzp.open()
+            }
+            script.onerror = () => {
+                console.error('Failed to load Razorpay SDK')
+                toast.error('Failed to load payment gateway. Please try again.')
+                throw new Error('Failed to load Razorpay SDK')
+            }
+            document.body.appendChild(script)
 
         } catch (error) {
             console.error('Buy tokens failed:', error)

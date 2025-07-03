@@ -2,7 +2,7 @@ export const ANALYTICS_EVENTS = {
     // Resume Creation Events
     RESUME_CREATION_START: 'resume_creation_start',
     RESUME_EXPORT: 'resume_export',
-    RESUME_SAVE: 'resume_save',
+    resume_storage_space: 'resume_storage_space',
 
     // Section Events
     SECTION_ADD: 'section_add',

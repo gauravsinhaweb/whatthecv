@@ -1,27 +1,26 @@
+import { Briefcase, Coins, FileEdit, FileSearch, FileText, GraduationCap, HardDrive, History, Lightbulb, MessageSquare, Plus, RefreshCw, Settings, Sparkles, Target, Wallet } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useResumeStore } from '../store/resumeStore'
-import { useUserStore } from '../store/userStore'
-import { defaultCustomizationOptions, initialResumeData, ResumeData } from '../types/resume'
-import { FileText, Plus, Briefcase, Coins, History, RefreshCw, PiggyBank, FileSearch, FileEdit, FileCheck, Sparkles, Wand2, Lightbulb, MessageSquare, BookOpen, Target, GraduationCap, Wallet } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import type { EnhancedResumeData } from '../utils/types'
-import { useTokenBalance, useTokenTransactions, useBuyTokens } from '../hooks/queries/useTokenQueries'
-import { useResumeVersions, useDeleteResume, useSaveResume } from '../hooks/queries/useResumeQueries'
-import { useStorageAndActionInfo } from '../hooks/queries/useStorageQueries'
+import { useNavigate } from 'react-router-dom'
 import { DeleteConfirmModal } from '../components/dashboard/DeleteConfirmModal'
 import { ResumeCard, ResumeCardSkeleton } from '../components/dashboard/ResumeCard'
 import { StatsCard } from '../components/dashboard/StatsCard'
+import BuyTokenModal from '../components/modals/BuyTokenModal'
 import Button from '../components/ui/Button'
+import { useDeleteResume, useResumeVersions, useSaveResume } from '../hooks/queries/useResumeQueries'
+import { useTokenActions, useTokenBalance, useTokenTransactions } from '../hooks/queries/useTokenQueries'
+import { useResumeStore } from '../store/resumeStore'
+import { useUserStore } from '../store/userStore'
+import { defaultCustomizationOptions, initialResumeData, ResumeData } from '../types/resume'
+import type { EnhancedResumeData } from '../utils/types'
 
-// Add Razorpay type declaration
 declare global {
     interface Window {
         Razorpay: any;
     }
 }
 
-const getActionDetails = (actionId: string) => {
+const getActionDetails = (actionId: string, tokenActions: Record<string, any> = {}) => {
     const formatActionText = (text: string) => {
         return text
             .split('_')
@@ -29,10 +28,59 @@ const getActionDetails = (actionId: string) => {
             .join(' ');
     };
 
+    // Check if we have dynamic action data from backend
+    const dynamicAction = tokenActions[actionId];
+    if (dynamicAction) {
+        // Use dynamic action data with fallback icons
+        const getIconForCategory = (category: string) => {
+            switch (category.toLowerCase()) {
+                case 'resume': return FileEdit;
+                case 'analysis': return FileSearch;
+                case 'enhancement': return Sparkles;
+                case 'advice': return Lightbulb;
+                case 'preparation': return MessageSquare;
+                case 'development': return GraduationCap;
+                case 'search': return Briefcase;
+                case 'storage': return HardDrive;
+                default: return Settings;
+            }
+        };
+
+        const getColorForCategory = (category: string) => {
+            switch (category.toLowerCase()) {
+                case 'resume': return { bg: 'bg-pink-50', text: 'text-pink-600' };
+                case 'analysis': return { bg: 'bg-orange-50', text: 'text-orange-600' };
+                case 'enhancement': return { bg: 'bg-purple-50', text: 'text-purple-600' };
+                case 'advice': return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+                case 'preparation': return { bg: 'bg-green-50', text: 'text-green-600' };
+                case 'development': return { bg: 'bg-indigo-50', text: 'text-indigo-600' };
+                case 'search': return { bg: 'bg-cyan-50', text: 'text-cyan-600' };
+                case 'storage': return { bg: 'bg-blue-50', text: 'text-blue-600' };
+                default: return { bg: 'bg-slate-50', text: 'text-slate-600' };
+            }
+        };
+
+        const colors = getColorForCategory(dynamicAction.category);
+        return {
+            text: dynamicAction.name,
+            icon: getIconForCategory(dynamicAction.category),
+            iconBgColor: colors.bg,
+            iconColor: colors.text
+        };
+    }
+
+    // Fallback to hardcoded cases for special actions
     switch (actionId) {
         case 'add_token':
             return {
                 text: 'Credited',
+                icon: Wallet,
+                iconBgColor: 'bg-emerald-50',
+                iconColor: 'text-emerald-600'
+            };
+        case 'initial_balance':
+            return {
+                text: 'Initial Balance',
                 icon: Wallet,
                 iconBgColor: 'bg-emerald-50',
                 iconColor: 'text-emerald-600'
@@ -94,9 +142,10 @@ const getActionDetails = (actionId: string) => {
                 iconColor: 'text-orange-600'
             };
         default:
+            // Generic fallback for unknown actions
             return {
                 text: formatActionText(actionId),
-                icon: FileCheck,
+                icon: Settings,
                 iconBgColor: 'bg-slate-50',
                 iconColor: 'text-slate-600'
             };
@@ -106,7 +155,7 @@ const getActionDetails = (actionId: string) => {
 const Dashboard = () => {
     const navigate = useNavigate()
     const { user, isAuthenticated } = useUserStore()
-    const { documents, setDocuments, setResumeData, setCustomizationOptions, setSelectedDocument, resetStore, updateDocument } = useResumeStore()
+    const { documents, setDocuments, setResumeData, setCustomizationOptions, setSelectedDocument, resetStore } = useResumeStore()
     const [activeTab, setActiveTab] = useState<'resumes' | 'cover-letters'>('resumes')
     const [editingTitle, setEditingTitle] = useState<string | null>(null)
     const [newTitle, setNewTitle] = useState('')
@@ -118,32 +167,22 @@ const Dashboard = () => {
     // React Query hooks
     const { data: tokenBalance = 0, isLoading: isBalanceLoading, error } = useTokenBalance()
     const { data: transactions = [], isLoading: historyLoading } = useTokenTransactions()
-    const { data: resumeVersions, isLoading: isResumeVersionsLoading } = useResumeVersions()
-    const { storageInfo, actionInfo, isLoading: isStorageLoading } = useStorageAndActionInfo()
-    const buyTokensMutation = useBuyTokens()
+    const { data: resumeVersions, isLoading: isResumeVersionsLoading, refetch: refetchResumeVersions } = useResumeVersions()
+    const { data: tokenActions = {} } = useTokenActions()
     const deleteResumeMutation = useDeleteResume()
     const saveResumeMutation = useSaveResume()
 
-    // Use React Query loading state for shimmer effect
     const isLoading = isResumeVersionsLoading && isAuthenticated && user
-
-    // Debug logging
-    console.log('Dashboard Debug:', {
-        isAuthenticated,
-        user: !!user,
-        tokenBalance,
-        isBalanceLoading,
-        resumeVersions: resumeVersions?.length,
-        isResumeVersionsLoading,
-        isLoading
-    })
-
-    // State for buy modal
     const [buyModalOpen, setBuyModalOpen] = useState(false)
-    const [buyAmount, setBuyAmount] = useState(100)
     const [historyModalOpen, setHistoryModalOpen] = useState(false)
 
-    // Process resume versions when data changes
+    // Refetch resume versions when component mounts to ensure fresh data
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            refetchResumeVersions()
+        }
+    }, [isAuthenticated, user, refetchResumeVersions])
+
     useEffect(() => {
         if (isAuthenticated && user) {
             if (resumeVersions) {
@@ -525,7 +564,7 @@ const Dashboard = () => {
                 customizationOptions: resume.customizationOptions,
                 resumeId
             })
-            updateDocument(resumeId, { title: newTitle })
+
             toast.success('Title updated successfully')
         } catch (error) {
             console.error('Failed to update title:', error)
@@ -741,65 +780,12 @@ const Dashboard = () => {
             />
 
             {/* Buy Tokens Modal */}
-            {buyModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-slate-900">Buy Tokens</h3>
-                            <button
-                                onClick={() => setBuyModalOpen(false)}
-                                className="text-slate-400 hover:text-slate-500"
-                            >
-                                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Amount (₹)</label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₹</span>
-                                    <input
-                                        type="number"
-                                        value={buyAmount}
-                                        onChange={(e) => setBuyAmount(Number((e.target as HTMLInputElement).value))}
-                                        className="w-full pl-8 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Enter amount"
-                                        min="5"
-                                        step={10}
-                                        defaultValue={100}
-                                    />
-                                </div>
-                            </div>
-                            <div className="bg-slate-50 p-4 rounded-lg">
-                                <p className="text-sm text-slate-600">You will receive {buyAmount} tokens</p>
-                            </div>
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        await buyTokensMutation.mutateAsync(buyAmount);
-                                        setBuyModalOpen(false);
-                                    } catch (error) {
-                                        console.error('Payment failed:', error);
-                                    }
-                                }}
-                                disabled={buyTokensMutation.isPending || !buyAmount}
-                                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                            >
-                                {buyTokensMutation.isPending ? (
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                ) : (
-                                    <>
-                                        <Coins className="h-5 w-5 mr-2" />
-                                        Credit Token
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <BuyTokenModal
+                isOpen={buyModalOpen}
+                onClose={() => setBuyModalOpen(false)}
+                title="Buy Tokens"
+                description="Purchase tokens to unlock premium features and services."
+            />
 
             {/* Transaction History Modal */}
             {historyModalOpen && (
@@ -836,7 +822,7 @@ const Dashboard = () => {
                             ) : (
                                 <div className="space-y-2.5">
                                     {transactions.map((transaction) => {
-                                        const actionDetails = getActionDetails(transaction.action_id);
+                                        const actionDetails = getActionDetails(transaction.action_id, tokenActions);
                                         const Icon = actionDetails.icon;
                                         return (
                                             <div
@@ -853,13 +839,13 @@ const Dashboard = () => {
                                                             {new Date(transaction.timestamp).toLocaleString()}
                                                         </p>
                                                         <p className="text-xs text-slate-400 mt-0.5">
-                                                            Transaction ID: {transaction.id}
+                                                            Balance: {transaction.available_token || '-'} {transaction.available_token && <Coins className="inline-block h-3 w-3" />}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col items-end">
-                                                    <div className={`font-semibold text-base ${transaction.token > 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                                        {transaction.token > 0 ? '+' : ''}{transaction.token} <Coins className="inline-block h-4 w-4" />
+                                                    <div className={`font-semibold text-base ${transaction.action_id === 'add_token' || transaction.action_id === 'initial_balance' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                        {transaction.action_id === 'add_token' || transaction.action_id === 'initial_balance' ? '+' : '-'}{Math.abs(transaction.token)} <Coins className="inline-block h-4 w-4 text-amber-500" />
                                                     </div>
                                                 </div>
                                             </div>

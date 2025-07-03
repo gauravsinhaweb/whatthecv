@@ -25,7 +25,7 @@ export const useStorageActionInfo = () => {
     return useQuery({
         queryKey: queryKeys.storage.actionInfo(),
         queryFn: storageService.getStorageActionInfo,
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: 2 * 60 * 1000, // 2 minutes
         gcTime: 10 * 60 * 1000, // 10 minutes
         enabled: isAuthenticated, // Only run if user is authenticated
     })
@@ -38,7 +38,7 @@ export const useStorageAndActionInfo = () => {
 
     return {
         storageInfo: storageInfoQuery.data,
-        actionInfo: actionInfoQuery.data || [], // Return the array directly
+        actionInfo: actionInfoQuery.data, // Return the object directly, not as array
         isLoading: storageInfoQuery.isLoading || actionInfoQuery.isLoading,
         error: storageInfoQuery.error || actionInfoQuery.error,
         refetch: () => {

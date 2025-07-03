@@ -3,6 +3,7 @@ import { useResumeStore } from '../store/resumeStore'
 import { useSaveResume, useDeleteResume, useResumeVersions } from './queries/useResumeQueries'
 import { useTokenActions } from './useTokenActions'
 import { useStorageAndActionInfo } from './queries/useStorageQueries'
+import { useTokens } from './useTokens'
 import { toast } from 'react-hot-toast'
 import { EnhancedResumeData } from '../utils/types'
 
@@ -69,6 +70,7 @@ export const useResumeState = () => {
         // Enhancement actions
         setIsEnhancing,
         setEnhancementStage,
+        setShouldShowSaveModal,
     } = useResumeStore()
 
     // React Query hooks
@@ -79,6 +81,7 @@ export const useResumeState = () => {
     // Token and storage hooks
     const { getAmount, hasSufficientTokens, executeAction } = useTokenActions()
     const { storageInfo, actionInfo } = useStorageAndActionInfo()
+    const { tokenBalance } = useTokens()
 
     // Auto-save refs
     const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
@@ -269,13 +272,13 @@ export const useResumeState = () => {
             return { canSave: false, reason: 'Storage limit reached' }
         }
 
-        const tokenAmount = getAmount('resume_save')
-        if (!hasSufficientTokens('resume_save')) {
+        const tokenAmount = getAmount('resume_storage_space')
+        if (!hasSufficientTokens('resume_storage_space', tokenBalance)) {
             return { canSave: false, reason: 'Insufficient tokens', required: tokenAmount }
         }
 
         return { canSave: true }
-    }, [storageInfo, selectedDocument, getAmount, hasSufficientTokens])
+    }, [storageInfo, selectedDocument, getAmount, hasSufficientTokens, tokenBalance])
 
     return {
         // State
@@ -341,6 +344,7 @@ export const useResumeState = () => {
         // Enhancement actions
         setIsEnhancing,
         setEnhancementStage,
+        setShouldShowSaveModal,
 
         // Save/Delete actions
         saveResume,
