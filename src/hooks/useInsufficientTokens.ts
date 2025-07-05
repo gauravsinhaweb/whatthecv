@@ -1,12 +1,11 @@
 import { useState, useCallback } from 'react';
 import { useTokenActions } from './useTokenActions';
-import { useTokens } from './useTokens';
 
 interface UseInsufficientTokensReturn {
     isBuyModalOpen: boolean;
     openBuyModal: (actionId: string, onSuccess?: () => void) => void;
     closeBuyModal: () => void;
-    checkAndHandleInsufficientTokens: (actionId: string, onSuccess?: () => void) => boolean;
+    checkAndHandleInsufficientTokens: (actionId: string, onSuccess?: () => void, currentBalance?: number) => boolean;
     currentActionId: string | null;
     onSuccessCallback: (() => void) | null;
 }
@@ -16,7 +15,6 @@ export const useInsufficientTokens = (): UseInsufficientTokensReturn => {
     const [currentActionId, setCurrentActionId] = useState<string | null>(null);
     const [onSuccessCallback, setOnSuccessCallback] = useState<(() => void) | null>(null);
 
-    const { tokenBalance } = useTokens();
     const { hasSufficientTokens } = useTokenActions();
 
     const openBuyModal = useCallback((actionId: string, onSuccess?: () => void) => {
@@ -31,13 +29,16 @@ export const useInsufficientTokens = (): UseInsufficientTokensReturn => {
         setOnSuccessCallback(null);
     }, []);
 
-    const checkAndHandleInsufficientTokens = useCallback((actionId: string, onSuccess?: () => void): boolean => {
-        if (!hasSufficientTokens(actionId, tokenBalance)) {
+    const checkAndHandleInsufficientTokens = useCallback((actionId: string, onSuccess?: () => void, currentBalance?: number): boolean => {
+        // Use provided balance if available, otherwise default to 0
+        const balanceToCheck = currentBalance !== undefined ? currentBalance : 0;
+
+        if (!hasSufficientTokens(actionId, balanceToCheck)) {
             openBuyModal(actionId, onSuccess);
             return false; // Insufficient tokens
         }
         return true; // Sufficient tokens
-    }, [hasSufficientTokens, tokenBalance, openBuyModal]);
+    }, [hasSufficientTokens, openBuyModal]);
 
     return {
         isBuyModalOpen,

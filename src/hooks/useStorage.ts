@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { getStorageInfo, purchaseStorageSpace, getStorageActionInfo } from '../utils/api';
-import { useTokens } from './useTokens';
+import { useTokenBalance } from './queries/useTokenQueries';
 import { useTokenActions } from './useTokenActions';
 import { useInsufficientTokens } from './useInsufficientTokens';
 import { useQueryClient } from '@tanstack/react-query';
@@ -45,7 +45,7 @@ export const useStorage = (): UseStorageReturn => {
     const [isLoading, setIsLoading] = useState(true);
     const [isPurchasing, setIsPurchasing] = useState(false);
 
-    const { tokenBalance, refreshBalance } = useTokens();
+    const { data: tokenBalance = 0, refetch: refreshBalance } = useTokenBalance();
     const { getAmount, hasSufficientTokens: checkSufficientTokens } = useTokenActions();
     const { isBuyModalOpen, closeBuyModal, checkAndHandleInsufficientTokens, currentActionId, onSuccessCallback } = useInsufficientTokens();
     const queryClient = useQueryClient();
@@ -74,7 +74,7 @@ export const useStorage = (): UseStorageReturn => {
 
         if (!checkAndHandleInsufficientTokens('resume_storage_space', async () => {
             await purchaseSpace();
-        })) {
+        }, tokenBalance)) {
             return;
         }
 
