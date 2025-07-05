@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useTokenActions } from '../../hooks/useTokenActions';
-import { useTokens } from '../../hooks/useTokens';
+import { useTokenBalance } from '../../hooks/queries/useTokenQueries';
 import { useInsufficientTokens } from '../../hooks/useInsufficientTokens';
 import { AnalysisCategory, performDetailedAnalysis } from '../../services/analysisService';
 import { useResumeStore } from '../../store/resumeStore';
@@ -35,7 +35,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     clearFile
 }) => {
     const navigate = useNavigate();
-    const { tokenBalance, refreshBalance } = useTokens();
+    const { data: tokenBalance = 0, refetch: refreshBalance } = useTokenBalance();
     const { getAmount, hasSufficientTokens, executeAction, actions, isLoading: actionsLoading, refreshActions } = useTokenActions();
     const { isBuyModalOpen, closeBuyModal, checkAndHandleInsufficientTokens, currentActionId, onSuccessCallback } = useInsufficientTokens();
     const tokenAmount = getAmount('resume_enhancement');
@@ -221,11 +221,17 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     const handleEnhanceResume = async () => {
         if (!file || isEnhancing) return;
 
+        // Refresh token balance first to ensure we have the latest balance
+        await refreshBalance();
+
         // Check for insufficient tokens first
         if (!checkAndHandleInsufficientTokens('resume_enhancement', async () => {
             // This callback will be executed after successful token purchase
+            // Refresh balance first to get the updated token count
+            await refreshBalance();
+            // Then retry the enhancement
             await handleEnhanceResume();
-        })) {
+        }, tokenBalance)) {
             return; // Modal is open, wait for user to buy tokens
         }
 

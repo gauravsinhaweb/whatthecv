@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Analytics } from '@vercel/analytics/react';
-import { render } from 'preact';
-import { StrictMode } from 'preact/compat';
+import { createRoot } from 'react-dom/client';
+import { StrictMode } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
@@ -30,7 +30,10 @@ const queryClient = new QueryClient({
   },
 });
 
-render(
+const container = document.getElementById('app')!;
+const root = createRoot(container);
+
+root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -38,6 +41,5 @@ render(
         <Analytics />
       </BrowserRouter>
     </QueryClientProvider>
-  </StrictMode>,
-  document.getElementById('app')!
+  </StrictMode>
 );

@@ -1,9 +1,8 @@
 import { Coins, X, AlertCircle, CheckCircle, Info, Sparkles, TrendingUp, Shield, Zap, Star } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { useBuyTokens } from '../../hooks/queries/useTokenQueries';
+import { useBuyTokens, useTokenBalance } from '../../hooks/queries/useTokenQueries';
 import { useTokenActions } from '../../hooks/useTokenActions';
-import { useTokens } from '../../hooks/useTokens';
 import Button from '../ui/Button';
 
 interface BuyTokenModalProps {
@@ -26,7 +25,7 @@ const BuyTokenModal: React.FC<BuyTokenModalProps> = ({
     const [buyAmount, setBuyAmount] = useState(100);
     const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
     const [isHoveringBuyButton, setIsHoveringBuyButton] = useState(false);
-    const { tokenBalance, refreshBalance } = useTokens();
+    const { data: tokenBalance = 0, refetch: refreshBalance } = useTokenBalance();
     const { getAmount, getAction } = useTokenActions();
     const buyTokensMutation = useBuyTokens();
 
@@ -49,7 +48,16 @@ const BuyTokenModal: React.FC<BuyTokenModalProps> = ({
         }
 
         try {
-            await buyTokensMutation.mutateAsync(buyAmount, onClose);
+            await buyTokensMutation.mutateAsync(buyAmount, async () => {
+                // Refresh balance first to ensure we have the latest token count
+                await refreshBalance();
+                // Close the modal first
+                onClose();
+                // Then call the onSuccess callback if provided
+                if (onSuccess) {
+                    onSuccess();
+                }
+            });
         } catch (error) {
             console.error('Payment failed:', error);
         }

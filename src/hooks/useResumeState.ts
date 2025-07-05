@@ -3,7 +3,7 @@ import { useResumeStore } from '../store/resumeStore'
 import { useSaveResume, useDeleteResume, useResumeVersions } from './queries/useResumeQueries'
 import { useTokenActions } from './useTokenActions'
 import { useStorageAndActionInfo } from './queries/useStorageQueries'
-import { useTokens } from './useTokens'
+import { useTokenBalance } from './queries/useTokenQueries'
 import { toast } from 'react-hot-toast'
 import { EnhancedResumeData } from '../utils/types'
 
@@ -81,7 +81,7 @@ export const useResumeState = () => {
     // Token and storage hooks
     const { getAmount, hasSufficientTokens, executeAction } = useTokenActions()
     const { storageInfo, actionInfo } = useStorageAndActionInfo()
-    const { tokenBalance } = useTokens()
+    const { data: tokenBalance = 0 } = useTokenBalance()
 
     // Auto-save refs
     const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()

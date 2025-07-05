@@ -484,6 +484,9 @@ const CreateResume: React.FC = () => {
                 certifications: [],
             };
 
+            // Clear selected document to treat this as a new resume
+            setSelectedDocument(null);
+
             // Update resume data with the enhanced content
             setResumeData(convertedData);
 
@@ -492,7 +495,7 @@ const CreateResume: React.FC = () => {
         } catch (error) {
             console.error('Error loading enhanced resume data:', error);
         }
-    }, [enhancedResumeData, setResumeData, setEnhancedResumeData]);
+    }, [enhancedResumeData, setResumeData, setEnhancedResumeData, setSelectedDocument]);
 
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
