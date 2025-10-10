@@ -1,52 +1,34 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getSession, getUser } from '../../lib/supabase';
-import { useUserStore } from '../../store/userStore';
-import { setToken, setUserProfile } from '../../utils/storage';
-import { UserProfile } from '../../utils/types';
+import { getSession } from '../../lib/supabase';
 
 export default function GoogleCallback() {
     const [error, setError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
-    const setUser = useUserStore((state) => state.setUser);
 
     useEffect(() => {
         const handleCallback = async () => {
             try {
                 setIsProcessing(true);
                 setError(null);
-                // Get Supabase session
+
+                // Wait a bit for Supabase to process the OAuth callback
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Check if we have a session (the auth state change listener will handle setting the user)
                 const { session } = await getSession();
-                if (!session) {
-                    throw new Error('Failed to get Supabase session');
+                console.log('GoogleCallback session check:', { session, hasUser: !!session?.user });
+
+                if (session?.user) {
+                    console.log('OAuth callback successful, redirecting to dashboard');
+                    navigate('/dashboard');
+                } else {
+                    throw new Error('No session found after OAuth callback');
                 }
-
-                // Get user data from Supabase
-                const userData = await getUser();
-                if (!userData) {
-                    throw new Error('Failed to get user data');
-                }
-
-                // Store FastAPI token
-                setToken(session.access_token);
-                // Create user profile
-                const profile: UserProfile = {
-                    id: userData.id,
-                    email: userData.email || '',
-                    name: userData.user_metadata?.full_name,
-                    avatar_url: userData.user_metadata?.avatar_url,
-                    created_at: userData.created_at,
-                    updated_at: userData.updated_at
-                };
-
-                // Store user profile
-                setUserProfile(profile);
-                setUser(profile);
-                navigate('/dashboard');
             } catch (err) {
-                console.error('Authentication error:', err);
+                console.error('OAuth callback error:', err);
                 setError(err instanceof Error ? err.message : 'Authentication failed');
                 navigate('/auth/login/failure');
             } finally {
@@ -55,7 +37,7 @@ export default function GoogleCallback() {
         };
 
         handleCallback();
-    }, [location, navigate, setUser]);
+    }, [location, navigate]);
 
     if (isProcessing) {
         return (

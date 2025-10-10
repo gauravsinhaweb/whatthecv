@@ -2,7 +2,6 @@ import { Brush, Pen } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
-import StorageLimitModal from '../../../components/modals/StorageLimitModal';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { ResumeData, initialResumeData } from '../../../types/resume';
 import { exportResumeToPDF } from '../../../utils/resumeExport';
@@ -37,7 +36,6 @@ const CreateResume: React.FC = () => {
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-    const [isStorageLimitModalOpen, setIsStorageLimitModalOpen] = useState(false);
 
     // Check if this is an existing resume (has been saved before with a title)
     const isExistingResume = selectedDocument?.title;
@@ -51,18 +49,6 @@ const CreateResume: React.FC = () => {
 
 
 
-    // Auto-show save modal when coming from enhancement flow
-    useEffect(() => {
-        if (
-            resumeData &&
-            Object.keys(resumeData).length > 0 &&
-            !selectedDocument &&
-            resumeData.personalInfo?.name &&
-            resumeData.personalInfo.name !== 'Alex Johnson'
-        ) {
-            setShouldShowSaveModal(true);
-        }
-    }, [resumeData, selectedDocument, setShouldShowSaveModal]);
 
     // Create handlers object from store actions
     const handlers = {
@@ -554,14 +540,6 @@ const CreateResume: React.FC = () => {
                 isOpen={isExportModalOpen}
                 onClose={() => setIsExportModalOpen(false)}
                 onConfirm={handleConfirmExport}
-            />
-            <StorageLimitModal
-                isOpen={isStorageLimitModalOpen}
-                onClose={() => setIsStorageLimitModalOpen(false)}
-                onPurchaseSuccess={() => {
-                    setIsStorageLimitModalOpen(false);
-                    // Optionally retry the save operation
-                }}
             />
 
             <div className="flex-1 p-6 pb-0 overflow-hidden">

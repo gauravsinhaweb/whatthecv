@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUserStore } from '../../store/userStore';
+import { useAuth } from '../../hooks/useAuth';
 import { isSuperUser } from '../../utils/superuser';
 import { Shield, AlertTriangle } from 'lucide-react';
 
@@ -12,7 +12,7 @@ const SuperUserRoute: React.FC<SuperUserRouteProps> = ({
     children,
     fallback
 }) => {
-    const { user, isAuthenticated } = useUserStore();
+    const { user, isAuthenticated } = useAuth();
 
     // Check if user is authenticated and is a superuser
     const isUserSuperUser = user && isAuthenticated && isSuperUser(user.email);

@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useResumeStore } from '../store/resumeStore'
 import { useSaveResume, useDeleteResume, useResumeVersions } from './queries/useResumeQueries'
-import { useTokenActions } from './useTokenActions'
 import { useStorageAndActionInfo } from './queries/useStorageQueries'
-import { useTokenBalance } from './queries/useTokenQueries'
 import { toast } from 'react-hot-toast'
 import { EnhancedResumeData } from '../utils/types'
 
@@ -78,10 +76,8 @@ export const useResumeState = () => {
     const deleteResumeMutation = useDeleteResume()
     const { data: resumeVersions, isLoading: isLoadingVersions } = useResumeVersions()
 
-    // Token and storage hooks
-    const { getAmount, hasSufficientTokens, executeAction } = useTokenActions()
+    // Storage hooks
     const { storageInfo, actionInfo } = useStorageAndActionInfo()
-    const { data: tokenBalance = 0 } = useTokenBalance()
 
     // Auto-save refs
     const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
@@ -278,19 +274,14 @@ export const useResumeState = () => {
         })
     }, [setResumeData, setCustomizationOptions, setSelectedDocument, setLastSavedTime])
 
-    // Check if user can save (has sufficient tokens and storage)
+    // Check if user can save (has sufficient storage)
     const canSave = useCallback(() => {
         if (!storageInfo?.can_create_new && !selectedDocument) {
             return { canSave: false, reason: 'Storage limit reached' }
         }
 
-        const tokenAmount = getAmount('resume_storage_space')
-        if (!hasSufficientTokens('resume_storage_space', tokenBalance)) {
-            return { canSave: false, reason: 'Insufficient tokens', required: tokenAmount }
-        }
-
         return { canSave: true }
-    }, [storageInfo, selectedDocument, getAmount, hasSufficientTokens, tokenBalance])
+    }, [storageInfo, selectedDocument])
 
     return {
         // State

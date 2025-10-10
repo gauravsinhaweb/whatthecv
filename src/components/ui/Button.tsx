@@ -11,7 +11,6 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: LucideIcon | React.ReactNode;
   rightIcon?: LucideIcon | React.ReactNode;
   fullWidth?: boolean;
-  tokenAmount?: number;
   children: React.ReactNode;
 }
 
@@ -22,7 +21,6 @@ const Button: React.FC<ButtonProps> = ({
   leftIcon: LeftIcon,
   rightIcon: RightIcon,
   fullWidth = false,
-  tokenAmount,
   children,
   className = '',
   disabled,
@@ -111,11 +109,6 @@ const Button: React.FC<ButtonProps> = ({
           </>
         )}
       </button>
-      {!isLoading && tokenAmount !== undefined && (
-        <div className="absolute -top-2 -right-2 bg-slate-800 text-white text-xs px-2 py-1 rounded-full shadow-lg transform transition-transform group-hover:scale-105">
-          {tokenAmount} tokens
-        </div>
-      )}
     </div>
   );
 };

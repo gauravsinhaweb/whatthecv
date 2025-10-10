@@ -1,7 +1,6 @@
 import { Save, X, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import Button from '../ui/Button';
-import BuyTokenModal from './BuyTokenModal';
 import { purchaseStorageSpace } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 
@@ -27,11 +26,9 @@ interface SaveResumeModalProps {
     isLoadingResumes: boolean;
     selectedResumeId: string;
     setSelectedResumeId: (id: string) => void;
-    tokenAmount?: number;
     hasExistingResume?: boolean;
     canCreateNew?: boolean;
     refetchStorageInfo?: () => void;
-    onInsufficientTokens?: (actionId: string, onSuccess?: () => void) => void;
 }
 
 const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
@@ -49,21 +46,17 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
     isLoadingResumes,
     selectedResumeId,
     setSelectedResumeId,
-    tokenAmount,
     hasExistingResume = false,
     canCreateNew = true,
-    refetchStorageInfo,
-    onInsufficientTokens
+    refetchStorageInfo
 }) => {
     const [titleError, setTitleError] = useState<string>('');
     const [isDuplicate, setIsDuplicate] = useState(false);
-    const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
-    const [pendingSaveAfterPurchase, setPendingSaveAfterPurchase] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             fetchUserResumes();
-            // Refetch storage info to get latest token amounts
+            // Refetch storage info
             if (refetchStorageInfo) {
                 refetchStorageInfo();
             }
@@ -134,14 +127,8 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
 
-                if (errorMessage.includes('Failed to reserve tokens') || errorMessage.includes('Insufficient tokens') || errorMessage === 'Insufficient tokens') {
-                    // Handle insufficient tokens by showing BuyTokenModal
-                    setPendingSaveAfterPurchase(true);
-                    setIsBuyModalOpen(true);
-                } else {
-                    // Re-throw other errors to be handled by Navigation component
-                    throw error;
-                }
+                // Re-throw errors to be handled by Navigation component
+                throw error;
             }
         } else {
             if (!selectedResumeId) {
@@ -151,19 +138,6 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
         }
     };
 
-    const handleInsufficientTokens = (actionId: string, onSuccess?: () => void) => {
-        setPendingSaveAfterPurchase(true);
-        setIsBuyModalOpen(true);
-    };
-
-    const handleTokenPurchaseSuccess = () => {
-        setIsBuyModalOpen(false);
-        setPendingSaveAfterPurchase(false);
-        // Retry the save operation
-        setTimeout(() => {
-            handleSave();
-        }, 500);
-    };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && !isSavingDraft && !titleError && !isDuplicate) {
@@ -194,15 +168,6 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
 
     return (
         <>
-            {/* Buy Token Modal */}
-            <BuyTokenModal
-                isOpen={isBuyModalOpen}
-                onClose={() => setIsBuyModalOpen(false)}
-                actionId="resume_storage_space"
-                onSuccess={handleTokenPurchaseSuccess}
-                title="Insufficient Tokens for Resume Storage"
-                description="You need more tokens to save your resume. Purchase tokens to continue."
-            />
 
             <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
@@ -386,7 +351,6 @@ const SaveResumeModal: React.FC<SaveResumeModalProps> = ({
                                         (saveMode === 'replace' && !selectedResumeId)
                                     }
                                     isLoading={isSavingDraft}
-                                    tokenAmount={saveMode === 'new' ? tokenAmount : undefined}
                                     size="lg"
                                 >
                                     <Save className="h-5 w-5 mr-2" />

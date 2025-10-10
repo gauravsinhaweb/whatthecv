@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
 import Dashboard from './screens/Dashboard';
-import { useUserStore } from './store/userStore';
+import { useAuth } from './hooks/useAuth';
 import SuperUserRoute from './components/auth/SuperUserRoute';
 
 const LandingPage = lazy(() => import('./screens/Landing/LandingPage.tsx'));
@@ -16,7 +16,7 @@ const AdminPage = lazy(() => import('./screens/Admin/AdminPage.tsx'));
 const Terms = lazy(() => import('./screens/Landing/Terms.tsx'));
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-    const { user, isAuthenticated } = useUserStore();
+    const { user, isAuthenticated } = useAuth();
     const token = user && isAuthenticated;
     return token ? <>{children}</> : <LandingPage />;
 };
