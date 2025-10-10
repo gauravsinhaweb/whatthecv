@@ -3,11 +3,11 @@ import { toast } from 'react-hot-toast'
 import { storageService } from '../../services/storageService'
 import { queryKeys } from '../../lib/queryClient'
 import { handleApiError } from '../../services/apiService'
-import { useUserStore } from '../../store/userStore'
+import { useAuth } from '../useAuth'
 
 // Storage info query
 export const useStorageInfo = () => {
-    const { isAuthenticated } = useUserStore()
+    const { isAuthenticated } = useAuth()
 
     return useQuery({
         queryKey: queryKeys.storage.info(),
@@ -20,7 +20,7 @@ export const useStorageInfo = () => {
 
 // Storage action info query
 export const useStorageActionInfo = () => {
-    const { isAuthenticated } = useUserStore()
+    const { isAuthenticated } = useAuth()
 
     return useQuery({
         queryKey: queryKeys.storage.actionInfo(),

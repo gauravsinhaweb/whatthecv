@@ -1,5 +1,4 @@
 import React from 'react';
-import TokenAdminPanel from '../../components/admin/TokenAdminPanel';
 
 const AdminPage: React.FC = () => {
     return (
@@ -11,7 +10,9 @@ const AdminPage: React.FC = () => {
                         Reminder to take some water 🥃
                     </p>
                 </div>
-                <TokenAdminPanel />
+                <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm">
+                    <p className="text-slate-600">Admin panel content will be added here.</p>
+                </div>
             </div>
         </div>
     );

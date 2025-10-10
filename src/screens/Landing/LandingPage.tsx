@@ -18,14 +18,14 @@ import FaqSection from '../../components/landing/FaqSection';
 import { Item, Section } from '../../components/landing/Section';
 import { Video } from '../../components/landing/Video';
 import Button from '../../components/ui/Button';
-import { useUserStore } from '../../store/userStore';
+import { useAuth } from '../../hooks/useAuth';
 import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
 import './landing.css';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { scrollYProgress } = useScroll();
-    const { isAuthenticated, user } = useUserStore();
+    const { isAuthenticated, user } = useAuth();
     const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 1]);
     const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.85]);
 

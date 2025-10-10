@@ -18,13 +18,13 @@ import {
     useMemoizedValue,
     preloadCriticalResources
 } from '../../utils/performance';
-import { useUserStore } from '../../store/userStore';
+import { useAuth } from '../../hooks/useAuth';
 import './landing.css';
 
 const OptimizedLandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { scrollYProgress } = useScroll();
-    const { isAuthenticated, user } = useUserStore();
+    const { isAuthenticated, user } = useAuth();
     const prefersReducedMotion = useReducedMotion();
 
     const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 1]);
