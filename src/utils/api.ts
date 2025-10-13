@@ -1,18 +1,68 @@
 import axios from 'axios';
-import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult } from './types.ts';
+import supabase from '../lib/supabase';
+import { getToken, setToken } from './storage';
+import { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult, ResumeResponse } from './types.ts';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+
 
 // Create axios instance with base configuration
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1',
+    baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Interceptor for handling common error patterns
+// Add request interceptor to include auth token
+api.interceptors.request.use(async (config) => {
+    const token = getToken();
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Remove Content-Type header for FormData requests to let browser set it automatically
+    if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+    }
+
+    return config;
+});
+
+// Interceptor for handling common error patterns and token refresh
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+
+        // If the error is due to an expired token and we haven't tried to refresh yet
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                // Try to refresh the session
+                const { data: { session: newSession } } = await supabase.auth.refreshSession();
+
+                if (newSession) {
+                    // Update the authorization header with the new token
+                    originalRequest.headers.Authorization = `Bearer ${newSession.access_token}`;
+                    setToken(newSession.access_token);
+
+                    // Retry the original request
+                    return api(originalRequest);
+                } else {
+                    // If refresh fails, redirect to login
+                    return Promise.reject(new Error('Session expired. Please login again.'));
+                }
+            } catch (refreshError) {
+                console.error('Token refresh failed:', refreshError);
+                // If refresh fails, redirect to login
+                // window.location.href = '/auth/login';
+                return Promise.reject(new Error('Authentication failed. Please login again.'));
+            }
+        }
+
+        // Handle other errors
         const errorMessage = error.response?.data?.detail || 'An unexpected error occurred';
         console.error('API request failed:', errorMessage);
         return Promise.reject(new Error(errorMessage));
@@ -53,12 +103,14 @@ export async function analyzeResume(
     jobDescription?: string
 ): Promise<AIAnalysisResult> {
     try {
-        const response = await api.post('/resume/analyze', null, {
-            params: {
-                resume_text: resumeText,
-                job_description: jobDescription
-            }
-        });
+        const params: any = {
+            resume_text: resumeText
+        };
+        if (jobDescription) {
+            params.job_description = jobDescription;
+        }
+
+        const response = await api.post('/resume/analyze', null, { params });
 
         return response.data;
     } catch (error) {
@@ -92,39 +144,25 @@ export async function getSectionSuggestions(
 /**
  * Enhance resume for ATS optimization
  */
-export async function enhanceResume(
-    resumeText: string,
-    includeExtractedText: boolean = false
-): Promise<EnhancedResumeData> {
-    try {
-        const response = await api.post('/resume/enhance', null, {
-            params: {
-                resume_text: resumeText,
-                include_extracted_text: includeExtractedText
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        console.error('Resume enhancement error:', error);
-        throw error;
-    }
-}
-
-/**
- * Enhance resume from file directly (newer approach that processes file on backend)
- */
 export async function enhanceResumeFromFile(
     file: File
 ): Promise<EnhancedResumeData> {
     try {
+        // Validate file
+        if (!file || !(file instanceof File)) {
+            throw new Error('Invalid file provided');
+        }
+
+        console.log('Enhancing file:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+
         const formData = new FormData();
         formData.append('file', file);
 
         const response = await api.post('/resume/enhance-file', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
             timeout: 120000, // Increase timeout to 2 minutes
             validateStatus: status => true, // Don't throw on error status codes
             signal: undefined, // Remove any existing signal to prevent cancellation
@@ -152,7 +190,7 @@ export async function enhanceResumeFromFile(
         }
 
         // Process and validate the response data
-        const processedData = processEnhancedResumeData(response.data);
+        const processedData = response.data;
 
         return processedData;
     } catch (error) {
@@ -188,132 +226,23 @@ export async function enhanceResumeFromFile(
     }
 }
 
-/**
- * Process and validate enhanced resume data from backend
- */
-function processEnhancedResumeData(data: any): EnhancedResumeData {
-    // Separate name from position if they're combined
-    let name = data.personalInfo?.name || '';
-    let position = data.personalInfo?.position || data.personalInfo?.title || '';
-
-    // Position keywords that might appear in the name field
-    const positionKeywords = [
-        "fullstack", "full stack", "full-stack",
-        "frontend", "front end", "front-end",
-        "backend", "back end", "back-end",
-        "software", "developer", "engineer",
-        "manager", "director", "lead",
-        "designer", "ui", "ux",
-        "data", "product", "analyst",
-        "senior", "junior", "architect"
-    ];
-
-    // Clean the name if it contains position keywords
-    if (name) {
-        const nameParts = name.split(' ');
-        const cleanNameParts = [];
-        const positionParts = [];
-
-        for (const part of nameParts) {
-            if (positionKeywords.some(keyword =>
-                part.toLowerCase().includes(keyword) ||
-                part.toLowerCase() === keyword
-            )) {
-                positionParts.push(part);
-            } else {
-                cleanNameParts.push(part);
-            }
-        }
-
-        if (positionParts.length > 0) {
-            name = cleanNameParts.join(' ');
-            const extractedPosition = positionParts.join(' ');
-
-            // Only update position if it would add new information
-            if (!position) {
-                position = extractedPosition;
-            } else if (!position.toLowerCase().includes(extractedPosition.toLowerCase())) {
-                position = `${extractedPosition} ${position}`;
-            }
-        }
-    }
-
-    // Ensure personal info has all required fields
-    const personalInfo = {
-        name: name || '',
-        position: position || '',
-        email: data.personalInfo?.email || '',
-        phone: data.personalInfo?.phone || '',
-        location: data.personalInfo?.location || '',
-        summary: data.personalInfo?.summary || '',
-        profilePicture: data.personalInfo?.profilePicture || null
-    };
-
-    // Process work experience
-    const workExperience = Array.isArray(data.workExperience)
-        ? data.workExperience.map((exp, index) => ({
-            id: exp.id || `work-${index + 1}`,
-            position: exp.position || exp.title || '',
-            company: exp.company || '',
-            location: exp.location || '',
-            startDate: exp.startDate || '',
-            endDate: exp.endDate || '',
-            current: !!exp.current,
-            description: exp.description || ''
-        }))
-        : [];
-
-    // Process education
-    const education = Array.isArray(data.education)
-        ? data.education.map((edu, index) => ({
-            id: edu.id || `edu-${index + 1}`,
-            degree: edu.degree || '',
-            institution: edu.institution || '',
-            location: edu.location || '',
-            startDate: edu.startDate || '',
-            endDate: edu.endDate || '',
-            description: edu.description || ''
-        }))
-        : [];
-
-    // Process skills (ensure it's an array of strings)
-    const skills = Array.isArray(data.skills)
-        ? data.skills
-            .filter(skill => typeof skill === 'string' && skill.trim() !== '')
-            .map(skill => skill.trim()) // Clean up skills
-        : [];
-
-    // Process projects
-    const projects = Array.isArray(data.projects)
-        ? data.projects.map((proj, index) => ({
-            id: proj.id || `proj-${index + 1}`,
-            name: proj.name || '',
-            description: proj.description || '',
-            technologies: proj.technologies || '',
-            link: proj.link || ''
-        }))
-        : [];
-
-    // Construct the validated data
-    const validatedData: EnhancedResumeData = {
-        personalInfo,
-        workExperience,
-        education,
-        skills,
-        projects
-    };
-
-    return validatedData;
-}
-
-/**
- * Process a resume file entirely on the backend - extraction and analysis
- */
 export async function processResumeFile(
     file: File,
-    jobDescription?: string
+    jobDescription?: string,
+    returnText: boolean = false
 ): Promise<AIAnalysisResult> {
     try {
+        // Validate file
+        if (!file || !(file instanceof File)) {
+            throw new Error('Invalid file provided');
+        }
+
+        console.log('Processing file:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -321,11 +250,13 @@ export async function processResumeFile(
             formData.append('job_description', jobDescription);
         }
 
-        const response = await api.post('/resume/process-file', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        // Add return_text as a query parameter
+        const params = new URLSearchParams();
+        if (returnText) {
+            params.append('return_text', 'true');
+        }
+
+        const response = await api.post(`/resume/process-file?${params.toString()}`, formData);
 
         return response.data;
     } catch (error) {
@@ -342,15 +273,22 @@ export async function checkResumeFile(
     returnText: boolean = false
 ): Promise<ResumeCheckResult> {
     try {
+        // Validate file
+        if (!file || !(file instanceof File)) {
+            throw new Error('Invalid file provided');
+        }
+
+        console.log('Checking file:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('return_text', returnText.toString());
 
-        const response = await api.post('/resume/check-file', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        const response = await api.post('/resume/check-file', formData);
 
         return response.data;
     } catch (error) {
@@ -363,6 +301,362 @@ export async function checkResumeFile(
             reasoning: "Detection failed, assuming document is a resume",
             extracted_text: returnText ? "Error extracting text" : undefined
         };
+    }
+}
+
+/**
+ * Get all resume versions for the current user
+ */
+export async function getResumeVersions(): Promise<ResumeResponse[]> {
+    try {
+        const response = await api.get('/resume/versions');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching resume versions:', error);
+        throw error;
+    }
+}
+
+/**
+ * Update a specific resume version
+ */
+export async function updateResumeVersion(resumeId: string, file: File): Promise<ResumeResponse> {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await api.put(`/resume/versions/${resumeId}`, formData);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating resume version:', error);
+        throw error;
+    }
+}
+
+/**
+ * Delete a specific resume version
+ */
+export async function deleteResumeVersion(resumeId: string): Promise<{ message: string; storage_info: any }> {
+    try {
+        const response = await api.delete(`/resume/versions/${resumeId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting resume version:', error);
+        throw error;
+    }
+}
+
+export const saveDraft = async (resumeData: EnhancedResumeData, title: string, customizationOptions?: any, id?: string) => {
+    try {
+        const response = await api.post('/resume/save', {
+            resume_data: resumeData,
+            title,
+            customization_options: customizationOptions,
+            id
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error saving draft:', error);
+        throw error;
+    }
+};
+
+export const updateResumeDraft = async (resumeId: string, resumeData: EnhancedResumeData, title: string, customizationOptions?: any) => {
+    try {
+        const response = await api.put(`/resume/versions/${resumeId}`, {
+            resume_data: resumeData,
+            title,
+            customization_options: customizationOptions
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error updating resume draft:', error);
+        throw error;
+    }
+};
+
+export const createPaymentOrder = async (amount: number) => {
+    try {
+        const res = await api.post('/token/create-payment-order', { amount });
+        return res.data;
+    } catch (error) {
+        console.error('Error creating payment order:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+                throw new Error('Invalid amount. Please enter a valid amount greater than 0.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+            if (error.response?.status === 500) {
+                throw new Error('Failed to create payment order. Please try again later.');
+            }
+        }
+        throw new Error('Failed to create payment order. Please try again.');
+    }
+};
+
+export const verifyPayment = async ({ razorpay_payment_id, razorpay_order_id, razorpay_signature }: { razorpay_payment_id: string, razorpay_order_id: string, razorpay_signature: string }) => {
+    try {
+        const res = await api.post('/token/verify-payment', {
+            payment_id: razorpay_payment_id,
+            order_id: razorpay_order_id,
+            signature: razorpay_signature
+        })
+        return res.data
+    } catch (error) {
+        console.error('verifyPayment error:', error)
+        throw error
+    }
+};
+
+export const getTokenBalance = async () => {
+    try {
+        const res = await api.get('/token/balance');
+        return res.data;
+    } catch (error) {
+        console.error('Error fetching token balance:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                throw new Error('Please login to view your token balance.');
+            }
+        }
+        throw new Error('Failed to fetch token balance. Please try again.');
+    }
+};
+
+export const getTokenTransactions = async () => {
+    try {
+        const res = await api.get('/token/transactions');
+        return res.data.items;
+    } catch (error) {
+        console.error('Error fetching token transactions:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                throw new Error('Please login to view your transaction history.');
+            }
+        }
+        throw new Error('Failed to fetch token transactions. Please try again.');
+    }
+};
+
+export const spendTokens = async (action_id: string, token: number) => {
+    try {
+        const res = await api.post(`/token/spend?action_id=${action_id}&token=${token}`);
+        return res.data;
+    } catch (error) {
+        console.error('Error spending tokens:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 402) {
+                throw new Error('Insufficient tokens. Please purchase more tokens to continue.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+            if (error.response?.status === 422) {
+                throw new Error('Invalid token amount or action. Please try again.');
+            }
+        }
+        throw new Error('Failed to spend tokens. Please try again.');
+    }
+};
+
+export const reserveTokens = async (action_id: string, token_amount: number) => {
+    try {
+        const res = await api.post('/token/reserve', null, {
+            params: { action_id, token_amount }
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error reserving tokens:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 402) {
+                throw new Error('Insufficient tokens. Please purchase more tokens to continue.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+            if (error.response?.status === 422) {
+                throw new Error('Invalid token amount or action. Please try again.');
+            }
+            const message = error.response?.data?.detail || 'Failed to reserve tokens';
+            throw new Error(message);
+        }
+        throw new Error('Failed to reserve tokens. Please try again.');
+    }
+};
+
+export const confirmTokenUsage = async (reservation_id: string) => {
+    try {
+        const res = await api.post('/token/confirm', {}, {
+            params: { reservation_id }
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            const message = error.response?.data?.detail || 'Failed to confirm token usage';
+
+            // Handle specific error cases
+            if (error.response?.status === 400) {
+                if (message.includes('expired') || message.includes('released')) {
+                    throw new Error('Token reservation expired. Please try again.');
+                } else if (message.includes('already been confirmed')) {
+                    throw new Error('Token reservation already confirmed.');
+                } else if (message.includes('Insufficient tokens')) {
+                    throw new Error(message);
+                }
+            }
+
+            throw new Error(message);
+        }
+        throw new Error('Failed to confirm token usage. Please try again.');
+    }
+};
+
+export const releaseTokens = async (reservation_id: string) => {
+    try {
+        const res = await api.post('/token/release', null, {
+            params: { reservation_id }
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error releasing tokens:', error);
+        throw new Error('Failed to release tokens. Please try again.');
+    }
+};
+
+export const getTokenActions = async () => {
+    try {
+        const res = await api.get('/token/actions');
+        return res.data;
+    } catch (error) {
+        console.error('Error fetching token actions:', error);
+        throw new Error('Failed to fetch token actions. Please try again.');
+    }
+};
+
+export const updateTokenAmount = async (action_id: string, amount: number) => {
+    try {
+        const res = await api.put(`/token/actions/${action_id}/amount`, null, {
+            params: { amount }
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error updating token amount:', error);
+        throw new Error('Failed to update token amount. Please try again.');
+    }
+};
+
+export const createTokenAction = async (action_id: string, amount: number, name: string, description: string, category: string, locked: boolean = true) => {
+    try {
+        const res = await api.post('/token/actions', null, {
+            params: { action_id, amount, name, description, category, locked }
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error creating token action:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+                throw new Error(error.response.data.detail || 'Invalid token action data.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+        }
+        throw new Error('Failed to create token action. Please try again.');
+    }
+};
+
+export const deleteTokenAction = async (action_id: string) => {
+    try {
+        const res = await api.delete(`/token/actions/${action_id}`);
+        return res.data;
+    } catch (error) {
+        console.error('Error deleting token action:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+                throw new Error(error.response.data.detail || 'Cannot delete this token action.');
+            }
+            if (error.response?.status === 404) {
+                throw new Error('Token action not found.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+        }
+        throw new Error('Failed to delete token action. Please try again.');
+    }
+};
+
+export const toggleActionLock = async (action_id: string) => {
+    try {
+        const res = await api.post(`/token/actions/${action_id}/toggle-lock`);
+        return res.data;
+    } catch (error) {
+        console.error('Error toggling action lock:', error);
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+                throw new Error(error.response.data.detail || 'Cannot toggle lock for this action.');
+            }
+            if (error.response?.status === 404) {
+                throw new Error('Token action not found.');
+            }
+            if (error.response?.status === 401) {
+                throw new Error('Please login to continue.');
+            }
+        }
+        throw new Error('Failed to toggle action lock. Please try again.');
+    }
+};
+
+export const getActionLockStatus = async (action_id: string) => {
+    try {
+        const res = await api.get(`/token/actions/${action_id}/lock-status`);
+        return res.data;
+    } catch (error) {
+        console.error('Error getting action lock status:', error);
+        throw new Error('Failed to get action lock status. Please try again.');
+    }
+};
+
+/**
+ * Get user's storage information
+ */
+export async function getStorageInfo(): Promise<any> {
+    try {
+        const response = await api.get('/resume/storage/info');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching storage info:', error);
+        throw error;
+    }
+}
+
+/**
+ * Purchase additional storage space
+ */
+export async function purchaseStorageSpace(): Promise<any> {
+    try {
+        const response = await api.post('/resume/storage/purchase');
+        return response.data;
+    } catch (error) {
+        console.error('Error purchasing storage space:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get storage action information
+ */
+export async function getStorageActionInfo(): Promise<any> {
+    try {
+        const response = await api.get('/resume/storage/action-info');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching storage action info:', error);
+        throw error;
     }
 }
 

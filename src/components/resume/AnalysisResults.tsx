@@ -299,8 +299,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
                                             e.stopPropagation();
                                             generateSectionImprovement(suggestion.section);
                                         }}
-                                        leftIcon={<Loader className={`h-3 w-3 md:h-4 md:w-4 ${isGeneratingImprovements ? 'animate-spin' : ''}`} />}
-                                        disabled={isGeneratingImprovements}
+                                        isLoading={isGeneratingImprovements}
                                         className="px-2 py-1 text-xs md:text-sm hidden md:flex"
                                     >
                                         AI Improve

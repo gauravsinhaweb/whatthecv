@@ -1,44 +1,444 @@
-import { Eye, EyeOff, FileDown, Layout, Palette, Laptop } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
-import Button from '../../../components/ui/Button';
+import { Brush, Pen } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 import { useResumeState } from '../../../hooks/useResumeState';
-import { useResumeStore } from '../../../store/resumeStore';
-import { ResumeData } from '../../../types/resume';
+import { ResumeData, initialResumeData } from '../../../types/resume';
 import { exportResumeToPDF } from '../../../utils/resumeExport';
 import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../../../utils/resumeUI';
 import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
 import ResumeEditor from './components/ResumeEditor';
 import ResumeFullScreenModal from './components/ResumeFullScreenModal';
-import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 
 const CreateResume: React.FC = () => {
+    const navigate = useNavigate();
     const {
         resumeData,
-        skillInput,
-        activeSection,
-        expandedSections,
+        ui: { activeSection, expandedSections, previewScale },
         customizationOptions,
-        previewScale,
-        handlers
+        ui: { fieldVisibility },
+        save: { isAutoSaving, lastSavedTime },
+        selectedDocument,
+        enhancedResumeData,
+        setResumeData,
+        setCustomizationOptions,
+        setActiveSection,
+        setExpandedSections,
+        setPreviewScale,
+        setFieldVisibility,
+        setEnhancedResumeData,
+        setShouldShowSaveModal,
+        setSelectedDocument,
+        save: { isSavingDraft }
     } = useResumeState();
-
-    // Get enhanced resume data and setResumeData from Zustand store
-    const { enhancedResumeData, setEnhancedResumeData, setResumeData } = useResumeStore();
-
-    const [isMobilePreviewVisible, setIsMobilePreviewVisible] = useState(false);
     const [activeTab, setActiveTab] = useState<string>('content');
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+    // Check if this is an existing resume (has been saved before with a title)
+    const isExistingResume = selectedDocument?.title;
+
+    // Ensure new resumes start with initialResumeData
+    useEffect(() => {
+        if (!selectedDocument && (!resumeData || Object.keys(resumeData).length === 0)) {
+            setResumeData(initialResumeData);
+        }
+    }, [selectedDocument, resumeData, setResumeData]);
+
+
+
+
+    // Create handlers object from store actions
+    const handlers = {
+        setPreviewScale,
+        setActiveSection,
+        setExpandedSections,
+        setCustomizationOptions,
+        handleZoomIn: () => setPreviewScale(Math.min(previewScale + 0.1, 1)),
+        handleZoomOut: () => setPreviewScale(Math.max(previewScale - 0.1, 0.3)),
+        handlePersonalInfoChange: (field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                personalInfo: { ...resumeData.personalInfo, [field]: value }
+            });
+        },
+        handleWorkExperienceChange: (id: string, field: string, value: string | boolean) => {
+            setResumeData({
+                ...resumeData,
+                workExperience: resumeData.workExperience.map(exp =>
+                    exp.id === id ? { ...exp, [field]: value } : exp
+                )
+            });
+        },
+        handleEducationChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                education: resumeData.education.map(edu =>
+                    edu.id === id ? { ...edu, [field]: value } : edu
+                )
+            });
+        },
+        handleProjectChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                projects: resumeData.projects.map(proj =>
+                    proj.id === id ? { ...proj, [field]: value } : proj
+                )
+            });
+        },
+        handleAchievementChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                achievements: resumeData.achievements.map(ach =>
+                    ach.id === id ? { ...ach, [field]: value } : ach
+                )
+            });
+        },
+        handlePublicationChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                publications: resumeData.publications.map(pub =>
+                    pub.id === id ? { ...pub, [field]: value } : pub
+                )
+            });
+        },
+        handleCertificationChange: (id: string, field: string, value: string) => {
+            setResumeData({
+                ...resumeData,
+                certifications: resumeData.certifications.map(cert =>
+                    cert.id === id ? { ...cert, [field]: value } : cert
+                )
+            });
+        },
+        addWorkExperience: () => {
+            const newExp = {
+                id: `work-${Date.now()}`,
+                position: '',
+                company: '',
+                location: '',
+                startMonth: '',
+                startYear: '',
+                endMonth: '',
+                endYear: '',
+                current: false,
+                showStartMonth: true,
+                showEndMonth: true,
+                description: ''
+            };
+            setResumeData({
+                ...resumeData,
+                workExperience: [...resumeData.workExperience, newExp]
+            });
+        },
+        addEducation: () => {
+            const newEdu = {
+                id: `edu-${Date.now()}`,
+                degree: '',
+                institution: '',
+                location: '',
+                startMonth: '',
+                startYear: '',
+                endMonth: '',
+                endYear: '',
+                current: false,
+                showStartMonth: true,
+                showEndMonth: true,
+                description: ''
+            };
+            setResumeData({
+                ...resumeData,
+                education: [...resumeData.education, newEdu]
+            });
+        },
+        addProject: () => {
+            const newProj = {
+                id: `proj-${Date.now()}`,
+                name: '',
+                description: '',
+                technologies: '',
+                link: '',
+                startMonth: '',
+                startYear: '',
+                endMonth: '',
+                endYear: '',
+                current: false,
+                showStartMonth: true,
+                showEndMonth: true
+            };
+            setResumeData({
+                ...resumeData,
+                projects: [...resumeData.projects, newProj]
+            });
+        },
+        addAchievement: () => {
+            const newAch = {
+                id: `ach-${Date.now()}`,
+                title: '',
+                organization: '',
+                description: '',
+                link: '',
+                month: '',
+                year: ''
+            };
+            setResumeData({
+                ...resumeData,
+                achievements: [...resumeData.achievements, newAch]
+            });
+        },
+        addPublication: () => {
+            const newPub = {
+                id: `pub-${Date.now()}`,
+                title: '',
+                authors: '',
+                journal: '',
+                doi: '',
+                link: '',
+                description: '',
+                month: '',
+                year: ''
+            };
+            setResumeData({
+                ...resumeData,
+                publications: [...resumeData.publications, newPub]
+            });
+        },
+        addCertification: () => {
+            const newCert = {
+                id: `cert-${Date.now()}`,
+                name: '',
+                issuer: '',
+                credentialId: '',
+                link: '',
+                description: '',
+                month: '',
+                year: '',
+                expiryMonth: '',
+                expiryYear: ''
+            };
+            setResumeData({
+                ...resumeData,
+                certifications: [...resumeData.certifications, newCert]
+            });
+        },
+        removeWorkExperience: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                workExperience: resumeData.workExperience.filter(exp => exp.id !== id)
+            });
+        },
+        removeEducation: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                education: resumeData.education.filter(edu => edu.id !== id)
+            });
+        },
+        removeProject: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                projects: resumeData.projects.filter(proj => proj.id !== id)
+            });
+        },
+        removeAchievement: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                achievements: resumeData.achievements.filter(ach => ach.id !== id)
+            });
+        },
+        removePublication: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                publications: resumeData.publications.filter(pub => pub.id !== id)
+            });
+        },
+        removeCertification: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                certifications: resumeData.certifications.filter(cert => cert.id !== id)
+            });
+        },
+        addSkillCategory: (name: string) => {
+            const newCategory = {
+                id: `skill-${Date.now()}`,
+                name,
+                skills: []
+            };
+            setResumeData({
+                ...resumeData,
+                skills: [...resumeData.skills, newCategory]
+            });
+        },
+        removeSkillCategory: (id: string) => {
+            setResumeData({
+                ...resumeData,
+                skills: resumeData.skills.filter(skill => skill.id !== id)
+            });
+        },
+        addSkillToCategory: (categoryId: string, skill: string) => {
+            setResumeData({
+                ...resumeData,
+                skills: resumeData.skills.map(skillCategory =>
+                    skillCategory.id === categoryId
+                        ? { ...skillCategory, skills: [...skillCategory.skills, skill] }
+                        : skillCategory
+                )
+            });
+        },
+        removeSkillFromCategory: (categoryId: string, skillToRemove: string) => {
+            setResumeData({
+                ...resumeData,
+                skills: resumeData.skills.map(skillCategory =>
+                    skillCategory.id === categoryId
+                        ? { ...skillCategory, skills: skillCategory.skills.filter(s => s !== skillToRemove) }
+                        : skillCategory
+                )
+            });
+        },
+        updateSkillCategoryName: (id: string, name: string) => {
+            setResumeData({
+                ...resumeData,
+                skills: resumeData.skills.map(skill =>
+                    skill.id === id ? { ...skill, name } : skill
+                )
+            });
+        },
+        toggleSection: (section: string) => {
+            setExpandedSections({
+                ...expandedSections,
+                [section]: !expandedSections[section]
+            });
+        },
+        editSection: (section: string) => {
+            setActiveSection(section);
+        },
+        toggleFieldVisibility: (fieldKey: string) => {
+            setFieldVisibility({
+                ...fieldVisibility,
+                [fieldKey]: !fieldVisibility[fieldKey]
+            });
+        }
+    };
+
+    const setPreviewScaleRef = useRef(handlers.setPreviewScale);
+    setPreviewScaleRef.current = handlers.setPreviewScale;
+
+    // Add loading state check
+    const isLoading = !resumeData || !handlers;
+
+    if (isLoading) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-lg text-slate-600">Loading resume editor...</p>
+                </div>
+            </div>
+        );
+    }
 
     useEffect(() => {
         const handleResize = () => {
-            setScreenWidth(window.innerWidth);
+            const width = window.innerWidth;
+            setScreenWidth(width);
+
+            const baseWidth = 1200;
+            const maxScale = 1;
+            const minScale = 0.3;
+
+            let newScale;
+
+            if (width < 480) {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.45) / 480));
+            } else if (width < 640) {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.75) / 640));
+            } else if (width < 768) {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.85) / 768));
+            } else {
+                newScale = Math.max(minScale, Math.min(maxScale, (width * 0.67) / baseWidth));
+            }
+
+            setPreviewScaleRef.current(newScale);
         };
 
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        const debouncedHandleResize = () => {
+            clearTimeout((window as any).resizeTimeout);
+            (window as any).resizeTimeout = setTimeout(handleResize, 30);
+        };
+
+        window.addEventListener('resize', debouncedHandleResize);
+        handleResize();
+
+        return () => {
+            window.removeEventListener('resize', debouncedHandleResize);
+            clearTimeout((window as any).resizeTimeout);
+        };
     }, []);
+
+    // Track unsaved changes when resume data changes (only for existing resumes)
+    useEffect(() => {
+        if (resumeData && isExistingResume) {
+            setHasUnsavedChanges(true);
+        }
+    }, [resumeData, isExistingResume]);
+
+    // Reset unsaved changes when auto-save occurs (only for existing resumes)
+    useEffect(() => {
+        if (lastSavedTime && isExistingResume) {
+            setHasUnsavedChanges(false);
+        }
+    }, [lastSavedTime, isExistingResume]);
+
+    // Check if there are actually unsaved changes (more recent than last save) - only for existing resumes
+    const hasActualUnsavedChanges = isExistingResume && hasUnsavedChanges && (!lastSavedTime ||
+        new Date().getTime() - lastSavedTime.getTime() > 5000); // 5 seconds buffer
+
+    // Push a dummy state to the history when component mounts
+    useEffect(() => {
+        window.history.pushState(null, '', window.location.pathname);
+    }, []);
+
+    // Handle back button and history navigation (only for existing resumes)
+    useEffect(() => {
+        const handlePopState = (event: PopStateEvent) => {
+            if (hasActualUnsavedChanges && !isSavingDraft) {
+                // Prevent the default back action
+                event.preventDefault();
+                // Push another state to prevent back navigation
+                window.history.pushState(null, '', window.location.pathname);
+
+                // Show confirmation dialog
+                const shouldLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+
+                if (shouldLeave) {
+                    setHasUnsavedChanges(false);
+                    navigate(-1); // Navigate back if user confirms
+                }
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [hasActualUnsavedChanges, isSavingDraft, navigate]);
+
+    // Handle beforeunload event to show confirmation dialog (only for existing resumes)
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasActualUnsavedChanges && !isSavingDraft) {
+                const message = 'You have unsaved changes. Are you sure you want to leave?';
+                e.preventDefault();
+                e.returnValue = message;
+                return message;
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [hasActualUnsavedChanges, isSavingDraft]);
 
     useEffect(() => {
         // Check for enhanced resume data in the store
@@ -49,14 +449,29 @@ const CreateResume: React.FC = () => {
             const convertedData: ResumeData = {
                 personalInfo: {
                     ...enhancedResumeData.personalInfo,
-                    // Move summary from top level to personalInfo if it exists
                     summary: enhancedResumeData.personalInfo.summary || ''
                 },
                 workExperience: enhancedResumeData.workExperience,
                 education: enhancedResumeData.education,
-                skills: enhancedResumeData.skills,
+                skills: (() => {
+                    if (!enhancedResumeData.skills || enhancedResumeData.skills.length === 0) {
+                        return [];
+                    }
+                    const firstSkill = enhancedResumeData.skills[0];
+                    if (firstSkill !== null && firstSkill !== undefined && typeof firstSkill === 'object' && 'skills' in (firstSkill as object) && Array.isArray((firstSkill as any).skills)) {
+                        return enhancedResumeData.skills as unknown as { id: string; name: string; skills: string[] }[];
+                    } else {
+                        return [{ id: '1', name: 'Technical Skills', skills: enhancedResumeData.skills as unknown as string[] }];
+                    }
+                })(),
                 projects: enhancedResumeData.projects,
+                achievements: [],
+                publications: [],
+                certifications: [],
             };
+
+            // Clear selected document to treat this as a new resume
+            setSelectedDocument(null);
 
             // Update resume data with the enhanced content
             setResumeData(convertedData);
@@ -66,7 +481,7 @@ const CreateResume: React.FC = () => {
         } catch (error) {
             console.error('Error loading enhanced resume data:', error);
         }
-    }, [enhancedResumeData, setResumeData, setEnhancedResumeData]);
+    }, [enhancedResumeData, setResumeData, setEnhancedResumeData, setSelectedDocument]);
 
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
@@ -100,46 +515,18 @@ const CreateResume: React.FC = () => {
             expandedSections,
             {
                 ...handlers,
-                skillInput
             }
         ),
-        [resumeData, activeSection, expandedSections, handlers, skillInput]
+        [resumeData, activeSection, expandedSections, handlers]
     );
-
-    const handleExportPDF = () => {
-        setIsExportModalOpen(true);
-    };
 
     const handleConfirmExport = () => {
         setIsExportModalOpen(false);
-        exportResumeToPDF(resumeData);
+        exportResumeToPDF(resumeData, customizationOptions);
     };
 
-    // Screen too small message
-    if (screenWidth < 450) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
-                <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-                    <div className="flex justify-center mb-6">
-                        <Laptop className="w-16 h-16 text-blue-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-4 text-gray-800">Screen Too Small</h2>
-                    <p className="text-gray-600 mb-6">
-                        The resume builder requires a minimum screen width of 450px for the best experience.
-                        Please use a larger device or rotate your device to landscape mode.
-                    </p>
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                        <p className="text-sm text-blue-700">
-                            For the best experience, we recommend using a desktop or tablet device with a screen width of at least 768px.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="h-full flex flex-col overflow-hidden">
             <ResumeFullScreenModal
                 isOpen={isFullScreenPreview}
                 onClose={() => setIsFullScreenPreview(false)}
@@ -155,107 +542,62 @@ const CreateResume: React.FC = () => {
                 onConfirm={handleConfirmExport}
             />
 
-            <div className="flex">
-                {/* Vertical tab navigation */}
-                <div className="bg-white rounded-l-lg shadow-md border border-slate-200 mr-6 flex-shrink-0 self-start sticky top-6">
-                    <div className="flex flex-col border-r border-slate-200">
-                        <button
-                            className={`p-4 font-medium transition-colors relative ${activeTab === 'content'
-                                ? 'text-blue-600 border-r-2 border-blue-600 bg-white'
-                                : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                                }`}
-                            onClick={() => setActiveTab('content')}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Layout className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Content</span>
+            <div className="flex-1 p-6 pb-0 overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-12 h-full overflow-hidden">
+                    <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
+                        <div className="flex-shrink-0 mb-4">
+                            <div className="flex bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                <button
+                                    className={`flex-1 px-4 py-3 font-medium transition-colors relative ${activeTab === 'content'
+                                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                                        }`}
+                                    onClick={() => setActiveTab('content')}
+                                >
+                                    <div className="flex items-center justify-center gap-2">
+                                        <Pen className="w-4 h-4" />
+                                        <span className="text-sm">Content</span>
+                                    </div>
+                                </button>
+                                <button
+                                    className={`flex-1 px-4 py-3 font-medium transition-colors relative ${activeTab === 'customization'
+                                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
+                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                                        }`}
+                                    onClick={() => setActiveTab('customization')}
+                                >
+                                    <div className="flex items-center justify-center gap-2">
+                                        <Brush className="w-4 h-4" />
+                                        <span className="text-sm">Customize</span>
+                                    </div>
+                                </button>
                             </div>
-                        </button>
-                        <button
-                            className={`p-4 font-medium transition-colors relative ${activeTab === 'customization'
-                                ? 'text-blue-600 border-r-2 border-blue-600 bg-white'
-                                : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                                }`}
-                            onClick={() => setActiveTab('customization')}
-                        >
-                            <div className="flex flex-col items-center">
-                                <Palette className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Design</span>
+                        </div>
+
+                        <div className="flex-1 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="h-full overflow-y-auto">
+                                {activeTab === 'content' ? (
+                                    <ResumeEditor />
+                                ) : (
+                                    <ResumeCustomizationPanel
+                                        options={customizationOptions}
+                                        onChange={handlers.setCustomizationOptions}
+                                    />
+                                )}
                             </div>
-                        </button>
-                        <button
-                            className="p-4 font-medium transition-colors relative text-slate-600 hover:text-slate-800 hover:bg-slate-50"
-                            onClick={handleExportPDF}
-                        >
-                            <div className="flex flex-col items-center">
-                                <FileDown className="w-5 h-5 mb-1" />
-                                <span className="text-xs">Export</span>
-                            </div>
-                        </button>
+                        </div>
                     </div>
-                </div>
 
-                {/* Content area */}
-                <div className="flex-1">
-                    {activeTab === 'content' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
-                            <div className={`${isMobilePreviewVisible ? 'hidden' : 'block'} sm:block`}>
-                                <ResumeEditor
-                                    {...editorProps}
-                                    customizationOptions={customizationOptions}
-                                    onCustomizationChange={handlers.setCustomizationOptions}
-                                />
-                            </div>
-                            <div className={`${isMobilePreviewVisible ? 'block' : 'hidden'} sm:block`}>
-                                <div className="lg:sticky top-20 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
-                                    <div className="flex justify-center items-center">
-                                        {renderPreviewContainer(
-                                            resumeData,
-                                            customizationOptions,
-                                            previewScale,
-                                            setIsFullScreenPreview
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
+                        <div className="h-full pt-4 hide-scrollbar overflow-y-scroll overflow-x-hidden bg-slate-200 border border-slate-200 flex justify-center">
+                            {renderPreviewContainer(
+                                resumeData,
+                                customizationOptions,
+                                previewScale,
+                                setIsFullScreenPreview,
+                                { fieldVisibility }
+                            )}
                         </div>
-                    )}
-
-                    {activeTab === 'customization' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
-                            <div>
-                                <ResumeCustomizationPanel
-                                    options={customizationOptions}
-                                    onChange={handlers.setCustomizationOptions}
-                                    onSave={handlers.saveResumeWithOptions}
-                                    onSaveAsDraft={handlers.saveAsDraft}
-                                />
-                            </div>
-                            <div>
-                                <div className="lg:sticky top-24 hide-scrollbar" style={{ maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
-                                    <div className="flex justify-center items-center">
-                                        {renderPreviewContainer(
-                                            resumeData,
-                                            customizationOptions,
-                                            previewScale,
-                                            setIsFullScreenPreview
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="mt-6 sm:hidden flex justify-center items-center">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsMobilePreviewVisible(!isMobilePreviewVisible)}
-                            leftIcon={isMobilePreviewVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            className="w-full max-w-xs"
-                        >
-                            {isMobilePreviewVisible ? 'Edit Content' : 'Show Preview'}
-                        </Button>
                     </div>
                 </div>
             </div>

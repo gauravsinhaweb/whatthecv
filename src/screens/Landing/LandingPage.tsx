@@ -1,8 +1,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
-    ArrowUpRight,
     BarChart,
-    ChevronRight,
+    CheckCircle,
     FileCheck,
     FileText,
     Github,
@@ -13,27 +12,58 @@ import {
     ThumbsUp,
     Twitter
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FaqSection from '../../components/landing/FaqSection';
+import { Item, Section } from '../../components/landing/Section';
+import { Video } from '../../components/landing/Video';
 import Button from '../../components/ui/Button';
-import PrivacyPolicyModal from '../../components/modals/PrivacyPolicyModal';
+import { useAuth } from '../../hooks/useAuth';
 import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
 import './landing.css';
-import resumeBuilderImg from '/assets/create-resume.png';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { scrollYProgress } = useScroll();
+    const { isAuthenticated, user } = useAuth();
     const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 1]);
     const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.85]);
-    const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
-    const handleNavigate = (path: string) => {
+    const handleNavigate = useCallback((path: string) => {
         navigate(path);
-    };
+    }, [navigate]);
 
-    const footerLinks = [
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            navigate('/dashboard');
+        }
+    }, [isAuthenticated, user, navigate]);
+
+    useEffect(() => {
+        const preloadCriticalResources = () => {
+            const criticalPaths = [
+                '/assets/demo.mp4',
+                '/assets/create-resume.png',
+                '/assets/Launch.svg'
+            ];
+            criticalPaths.forEach((path) => {
+                if (path.endsWith('.mp4')) {
+                    const video = document.createElement('video');
+                    video.preload = 'metadata';
+                    video.src = path;
+                } else {
+                    const link = document.createElement('link');
+                    link.rel = 'preload';
+                    link.as = path.endsWith('.png') ? 'image' : 'image';
+                    link.href = path;
+                    document.head.appendChild(link);
+                }
+            });
+        };
+        preloadCriticalResources();
+    }, []);
+
+    const footerLinks = useMemo(() => [
         {
             title: "Product",
             links: [
@@ -46,18 +76,25 @@ const LandingPage: React.FC = () => {
         {
             title: "Resources",
             links: [
-                { name: "Privacy Policy", path: "#", onClick: () => setIsPrivacyModalOpen(true) },
+                { name: "Terms & Conditions", path: "/terms" },
+                { name: "Privacy Policy", path: "/privacy-policy" },
                 { name: "Feedback", path: "https://docs.google.com/forms/d/e/1FAIpQLScDwpgHCKzVwUaxGGDDAxR6mBhJfTgy5O0Je2Ldt07KZ2we5g/viewform?usp=sharing&ouid=113476487922478109524" },
+                { name: "Peerlist", path: "https://peerlist.io/gauravsinha/project/whatthecv" }
             ]
         }
-    ];
+    ], []);
 
     return (
         <div className="min-h-screen">
+
             {/* Hero Section */}
-            <section className="relative pt-20 pb-32 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50">
-                {/* GitHub Badges */}
-                <div className="absolute top-6 right-4 z-30 flex items-center">
+            <Section className="relative pt-20 pb-32 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50">
+                {/* <motion.div
+                    className="absolute top-6 right-4 z-30 flex items-center"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.6 }}
+                >
                     <a
                         href="https://github.com/gauravsinhaweb/whatthecv"
                         target="_blank"
@@ -67,9 +104,13 @@ const LandingPage: React.FC = () => {
                         <Github className="h-4 w-4" />
                         <span className="text-xs font-medium">Star on GitHub</span>
                     </a>
-                </div>
-
-                <div className="absolute inset-0 overflow-hidden">
+                </motion.div> */}
+                <motion.div
+                    className="absolute inset-0 overflow-hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1 }}
+                >
                     <motion.div
                         className="absolute inset-0 bg-grid-slate-900/[0.03] bg-[size:20px_20px]"
                         initial={{ opacity: 0 }}
@@ -77,7 +118,7 @@ const LandingPage: React.FC = () => {
                         transition={{ duration: 1 }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#f8faff] via-[#f8faff]/80 to-transparent pointer-events-none" />
-                </div>
+                </motion.div>
                 <div className="absolute top-0 right-0 -translate-y-12 translate-x-56 transform-gpu blur-3xl opacity-30">
                     <svg viewBox="0 0 1368 1521" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
                         <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
@@ -87,32 +128,12 @@ const LandingPage: React.FC = () => {
                         </g>
                     </svg>
                 </div>
-
                 <div className="container mx-auto px-4 relative z-10">
-                    <div className="w-full flex justify-center pt-8 pb-4">
-                        <a href="https://peerlist.io/gauravsinha/project/whatthecv" target="_blank" rel="noopener noreferrer">
-                            <img src="/assets/Launch.svg" alt="Launchpad" className="h-16 md:h-20" />
-                        </a>
-                    </div>
                     <div className="flex flex-col items-center text-center mb-16">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.5 }}
-                            className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6"
-                            role="status"
-                            aria-label="Platform Type"
-                        >
+                        <Item className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6">
                             AI-Powered Resume Platform
-                        </motion.div>
-
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ type: "spring", stiffness: 50, duration: 0.8, delay: 0.2 }}
-                            className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 leading-tight max-w-5xl"
-                            id="main-heading"
-                        >
+                        </Item>
+                        <Item as={motion.h1} className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 leading-tight max-w-5xl">
                             Build an <span className="text-blue-600 relative inline-block" aria-label="ATS-Optimized Resume">
                                 ATS-Optimized
                                 <motion.span
@@ -123,317 +144,448 @@ const LandingPage: React.FC = () => {
                                     aria-hidden="true"
                                 />
                             </span> Resume That Gets You Hired
-                        </motion.h1>
-
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.7, delay: 0.4 }}
-                            className="mt-8 text-xl text-slate-600 max-w-2xl"
-                        >
-                            Our AI-powered platform helps you create, analyze, and optimize your resume for maximum success with Applicant Tracking Systems.
-                        </motion.p>
-
+                        </Item>
+                        <Item as={motion.p} className="mt-8 text-xl text-slate-600 max-w-2xl">
+                            Our AI-powered platform helps you create, customize, and manage multiple versions of your resume with high accuracy analysis for maximum success with Applicant Tracking Systems.
+                        </Item>
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.7, delay: 0.6 }}
                             className="mt-10 flex flex-col sm:flex-row gap-5"
+                            initial="hidden"
+                            animate="visible"
+                            variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
                         >
-                            <Button
-                                size="lg"
-                                onClick={() => handleNavigate('/analyze')}
-                                className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg group"
-                            >
-                                <span>Analyze Your Resume</span>
-                                <motion.div
-                                    whileHover={{ rotate: 45 }}
-                                    transition={{ type: "spring", stiffness: 200 }}
-                                >
-                                    <ArrowUpRight className="ml-2 h-4 w-4" />
-                                </motion.div>
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                onClick={() => handleNavigate('/templates')}
-                                className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:border-blue-400 group"
-                            >
-                                <span>Browse Templates</span>
-                                <motion.div
-                                    whileHover={{ x: 5 }}
-                                    transition={{ type: "spring", stiffness: 400 }}
-                                >
-                                    <ChevronRight className="ml-2 h-4 w-4" />
-                                </motion.div>
-                            </Button>
+                            <Item as={Button} size="lg" onClick={() => handleNavigate('/analyze')} className="rounded-full group" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+                                Analyze Your Resume
+                            </Item>
+                            <Item as={Button} variant="outline" size="lg" onClick={() => handleNavigate('/templates')} className="rounded-full group" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+                                Browse Templates
+                            </Item>
                         </motion.div>
+                    </div>
+                    <motion.div
+                        style={{ opacity, scale }}
+                        className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 transform-gpu will-change-transform -mt-8 sm:mt-0"
+                    >
+                        {/* Video Container with Enhanced Styling */}
+                        <motion.div
+                            className="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 backdrop-blur-sm group hover:shadow-xl transition-all duration-300"
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.5 }}
+                            whileHover={{ scale: 1.02, y: -5 }}
+                        >
+                            {/* Background Pattern */}
+                            <div className="absolute inset-0 opacity-5">
+                                <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <pattern id="video-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="1" />
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" fill="url(#video-grid)" />
+                                </svg>
+                            </div>
+
+                            {/* Floating Elements */}
+                            <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-white/10 blur-xl"></div>
+                            <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-white/5 blur-lg"></div>
+
+                            {/* Video Container */}
+                            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
+                                <Video
+                                    src="/assets/demo.mp4"
+                                    className="w-full h-full object-cover transform-gpu rounded-2xl"
+                                />
+
+                                {/* Subtle Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 via-transparent to-transparent pointer-events-none"></div>
+
+                                {/* Demo Badge */}
+                                <motion.div
+                                    className="absolute top-4 left-4 bg-blue-600/90 backdrop-blur-sm rounded-full px-3 py-1 text-white text-sm font-medium border border-blue-500/30"
+                                    whileHover={{ scale: 1.05 }}
+                                >
+                                    Demo
+                                </motion.div>
+                            </div>
+
+                            {/* Bottom Info Bar */}
+                            <motion.div
+                                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/80 via-slate-900/40 to-transparent backdrop-blur-sm p-4"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 1.2, duration: 0.5 }}
+                            >
+                                <div className="text-center text-white">
+                                    <span className="text-sm font-medium">AI-Powered Resume Analysis</span>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+
+                        {/* Decorative Elements */}
+                        <motion.div
+                            className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-60"
+                            animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.8, 0.6] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                        />
+                        <motion.div
+                            className="absolute -bottom-4 -right-4 w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-xl opacity-40"
+                            animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.6, 0.4] }}
+                            transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+                        />
+                    </motion.div>
+                </div>
+            </Section>
+
+            {/* ATS Analysis Section */}
+            <Section className="py-24 bg-gradient-to-br from-blue-50 to-indigo-50" threshold={0.2}>
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-16">
+                        <Item className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6">
+                            ATS Optimization
+                        </Item>
+                        <Item as={motion.h2} className="text-4xl font-bold text-slate-900 mb-6">
+                            Pass Every ATS System
+                        </Item>
+                        <Item as={motion.p} className="text-xl text-slate-600 max-w-2xl mx-auto">
+                            Our advanced AI ensures your resume gets past Applicant Tracking Systems and reaches human recruiters.
+                        </Item>
                     </div>
 
                     <motion.div
-                        style={{ opacity, scale }}
-                        className="relative max-w-4xl mx-auto px-2 sm:px-6 lg:px-8 transform-gpu will-change-transform -mt-8 sm:mt-0"
-                    >
-                        <div className="bg-white rounded-xl sm:rounded-2xl shadow-[0_20px_70px_-10px_rgba(0,0,0,0.5),0_0_0_1px_rgba(0,0,0,0.1),0_-20px_70px_-10px_rgba(36,99,235,0.2),0_-10px_40px_-5px_rgba(36,99,235,0.15)] sm:shadow-[0_30px_100px_-15px_rgba(0,0,0,0.6),0_0_0_1px_rgba(0,0,0,0.1),0_10px_30px_-5px_rgba(0,0,0,0.3),0_-30px_100px_-15px_rgba(36,99,235,0.25),0_-15px_50px_-10px_rgba(36,99,235,0.2)] overflow-hidden border border-slate-200 transition-all duration-300 ease-out">
-                            <div className="relative aspect-[16/10] sm:aspect-video">
-                                <video
-                                    autoPlay
-                                    muted
-                                    playsInline
-                                    loop
-                                    src="/assets/demo.mp4"
-                                    className="w-full h-full object-cover transform-gpu"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
-                                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1.5 sm:gap-2 bg-black/40 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transform-gpu">
-                                    <div className="relative flex items-center">
-                                        <motion.div
-                                            className="w-1.5 h-1.5 bg-white rounded-full transform-gpu"
-                                            animate={{
-                                                scale: [1, 1.2, 1],
-                                                opacity: [1, 0.8, 1],
-                                            }}
-                                            transition={{
-                                                duration: 1.5,
-                                                repeat: Infinity,
-                                                ease: "easeInOut"
-                                            }}
-                                        />
-                                        <motion.div
-                                            className="absolute w-1.5 h-1.5 bg-red-500 rounded-full transform-gpu"
-                                            animate={{
-                                                scale: [1, 2, 1],
-                                                opacity: [0.5, 0, 0.5],
-                                            }}
-                                            transition={{
-                                                duration: 1.5,
-                                                repeat: Infinity,
-                                                ease: "easeInOut"
-                                            }}
-                                        />
-                                    </div>
-                                    <span className="text-[10px] sm:text-xs text-white font-medium">Recording</span>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* Features Section */}
-            <section className="py-24 bg-white">
-                <div className="container mx-auto px-4">
-                    <motion.div
+                        className="grid grid-cols-1 md:grid-cols-3 gap-8"
+                        variants={containerVariants}
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, amount: 0.3 }}
-                        variants={containerVariants}
-                        className="text-center mb-16"
                     >
-                        <motion.div variants={itemVariants} className="inline-block px-4 py-1.5 bg-indigo-100 rounded-full text-indigo-700 font-medium text-sm mb-6">
-                            Key Features
-                        </motion.div>
-                        <motion.h2 variants={itemVariants} className="text-4xl font-bold text-slate-900 mb-6">
-                            Everything You Need For Resume Success
-                        </motion.h2>
-                        <motion.p variants={itemVariants} className="text-xl text-slate-600 max-w-2xl mx-auto">
-                            Our platform provides all the tools you need to create a resume that passes through Applicant Tracking Systems and impresses recruiters.
-                        </motion.p>
-                    </motion.div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {[
                             {
-                                icon: <FileCheck className="h-8 w-8 text-blue-500" />,
+                                icon: <FileCheck className="h-12 w-12 text-blue-500" />,
                                 title: "ATS Compatibility Check",
                                 description: "Analyze your resume against 200+ ATS systems to ensure maximum visibility to hiring managers.",
-                                highlight: "99% Success Rate"
+                                highlight: "99% Success Rate",
+                                features: ["200+ ATS systems", "Real-time analysis", "Instant feedback"],
+                                bgGradient: "from-blue-500/10 to-indigo-500/10",
+                                borderColor: "border-blue-200",
+                                iconBg: "bg-blue-500/10",
+                                highlightBg: "bg-blue-600"
                             },
                             {
-                                icon: <Search className="h-8 w-8 text-blue-500" />,
+                                icon: <Search className="h-12 w-12 text-purple-500" />,
                                 title: "AI Keyword Optimization",
                                 description: "Our AI scans job descriptions and intelligently integrates relevant keywords into your resume.",
-                                highlight: "2x Interview Rate"
+                                highlight: "2x Interview Rate",
+                                features: ["Smart keyword matching", "Industry-specific terms", "SEO optimization"],
+                                bgGradient: "from-purple-500/10 to-pink-500/10",
+                                borderColor: "border-purple-200",
+                                iconBg: "bg-purple-500/10",
+                                highlightBg: "bg-purple-600"
                             },
                             {
-                                icon: <Target className="h-8 w-8 text-blue-500" />,
+                                icon: <Target className="h-12 w-12 text-emerald-500" />,
                                 title: "Detailed ATS Score",
                                 description: "Get a comprehensive score with section-by-section feedback and actionable improvements.",
-                                highlight: "Step-by-Step Guidance"
-                            },
-                            {
-                                icon: <FileText className="h-8 w-8 text-blue-500" />,
-                                title: "Industry-Specific Templates",
-                                description: "Choose from 30+ ATS-friendly templates tailored for different industries and career levels.",
-                                highlight: "HR-Approved Designs"
-                            },
-                            {
-                                icon: <BarChart className="h-8 w-8 text-blue-500" />,
-                                title: "Skills Gap Analysis",
-                                description: "Compare your skills against job requirements and get personalized recommendations to stand out.",
-                                highlight: "Talent Matching"
-                            },
-                            {
-                                icon: <ThumbsUp className="h-8 w-8 text-blue-500" />,
-                                title: "AI Content Enhancement",
-                                description: "Transform bland bullet points into compelling achievements with our AI content assistant.",
-                                highlight: "Impact-Driven Language"
+                                highlight: "Step-by-Step Guidance",
+                                features: ["Section-by-section analysis", "Actionable improvements", "Progress tracking"],
+                                bgGradient: "from-emerald-500/10 to-teal-500/10",
+                                borderColor: "border-emerald-200",
+                                iconBg: "bg-emerald-500/10",
+                                highlightBg: "bg-emerald-600"
                             }
                         ].map((feature, index) => (
                             <motion.div
                                 key={index}
                                 variants={cardVariants}
-                                initial="hidden"
-                                whileInView="visible"
-                                whileHover="hover"
-                                viewport={{ once: true, amount: 0.3 }}
-                                className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full relative overflow-hidden group"
+                                whileHover={{ scale: 1.02, y: -5 }}
+                                whileTap={{ scale: 0.98 }}
+                                className={`bg-gradient-to-br ${feature.bgGradient} p-8 rounded-2xl ${feature.borderColor} shadow-lg flex flex-col h-full relative overflow-hidden group hover:shadow-xl transition-all duration-300 backdrop-blur-sm`}
                             >
-                                <div className="absolute right-0 top-0 bg-blue-600/10 text-blue-700 px-3 py-1 text-xs font-semibold rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    {feature.highlight}
+                                {/* Background Pattern */}
+                                <div className="absolute inset-0 opacity-5">
+                                    <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                        <defs>
+                                            <pattern id={`ats-grid-${index}`} width="20" height="20" patternUnits="userSpaceOnUse">
+                                                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="1" />
+                                            </pattern>
+                                        </defs>
+                                        <rect width="100%" height="100%" fill={`url(#ats-grid-${index})`} />
+                                    </svg>
                                 </div>
+                                {/* Floating Elements */}
+                                <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-white/10 blur-xl"></div>
+                                <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-white/5 blur-lg"></div>
                                 <motion.div
-                                    className="mb-5 p-3 bg-blue-50 rounded-full self-start"
-                                    whileHover={{ y: -5, scale: 1.1 }}
+                                    className={`absolute right-0 top-0 ${feature.highlightBg} text-white px-4 py-2 text-sm font-semibold rounded-bl-xl`}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.1 + 0.3 }}
+                                >
+                                    {feature.highlight}
+                                </motion.div>
+                                <motion.div
+                                    className={`mb-6 p-4 ${feature.iconBg} rounded-2xl self-start`}
+                                    whileHover={{ y: -5, scale: 1.1, rotate: 5 }}
                                     transition={{ type: "spring", stiffness: 300 }}
                                 >
                                     {feature.icon}
                                 </motion.div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
-                                <p className="text-slate-600">{feature.description}</p>
+                                <h3 className="text-2xl font-bold text-slate-900 mb-4">{feature.title}</h3>
+                                <p className="text-slate-600 mb-6 flex-grow leading-relaxed">{feature.description}</p>
+                                <motion.ul className="space-y-2" variants={containerVariants}>
+                                    {feature.features.map((item, i) => (
+                                        <motion.li
+                                            key={i}
+                                            className="flex items-center text-sm text-slate-600"
+                                            variants={itemVariants}
+                                            whileHover={{ x: 5 }}
+                                        >
+                                            <CheckCircle className="h-4 w-4 text-slate-500 mr-2 flex-shrink-0" />
+                                            {item}
+                                        </motion.li>
+                                    ))}
+                                </motion.ul>
                             </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 </div>
-            </section>
+            </Section>
 
-            {/* Resume Builder Preview Section */}
-            <section className="py-24 bg-gradient-to-br from-indigo-50 via-blue-50 to-white">
+            {/* High Accuracy Analysis Section */}
+            <Section className="py-24 bg-gradient-to-br from-purple-50 to-pink-50" threshold={0.2}>
                 <div className="container mx-auto px-4">
+                    <div className="text-center mb-16">
+                        <Item className="inline-block px-4 py-1.5 bg-purple-100 rounded-full text-purple-700 font-medium text-sm mb-6">
+                            AI-Powered Analysis
+                        </Item>
+                        <Item as={motion.h2} className="text-4xl font-bold text-slate-900 mb-6">
+                            95% Accuracy Guaranteed
+                        </Item>
+                        <Item as={motion.p} className="text-xl text-slate-600 max-w-2xl mx-auto">
+                            Our advanced AI algorithms provide precise resume analysis with industry-specific insights and recommendations.
+                        </Item>
+                    </div>
+
                     <motion.div
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+                        variants={containerVariants}
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, amount: 0.3 }}
-                        variants={containerVariants}
-                        className="text-center mb-16"
                     >
-                        <motion.div variants={itemVariants} className="inline-block px-4 py-1.5 bg-indigo-100 rounded-full text-indigo-700 font-medium text-sm mb-6">
-                            Powerful Builder
-                        </motion.div>
-                        <motion.h2 variants={itemVariants} className="text-4xl font-bold text-slate-900 mb-6">
-                            Intuitive Resume Builder
-                        </motion.h2>
-                        <motion.p variants={itemVariants} className="text-xl text-slate-600 max-w-2xl mx-auto">
-                            Create professional resumes with our easy-to-use drag-and-drop builder
-                        </motion.p>
-                    </motion.div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                        <motion.div
-                            initial={{ opacity: 0, x: -50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8, type: "spring" }}
-                            viewport={{ once: true, amount: 0.3 }}
-                        >
-                            <h3 className="text-2xl font-bold text-slate-900 mb-4">Modern Resume Editor</h3>
-                            <p className="mb-6 text-slate-600">Our intuitive interface makes it easy to create professional resumes in minutes. No design skills required.</p>
-
-                            <ul className="space-y-4">
-                                {[
-                                    "Drag-and-drop interface for easy editing",
-                                    "Real-time preview of your resume",
-                                    "AI-powered content suggestions",
-                                    "One-click formatting options",
-                                    "Export to PDF, Word, or plain text"
-                                ].map((item, i) => (
-                                    <motion.li
-                                        key={i}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.5, delay: i * 0.1 }}
-                                        viewport={{ once: true }}
-                                        className="flex items-center"
-                                    >
-                                        <span className="h-6 w-6 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 mr-3">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                            </svg>
-                                        </span>
-                                        <span className="text-slate-700">{item}</span>
-                                    </motion.li>
-                                ))}
-                            </ul>
-
+                        {[
+                            {
+                                icon: <CheckCircle className="h-10 w-10 text-purple-500" />,
+                                title: "Content Analysis",
+                                value: "95%",
+                                description: "Grammar and style accuracy",
+                                gradient: "from-purple-500/20 to-pink-500/20",
+                                borderColor: "border-purple-200/50"
+                            },
+                            {
+                                icon: <Target className="h-10 w-10 text-blue-500" />,
+                                title: "Keyword Matching",
+                                value: "98%",
+                                description: "ATS keyword optimization",
+                                gradient: "from-blue-500/20 to-indigo-500/20",
+                                borderColor: "border-blue-200/50"
+                            },
+                            {
+                                icon: <BarChart className="h-10 w-10 text-emerald-500" />,
+                                title: "Skills Assessment",
+                                value: "92%",
+                                description: "Industry relevance scoring",
+                                gradient: "from-emerald-500/20 to-teal-500/20",
+                                borderColor: "border-emerald-200/50"
+                            },
+                            {
+                                icon: <FileCheck className="h-10 w-10 text-orange-500" />,
+                                title: "Format Validation",
+                                value: "97%",
+                                description: "ATS compatibility check",
+                                gradient: "from-orange-500/20 to-red-500/20",
+                                borderColor: "border-orange-200/50"
+                            }
+                        ].map((metric, index) => (
                             <motion.div
-                                className="mt-8"
-                                whileHover={{ scale: 1.03 }}
+                                key={index}
+                                variants={cardVariants}
+                                whileHover={{ scale: 1.02, y: -5 }}
                                 whileTap={{ scale: 0.98 }}
-                                transition={{ type: "spring", stiffness: 400 }}
+                                className={`bg-gradient-to-br ${metric.gradient} p-8 rounded-2xl ${metric.borderColor} shadow-lg text-center hover:shadow-xl transition-all duration-300 backdrop-blur-sm relative overflow-hidden group`}
                             >
-                                <Button
-                                    size="lg"
-                                    onClick={() => handleNavigate('/create-resume')}
-                                    className="rounded-xl transition-all duration-300 hover:shadow-lg"
+                                {/* Background Pattern */}
+                                <div className="absolute inset-0 opacity-5">
+                                    <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                        <defs>
+                                            <pattern id={`accuracy-grid-${index}`} width="25" height="25" patternUnits="userSpaceOnUse">
+                                                <circle cx="12.5" cy="12.5" r="1" fill="currentColor" />
+                                            </pattern>
+                                        </defs>
+                                        <rect width="100%" height="100%" fill={`url(#accuracy-grid-${index})`} />
+                                    </svg>
+                                </div>
+                                {/* Floating Elements */}
+                                <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/10 blur-lg"></div>
+                                <div className="absolute bottom-4 left-4 w-8 h-8 rounded-full bg-white/5 blur-md"></div>
+                                <motion.div
+                                    className={`mb-4 p-3 ${metric.gradient.replace('/20', '/10').replace('bg-gradient-to-br ', '')} backdrop-blur-sm rounded-2xl inline-block`}
+                                    whileHover={{ y: -5, scale: 1.1, rotate: 5 }}
+                                    transition={{ type: "spring", stiffness: 300 }}
                                 >
-                                    <span>Try Resume Builder</span>
-                                    <ChevronRight className="ml-2 h-5 w-5" />
-                                </Button>
+                                    {metric.icon}
+                                </motion.div>
+                                <motion.div
+                                    className="text-3xl font-bold text-purple-600 mb-2"
+                                    initial={{ scale: 0 }}
+                                    whileInView={{ scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 200, delay: index * 0.1 }}
+                                >
+                                    {metric.value}
+                                </motion.div>
+                                <h3 className="text-lg font-semibold text-slate-900 mb-2">{metric.title}</h3>
+                                <p className="text-slate-600 text-sm leading-relaxed">{metric.description}</p>
                             </motion.div>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 1 }}
-                            viewport={{ once: true, amount: 0.3 }}
-                            className="relative rounded-xl overflow-hidden shadow-2xl border border-slate-200"
-                        >
-                            <img
-                                src={resumeBuilderImg}
-                                alt="Resume Builder Interface"
-                                className="w-full h-auto"
-                                onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = 'https://placehold.co/800x600/EEF2FF/3B82F6?text=Resume+Builder+Interface';
-                                }}
-                            />
-                            <motion.div
-                                className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 to-transparent"
-                                initial={{ opacity: 0 }}
-                                whileInView={{ opacity: 1 }}
-                                transition={{ duration: 1, delay: 0.5 }}
-                                viewport={{ once: true }}
-                            />
-                        </motion.div>
-                    </div>
+                        ))}
+                    </motion.div>
                 </div>
-            </section>
+            </Section>
+
+            {/* Templates Section */}
+            <Section className="py-24 bg-white" threshold={0.2}>
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-16">
+                        <Item className="inline-block px-4 py-1.5 bg-orange-100 rounded-full text-orange-700 font-medium text-sm mb-6">
+                            Professional Templates
+                        </Item>
+                        <Item as={motion.h2} className="text-4xl font-bold text-slate-900 mb-6">
+                            30+ HR-Approved Templates
+                        </Item>
+                        <Item as={motion.p} className="text-xl text-slate-600 max-w-2xl mx-auto">
+                            Choose from professionally designed templates tailored for different industries and career levels.
+                        </Item>
+                    </div>
+
+                    <motion.div
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                        variants={containerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.3 }}
+                    >
+                        {[
+                            {
+                                name: "Classic Professional",
+                                category: "Corporate",
+                                description: "Clean and traditional design for corporate environments",
+                                features: ["ATS-friendly", "Professional fonts", "Clean layout"],
+                                gradient: "from-slate-500/10 to-gray-500/10",
+                                borderColor: "border-slate-200",
+                                categoryColor: "bg-slate-100 text-slate-700"
+                            },
+                            {
+                                name: "Modern Creative",
+                                category: "Tech & Design",
+                                description: "Contemporary design for creative and tech industries",
+                                features: ["Modern styling", "Color accents", "Visual hierarchy"],
+                                gradient: "from-blue-500/10 to-purple-500/10",
+                                borderColor: "border-blue-200",
+                                categoryColor: "bg-blue-100 text-blue-700"
+                            },
+                            {
+                                name: "Executive",
+                                category: "Leadership",
+                                description: "Sophisticated design for senior-level positions",
+                                features: ["Premium layout", "Executive styling", "Impact focus"],
+                                gradient: "from-amber-500/10 to-orange-500/10",
+                                borderColor: "border-amber-200",
+                                categoryColor: "bg-amber-100 text-amber-700"
+                            }
+                        ].map((template, index) => (
+                            <motion.div
+                                key={index}
+                                variants={cardVariants}
+                                whileHover={{ scale: 1.02, y: -5 }}
+                                whileTap={{ scale: 0.98 }}
+                                className={`bg-gradient-to-br ${template.gradient} p-8 rounded-2xl ${template.borderColor} shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm relative overflow-hidden`}
+                            >
+                                {/* Background Pattern */}
+                                <div className="absolute inset-0 opacity-5">
+                                    <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                        <defs>
+                                            <pattern id={`template-grid-${index}`} width="30" height="30" patternUnits="userSpaceOnUse">
+                                                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="currentColor" strokeWidth="0.5" />
+                                            </pattern>
+                                        </defs>
+                                        <rect width="100%" height="100%" fill={`url(#template-grid-${index})`} />
+                                    </svg>
+                                </div>
+                                {/* Floating Elements */}
+                                <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-white/10 blur-xl"></div>
+                                <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-white/5 blur-lg"></div>
+                                <div className="mb-6">
+                                    <motion.div
+                                        className={`inline-block px-3 py-1 ${template.categoryColor} text-sm font-medium rounded-full mb-3 transition-all duration-300`}
+                                        whileHover={{ scale: 1.05 }}
+                                    >
+                                        {template.category}
+                                    </motion.div>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-3">{template.name}</h3>
+                                    <p className="text-slate-600 mb-4 leading-relaxed">{template.description}</p>
+                                </div>
+                                <motion.ul className="space-y-2 mb-6" variants={containerVariants}>
+                                    {template.features.map((feature, i) => (
+                                        <motion.li
+                                            key={i}
+                                            className="flex items-center text-sm text-slate-600"
+                                            variants={itemVariants}
+                                            whileHover={{ x: 5 }}
+                                        >
+                                            <CheckCircle className="h-4 w-4 text-slate-500 mr-2 flex-shrink-0" />
+                                            {feature}
+                                        </motion.li>
+                                    ))}
+                                </motion.ul>
+                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => handleNavigate('/templates')}
+                                        className="w-full rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 transition-all duration-300"
+                                    >
+                                        Use Template
+                                    </Button>
+                                </motion.div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
+            </Section>
 
             {/* How It Works Section */}
-            <section className="py-24 bg-white">
+            <Section className="py-24 bg-white" threshold={0.2}>
                 <div className="container mx-auto px-4">
-                    <motion.div
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.3 }}
-                        variants={containerVariants}
-                        className="text-center mb-16"
-                    >
-                        <motion.div variants={itemVariants} className="inline-block px-4 py-1.5 bg-indigo-100 rounded-full text-indigo-700 font-medium text-sm mb-6" role="status" aria-label="Process Type">
+                    <div className="text-center mb-16">
+                        <Item className="inline-block px-4 py-1.5 bg-indigo-100 rounded-full text-indigo-700 font-medium text-sm mb-6">
                             Simple Process
-                        </motion.div>
-                        <motion.h2 variants={itemVariants} className="text-4xl font-bold text-slate-900 mb-6" id="how-it-works">
+                        </Item>
+                        <Item as={motion.h2} className="text-4xl font-bold text-slate-900 mb-6">
                             How It Works
-                        </motion.h2>
-                        <motion.p variants={itemVariants} className="text-xl text-slate-600 max-w-2xl mx-auto" aria-labelledby="how-it-works">
+                        </Item>
+                        <Item as={motion.p} className="text-xl text-slate-600 max-w-2xl mx-auto">
                             From upload to interview-ready in minutes
-                        </motion.p>
-                    </motion.div>
+                        </Item>
+                    </div>
 
                     <div className="relative max-w-5xl mx-auto">
                         <div className="absolute top-1/2 left-0 right-0 h-1 bg-blue-200 -translate-y-1/2 hidden md:block"></div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16">
+                        <motion.div
+                            className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16"
+                            variants={containerVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, amount: 0.5 }}
+                        >
                             {[
                                 {
                                     step: "01",
@@ -459,10 +611,7 @@ const LandingPage: React.FC = () => {
                             ].map((item, index) => (
                                 <motion.div
                                     key={index}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: index * 0.2, type: "spring", stiffness: 50 }}
-                                    viewport={{ once: true, amount: 0.5 }}
+                                    variants={itemVariants}
                                     className="relative z-10"
                                 >
                                     <motion.div
@@ -471,6 +620,7 @@ const LandingPage: React.FC = () => {
                                         whileInView={{ scale: 1 }}
                                         transition={{ type: "spring", stiffness: 300, delay: index * 0.2 + 0.3 }}
                                         viewport={{ once: true }}
+                                        whileHover={{ scale: 1.1, rotate: 5 }}
                                     >
                                         <span className="text-2xl font-bold">{item.step}</span>
                                         <motion.div
@@ -485,17 +635,23 @@ const LandingPage: React.FC = () => {
                                         />
                                     </motion.div>
 
-                                    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-md hover:shadow-lg transition-shadow duration-300">
-                                        <div className="p-3 bg-blue-50 rounded-full inline-block mb-4">
+                                    <motion.div
+                                        className="bg-white p-8 rounded-xl border border-slate-200 shadow-md hover:shadow-lg transition-shadow duration-300"
+                                        whileHover={{ y: -5 }}
+                                    >
+                                        <motion.div
+                                            className="p-3 bg-blue-50 rounded-full inline-block mb-4"
+                                            whileHover={{ scale: 1.1, rotate: 5 }}
+                                        >
                                             {item.icon}
-                                        </div>
+                                        </motion.div>
                                         <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
                                         <p className="text-slate-600 mb-4">{item.description}</p>
                                         <p className="text-blue-600 font-medium text-sm">{item.action}</p>
-                                    </div>
+                                    </motion.div>
                                 </motion.div>
                             ))}
-                        </div>
+                        </motion.div>
                     </div>
 
                     <motion.div
@@ -505,21 +661,23 @@ const LandingPage: React.FC = () => {
                         viewport={{ once: true, amount: 0.5 }}
                         className="text-center mt-16"
                     >
-                        <Button
-                            size="lg"
-                            onClick={() => handleNavigate('/analyze')}
-                            className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg"
-                        >
-                            Get Started Now
-                        </Button>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                                size="lg"
+                                onClick={() => handleNavigate('/analyze')}
+                                className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg"
+                            >
+                                Get Started Now
+                            </Button>
+                        </motion.div>
                     </motion.div>
                 </div>
-            </section>
+            </Section>
 
             {/* FAQ Section */}
             <FaqSection />
 
-            {/* Improved Footer with Navigation */}
+            {/* Footer */}
             <footer className="bg-slate-900 text-white pt-16 pb-8">
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
@@ -529,16 +687,15 @@ const LandingPage: React.FC = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                id="footer-heading"
                             >
                                 WhatTheCV
                             </motion.h3>
-                            <p className="text-slate-400 mb-6 max-w-md" aria-labelledby="footer-heading">
-                                The AI-powered resume platform that helps you create, analyze, and optimize your resume for maximum success with Applicant Tracking Systems.
+                            <p className="text-slate-400 mb-6 max-w-md">
+                                The AI-powered resume platform that helps you create, customize, and manage multiple versions of your resume with high accuracy analysis for maximum success.
                             </p>
                             <div className="flex space-x-4">
                                 {[
-                                    { icon: <Twitter className="h-5 w-5" />, href: "https://x.com/defigoro" },
+                                    { icon: <Twitter className="h-5 w-5" />, href: "https://x.com/wtcv_app" },
                                     { icon: <Linkedin className="h-5 w-5" />, href: "https://www.linkedin.com/in/gauravsinhaa/" },
                                     { icon: <Github className="h-5 w-5" />, href: "https://github.com/gauravsinhaweb" },
                                     { icon: <Mail className="h-5 w-5" />, href: "mailto:support@whatthecv.com" }
@@ -549,7 +706,8 @@ const LandingPage: React.FC = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="bg-slate-800 p-2 rounded-full hover:bg-blue-600 transition-colors duration-300"
-                                        whileHover={{ y: -5 }}
+                                        whileHover={{ y: -5, scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
                                         transition={{ type: "spring", stiffness: 400 }}
                                     >
                                         {social.icon}
@@ -580,12 +738,6 @@ const LandingPage: React.FC = () => {
                                         >
                                             <a
                                                 href={link.path}
-                                                onClick={(e) => {
-                                                    if (link.onClick) {
-                                                        e.preventDefault();
-                                                        link.onClick();
-                                                    }
-                                                }}
                                                 className="text-slate-400 hover:text-white transition-colors duration-300"
                                                 target={link.path.startsWith('http') ? "_blank" : undefined}
                                                 rel={link.path.startsWith('http') ? "noopener noreferrer" : undefined}
@@ -597,8 +749,29 @@ const LandingPage: React.FC = () => {
                                 </ul>
                             </div>
                         ))}
-                        <div className="hidden sm:ml-6 sm:flex sm:items-center self-start">
-                            <a href="https://www.buymeacoffee.com/gauravsinha" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 40px !important;width: 160px !important;" />
+                        <div className="hidden sm:ml-6 sm:flex flex-col sm:items-center self-end gap-2">
+                            <a
+                                href="https://github.com/sponsors/gauravsinhaweb"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:-translate-y-[2px] transition-transform duration-200 ease-out hover:shadow-lg rounded-lg p-1"
+                                title="Support us on GitHub Sponsors"
+                            >
+                                <iframe
+                                    src="https://github.com/sponsors/gauravsinhaweb/button"
+                                    title="Sponsor gauravsinhaweb"
+                                    height="40"
+                                    width="114"
+                                    style={{ border: 0, borderRadius: '6px', }}
+                                />
+                            </a>
+                            <a
+                                href="https://www.buymeacoffee.com/gauravsinha"
+                                target="_blank"
+                                className="hover:-translate-y-[2px] transition-transform duration-200 ease-out hover:shadow-lg rounded-lg p-1"
+                                title="Buy us a coffee"
+                            >
+                                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{ height: '32px', width: '114px' }} />
                             </a>
                         </div>
                     </div>
@@ -608,10 +781,6 @@ const LandingPage: React.FC = () => {
                     </div>
                 </div>
             </footer>
-            <PrivacyPolicyModal
-                isOpen={isPrivacyModalOpen}
-                onClose={() => setIsPrivacyModalOpen(false)}
-            />
         </div>
     );
 };

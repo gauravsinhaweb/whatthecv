@@ -46,9 +46,9 @@ export interface EnhancedResumeData {
         phone: string;
         location: string;
         summary: string;
-        profilePicture?: string | null;
-        socialLinks?: {
-            platform: 'linkedin' | 'github' | 'twitter' | 'leetcode' | 'medium' | 'stackoverflow' | 'other';
+        profilePicture: string | null;
+        socialLinks: {
+            platform: "linkedin" | "github" | "twitter" | "leetcode" | "medium" | "stackoverflow" | "peerlist" | "other";
             url: string;
             label?: string;
         }[];
@@ -58,9 +58,13 @@ export interface EnhancedResumeData {
         position: string;
         company: string;
         location: string;
-        startDate: string;
-        endDate: string;
+        startMonth: string;
+        startYear: string;
+        endMonth: string;
+        endYear: string;
         current: boolean;
+        showStartMonth: boolean;
+        showEndMonth: boolean;
         description: string;
         experienceLink?: string;
     }>;
@@ -69,22 +73,176 @@ export interface EnhancedResumeData {
         degree: string;
         institution: string;
         location: string;
-        startDate: string;
-        endDate: string;
+        startMonth: string;
+        startYear: string;
+        endMonth: string;
+        endYear: string;
+        current: boolean;
+        showStartMonth: boolean;
+        showEndMonth: boolean;
         description: string;
         degreeLink?: string;
         institutionLink?: string;
     }>;
-    skills: string[];
+    skills: Array<{
+        id: string;
+        name: string;
+        skills: string[];
+    }>;
     projects: Array<{
         id: string;
         name: string;
         description: string;
         technologies: string;
         link: string;
+        startMonth?: string;
+        startYear?: string;
+        endMonth?: string;
+        endYear?: string;
+        current?: boolean;
+        showStartMonth?: boolean;
+        showEndMonth?: boolean;
+    }>;
+    achievements: Array<{
+        id: string;
+        title: string;
+        description: string;
+        month: string;
+        year: string;
+        current?: boolean;
+        showMonth?: boolean;
+        organization?: string;
+        link?: string;
+        showOrganization?: boolean;
+        showDescription?: boolean;
+        showLink?: boolean;
+    }>;
+    publications: Array<{
+        id: string;
+        title: string;
+        authors: string;
+        journal: string;
+        month: string;
+        year: string;
+        current?: boolean;
+        showMonth?: boolean;
+        doi?: string;
+        link?: string;
+        description?: string;
+        showAuthors?: boolean;
+        showJournal?: boolean;
+        showDoi?: boolean;
+        showLink?: boolean;
+        showDescription?: boolean;
+    }>;
+    certifications: Array<{
+        id: string;
+        name: string;
+        issuer: string;
+        month: string;
+        year: string;
+        current?: boolean;
+        showMonth?: boolean;
+        expiryMonth?: string;
+        expiryYear?: string;
+        showExpiryMonth?: boolean;
+        credentialId?: string;
+        link?: string;
+        description?: string;
+        showIssuer?: boolean;
+        showCredentialId?: boolean;
+        showLink?: boolean;
+        showDescription?: boolean;
     }>;
 }
 
 export interface ResumeTextResult {
     text: string;
+}
+
+export interface ResumeResponse {
+    id: string;
+    filename: string;
+    title?: string;
+    is_resume: boolean;
+    score?: number;
+    ats_score?: number;
+    content_score?: number;
+    format_score?: number;
+    content?: {
+        personalInfo?: {
+            name?: string;
+            position?: string;
+            email?: string;
+            phone?: string;
+            location?: string;
+            summary?: string;
+            socialLinks?: Array<{
+                platform: string;
+                url: string;
+                label?: string;
+            }>;
+        };
+        workExperience?: Array<{
+            id: string;
+            position: string;
+            company: string;
+            location?: string;
+            startDate?: string;
+            endDate?: string;
+            current?: boolean;
+            description?: string;
+        }>;
+        education?: Array<{
+            id: string;
+            degree: string;
+            institution: string;
+            location?: string;
+            startDate?: string;
+            endDate?: string;
+            description?: string;
+        }>;
+        skills?: string[];
+        projects?: Array<{
+            id: string;
+            name: string;
+            description?: string;
+            technologies?: string;
+            link?: string;
+            startDate?: string;
+            endDate?: string;
+        }>;
+    };
+    feedback?: {
+        [key: string]: string[];
+    };
+    sections_analysis?: Array<{
+        [key: string]: any;
+    }>;
+    keywords?: {
+        [key: string]: string[];
+    };
+    suggestions?: Array<{
+        [key: string]: any;
+    }>;
+    created_at: string;
+    updated_at?: string;
+    extracted_text?: string;
+    meta_data?: {
+        person_name?: string;
+        position?: string;
+        [key: string]: any;
+    };
+    customization_options?: {
+        [key: string]: any;
+    };
+}
+
+export interface UserProfile {
+    id: string;
+    email: string;
+    name?: string;
+    avatar_url?: string;
+    created_at?: string;
+    updated_at?: string;
 } 

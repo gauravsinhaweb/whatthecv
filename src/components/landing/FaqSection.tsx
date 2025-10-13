@@ -1,111 +1,143 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
-import { containerVariants, itemVariants } from '../../utils/animations';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Section, Item } from './Section';
 
-interface FaqItem {
+interface FAQItem {
     question: string;
     answer: string;
 }
 
-const faqs: FaqItem[] = [
+const faqData: FAQItem[] = [
     {
-        question: "What is an ATS and why is it important?",
-        answer: "An Applicant Tracking System (ATS) is software used by employers to scan, filter, and rank job applications. It's important because 75% of resumes are rejected by ATS before a human ever sees them. Our platform helps ensure your resume passes these systems."
+        question: "How does the ATS optimization work?",
+        answer: "Our AI analyzes your resume against job descriptions and Applicant Tracking Systems to ensure maximum visibility. It checks for keyword matching, formatting compatibility, and provides specific recommendations to improve your ATS score."
     },
     {
-        question: "How does the resume analyzer work?",
-        answer: "Our AI-powered resume analyzer scans your resume for keywords, formatting issues, and content gaps, comparing it against job descriptions and industry standards. It then provides a compatibility score and recommendations for improvements."
+        question: "What file formats are supported?",
+        answer: "We support PDF, Word (.docx), and plain text files for resume uploads. For analysis, we recommend PDF format for best results. You can export your optimized resume in PDF, Word, or plain text formats."
     },
     {
-        question: "Can I use this for any industry or job type?",
-        answer: "Yes! Our platform is designed to work across all industries and job types. We have specialized algorithms for different sectors including tech, finance, healthcare, marketing, and more."
+        question: "How accurate is the AI analysis?",
+        answer: "Our AI achieves 95% accuracy in resume analysis, including grammar checking, keyword optimization, and ATS compatibility scoring. The system continuously learns from industry trends to provide the most relevant recommendations."
     },
     {
-        question: "How much does it cost to use the platform?",
-        answer: "We offer a free plan that allows basic resume analysis and optimization. Premium plans with advanced features start at a competitive monthly subscription fee. Check our pricing page for current rates and features."
+        question: "Can I create multiple resume versions?",
+        answer: "Yes! You can create and manage multiple versions of your resume tailored for different job applications. Each version can be optimized for specific industries, roles, or companies."
     },
     {
-        question: "Can I try before I commit to a paid plan?",
-        answer: "Absolutely! You can use our basic ATS check completely free. This gives you a chance to see the value of our platform before deciding to upgrade to a premium plan."
+        question: "Is my data secure?",
+        answer: "Absolutely. We use enterprise-grade encryption and follow strict data protection protocols. Your resume data is never shared with third parties and is automatically deleted after analysis unless you choose to save it."
     },
     {
-        question: "How long does it take to optimize my resume?",
-        answer: "The initial analysis takes just seconds. Implementing our suggestions might take 15-30 minutes, depending on how many changes are needed. Many users report significant improvements in their ATS score within minutes."
+        question: "How long does the analysis take?",
+        answer: "Our AI analysis typically completes within 30-60 seconds. The process includes content analysis, keyword optimization, ATS scoring, and generating detailed improvement recommendations."
     }
 ];
 
 const FaqSection: React.FC = () => {
-    const [activeIndex, setActiveIndex] = useState<number | null>(null);
+    const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     const toggleFaq = (index: number) => {
-        setActiveIndex(activeIndex === index ? null : index);
+        setOpenIndex(openIndex === index ? null : index);
     };
 
     return (
-        <section className="py-24 bg-slate-50">
+        <Section className="py-24 bg-white" threshold={0.2}>
             <div className="container mx-auto px-4">
+                <div className="text-center mb-16">
+                    <Item className="inline-block px-4 py-1.5 bg-green-100 rounded-full text-green-700 font-medium text-sm mb-6">
+                        FAQ
+                    </Item>
+                    <Item as={motion.h2} className="text-4xl font-bold text-slate-900 mb-6">
+                        Frequently Asked Questions
+                    </Item>
+                    <Item as={motion.p} className="text-xl text-slate-600 max-w-2xl mx-auto">
+                        Everything you need to know about our AI-powered resume optimization platform
+                    </Item>
+                </div>
+
                 <motion.div
+                    className="max-w-3xl mx-auto space-y-4"
+                    variants={{
+                        visible: {
+                            transition: {
+                                staggerChildren: 0.1
+                            }
+                        }
+                    }}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.3 }}
-                    variants={containerVariants}
-                    className="text-center mb-16"
                 >
-                    <motion.div variants={itemVariants} className="inline-block px-4 py-1.5 bg-indigo-100 rounded-full text-indigo-700 font-medium text-sm mb-6">
-                        Common Questions
-                    </motion.div>
-                    <motion.h2 variants={itemVariants} className="text-4xl font-bold text-slate-900 mb-6">
-                        Frequently Asked Questions
-                    </motion.h2>
-                    <motion.p variants={itemVariants} className="text-xl text-slate-600 max-w-2xl mx-auto">
-                        Everything you need to know about our platform and how it works
-                    </motion.p>
-                </motion.div>
-
-                <div className="max-w-3xl mx-auto">
-                    {faqs.map((faq, index) => (
+                    {faqData.map((faq, index) => (
                         <motion.div
                             key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                            viewport={{ once: true, amount: 0.5 }}
-                            className="mb-4"
+                            variants={{
+                                hidden: { opacity: 0, y: 20 },
+                                visible: { opacity: 1, y: 0 }
+                            }}
+                            className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
                         >
-                            <button
+                            <motion.button
+                                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-slate-50 transition-colors duration-200"
                                 onClick={() => toggleFaq(index)}
-                                className={`w-full text-left p-5 flex justify-between items-center rounded-xl ${activeIndex === index
-                                        ? 'bg-blue-600 text-white shadow-md'
-                                        : 'bg-white hover:bg-blue-50 text-slate-800 border border-slate-200'
-                                    } transition-all duration-300`}
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.99 }}
                             >
-                                <span className="font-medium">{faq.question}</span>
-                                <ChevronDown
-                                    className={`h-5 w-5 transition-transform duration-300 ${activeIndex === index ? 'transform rotate-180' : ''
-                                        }`}
-                                />
-                            </button>
+                                <span className="font-semibold text-slate-900 pr-4">{faq.question}</span>
+                                <motion.div
+                                    animate={{ rotate: openIndex === index ? 180 : 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    {openIndex === index ? (
+                                        <ChevronUp className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                                    ) : (
+                                        <ChevronDown className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                                    )}
+                                </motion.div>
+                            </motion.button>
+
                             <AnimatePresence>
-                                {activeIndex === index && (
+                                {openIndex === index && (
                                     <motion.div
                                         initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
+                                        animate={{ height: "auto", opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.3 }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
                                         className="overflow-hidden"
                                     >
-                                        <div className="p-5 bg-white border border-slate-200 border-t-0 rounded-b-xl">
-                                            <p className="text-slate-600">{faq.answer}</p>
+                                        <div className="px-6 pb-4 text-slate-600 leading-relaxed">
+                                            {faq.answer}
                                         </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </motion.div>
                     ))}
-                </div>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    viewport={{ once: true, amount: 0.5 }}
+                    className="text-center mt-12"
+                >
+                    <p className="text-slate-600 mb-4">
+                        Still have questions? We're here to help!
+                    </p>
+                    <motion.a
+                        href="mailto:support@whatthecv.com"
+                        className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        Contact Support
+                    </motion.a>
+                </motion.div>
             </div>
-        </section>
+        </Section>
     );
 };
 
