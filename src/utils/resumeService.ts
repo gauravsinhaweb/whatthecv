@@ -1,7 +1,7 @@
-import { checkIfResume, analyzeResume as analyzeResumeAPI, getSectionSuggestions, processResumeFile, checkResumeFile, enhanceResumeFromFile as enhanceResumeFileAPI } from './api';
-import type { AIAnalysisResult, EnhancedResumeData, ResumeTextResult, ResumeCheckResult } from './types';
+import { analyzeResume as analyzeResumeAPI, checkIfResume, checkResumeFile, getSectionSuggestions, processResumeFile } from './api';
+import type { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult, ResumeTextResult } from './types';
 
-export type { AIAnalysisResult, EnhancedResumeData, ResumeTextResult, ResumeCheckResult };
+export type { AIAnalysisResult, EnhancedResumeData, ResumeCheckResult, ResumeTextResult };
 
 export async function isResumeDocument(text: string): Promise<boolean> {
   const result = await checkIfResume(text);
@@ -23,21 +23,10 @@ export async function suggestImprovements(
   return getSectionSuggestions(section, content, jobDescription);
 }
 
-/**
- * Enhance resume from a file directly on the backend
- * This approach is preferred as it handles all processing on the server
- */
-export async function enhanceResumeFromFile(file: File): Promise<EnhancedResumeData> {
-  return enhanceResumeFileAPI(file);
-}
-
-/**
- * Process a resume file completely on the backend
- * This function uploads the binary file directly and receives back the full analysis
- */
 export async function processResume(
   file: File,
-  jobDescription?: string
+  jobDescription?: string,
+  returnText: boolean = false
 ): Promise<AIAnalysisResult> {
   try {
     // Enforce maximum size limit
@@ -49,7 +38,7 @@ export async function processResume(
     }
 
     // Send file directly to backend for processing
-    return processResumeFile(file, jobDescription);
+    return processResumeFile(file, jobDescription, returnText);
   } catch (error) {
     console.error('Resume processing failed:', error);
     throw error;

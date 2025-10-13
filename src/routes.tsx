@@ -1,18 +1,46 @@
 import { lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
+import Dashboard from './screens/Dashboard';
+import { useAuth } from './hooks/useAuth';
+import SuperUserRoute from './components/auth/SuperUserRoute';
 
 const LandingPage = lazy(() => import('./screens/Landing/LandingPage.tsx'));
+const PrivacyPolicy = lazy(() => import('./screens/Landing/PrivacyPolicy.tsx'));
 const TemplateGallery = lazy(() => import('./screens/Candidate/gallery/TemplateGallery.tsx'));
 const ResumeUpload = lazy(() => import('./screens/Candidate/analyze/ResumeUpload.tsx'));
 const RecruiterComingSoon = lazy(() => import('./screens/Recruiter/RecruiterComingSoon.tsx'));
 const CreateResume = lazy(() => import('./screens/Candidate/create/CreateResume.tsx'));
 const GoogleCallback = lazy(() => import('./screens/Auth/GoogleCallback.tsx'));
 const LoginFailure = lazy(() => import('./screens/Auth/LoginFailure.tsx'));
+const AdminPage = lazy(() => import('./screens/Admin/AdminPage.tsx'));
+const Terms = lazy(() => import('./screens/Landing/Terms.tsx'));
+
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+    const { user, isAuthenticated } = useAuth();
+    const token = user && isAuthenticated;
+    return token ? <>{children}</> : <LandingPage />;
+};
 
 export const routes: RouteObject[] = [
     {
         path: '/',
         element: <LandingPage />,
+    },
+    {
+        path: '/privacy-policy',
+        element: <PrivacyPolicy />,
+    },
+    {
+        path: '/terms',
+        element: <Terms />,
+    },
+    {
+        path: '/dashboard',
+        element: <PrivateRoute><Dashboard /></PrivateRoute>,
+    },
+    {
+        path: '/admin',
+        element: <SuperUserRoute><AdminPage /></SuperUserRoute>,
     },
     {
         path: '/templates',
@@ -31,6 +59,10 @@ export const routes: RouteObject[] = [
         element: <CreateResume />,
     },
     {
+        path: '/auth/callback',
+        element: <GoogleCallback />,
+    },
+    {
         path: '/auth/login/success',
         element: <GoogleCallback />,
     },
@@ -46,6 +78,8 @@ export const routes: RouteObject[] = [
 
 export const getPageFromPath = (path: string): string => {
     if (path === '/') return 'landing';
+    if (path === '/dashboard') return 'dashboard';
+    if (path === '/admin') return 'admin';
     if (path === '/templates') return 'templates';
     if (path === '/analyze') return 'upload';
     if (path === '/recruiter-coming-soon') return 'recruiter-coming-soon';

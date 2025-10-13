@@ -1,21 +1,21 @@
-import React, { useMemo, useEffect } from 'react';
-import { ResumeData, ResumeCustomizationOptions } from '../../../../types/resume';
-import { MapPin, Mail, Phone, User, ExternalLink, ArrowUpRight, Link as ChainLink, Linkedin, Github, Twitter, FileCode, BookOpen, MessageSquare } from 'lucide-react';
-import { createMarkup, SafeHTML } from '../../../../utils/html';
-import { formatBulletPoints } from '../../../../utils/resumeFormatUtils';
+import { ArrowUpRight, BookOpen, Link as ChainLink, ExternalLink, FileCode, Github, Linkedin, Mail, MapPin, MessageSquare, Phone, Twitter } from 'lucide-react';
+import React, { useEffect, useMemo } from 'react';
+import { ResumeCustomizationOptions, ResumeData } from '../../../../types/resume';
+import { SafeHTML } from '../../../../utils/html';
 
 interface ResumePreviewProps {
     resumeData: ResumeData;
     customizationOptions: ResumeCustomizationOptions;
     fullScreen?: boolean;
     previewScale?: number;
+    fieldVisibility?: Record<string, boolean>;
 }
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({
     resumeData,
     customizationOptions,
     fullScreen = false,
-    previewScale = 100,
+    fieldVisibility = {},
 }) => {
     const fontStack = 'Inter, Arial, Helvetica, "Noto Sans Devanagari", "Noto Sans CJK SC Thin", "Noto Sans SC", "Noto Sans Hebrew", "Noto Sans Bengali", sans-serif';
 
@@ -55,8 +55,22 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         return customizationOptions.colors.headings || '#1e3a8a';
     };
 
+    // Helper function to determine if template uses single column layout
+    const isSingleColumnLayout = () => {
+        return ['classic', 'minimal', 'professional', 'executive'].includes(customizationOptions.layout.templates);
+    };
+
+    // Helper function to determine if template uses two column layout
+    const isTwoColumnLayout = () => {
+        return ['modern', 'creative'].includes(customizationOptions.layout.templates);
+    };
+
     // Memoize derived data 
-    const topSkills = useMemo(() => resumeData.skills.slice(0, 16), [resumeData.skills]);
+    const topSkills = useMemo(() => {
+        // Flatten all skills from all categories
+        const allSkills = resumeData.skills.flatMap(category => category.skills);
+        return allSkills.slice(0, 16);
+    }, [resumeData.skills]);
 
     const showSummary = useMemo(() => {
         return customizationOptions.showSummary && resumeData.personalInfo.summary;
@@ -90,6 +104,35 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
         // Return original if not in expected format
         return dateStr;
+    };
+
+    // Format dates from separate month and year fields
+    const formatDateFromFields = (month?: string, year?: string, showMonth: boolean = true, isCurrent: boolean = false): string => {
+        if (isCurrent) return 'Present';
+        if (!year) return '';
+
+        if (!month || !showMonth) {
+            return year;
+        }
+
+        // If month is already a month name (like "Jan", "Feb"), use it directly
+        const monthNames = [
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
+
+        // Check if month is already a month name
+        if (monthNames.includes(month)) {
+            return `${month} ${year}`;
+        }
+
+        // Try to parse as number (for backward compatibility)
+        const monthIndex = parseInt(month, 10) - 1;
+        if (monthIndex >= 0 && monthIndex < 12) {
+            return `${monthNames[monthIndex]} ${year}`;
+        }
+
+        return year;
     };
 
     // Process text with bullet points to create proper list items
@@ -177,22 +220,63 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     // Get section title style classes
     const getSectionTitleClasses = () => {
         const sizeClass = getSectionTitleSize();
-        const weightClass = customizationOptions.sectionTitles.bold ? 'font-bold' : 'font-normal';
+        const weightClass = customizationOptions.sectionTitles.bold ? 'font-semibold' : 'font-normal';
         const caseClass =
             customizationOptions.sectionTitles.style === 'uppercase' ? 'uppercase' :
                 customizationOptions.sectionTitles.style === 'lowercase' ? 'lowercase' :
                     customizationOptions.sectionTitles.style === 'capitalize' ? 'capitalize' : 'normal-case';
-        const borderClass = customizationOptions.sectionTitles.underline ? 'border-b pb-1' : '';
+        const borderClass = customizationOptions.sectionTitles.decoration === 'underline' ? 'border-b pb-1' : '';
 
-        return `${sizeClass} ${weightClass} ${caseClass} ${borderClass} mb-1.5 section-title`;
+        return `${sizeClass} ${weightClass} ${caseClass} ${borderClass} section-title`;
     };
 
     // Get style object for section titles
     const getSectionTitleStyle = () => {
         return {
             color: getHeadingColor(),
-            borderColor: customizationOptions.sectionTitles.underline ? getHeadingColor() : 'transparent'
+            borderColor: customizationOptions.sectionTitles.decoration === 'underline' ? getHeadingColor() : 'transparent'
         };
+    };
+
+    // Render section title with decoration
+    const renderSectionTitle = (title: string) => {
+        const headingColor = getHeadingColor();
+
+        switch (customizationOptions.sectionTitles.decoration) {
+            case 'fullBorder':
+                return (
+                    <div className="text-center mb-3">
+                        <div className="border-t" style={{ borderColor: headingColor }}></div>
+                        <h2 className={`${getSectionTitleClasses()} py-1.5`} style={getSectionTitleStyle()}>
+                            {title}
+                        </h2>
+                        <div className="border-t" style={{ borderColor: headingColor }}></div>
+                    </div>
+                );
+            case 'bottomBorder':
+                return (
+                    <div className="mb-2">
+                        <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
+                            <span className="pb-1 border-b" style={{ borderColor: getHeadingColor() }}>
+                                {title}
+                            </span>
+                        </h2>
+                    </div>
+                );
+            case 'clean':
+                return (
+                    <h2 className={`${getSectionTitleClasses()} mb-2`} style={getSectionTitleStyle()}>
+                        {title}
+                    </h2>
+                );
+            case 'underline':
+            default:
+                return (
+                    <h2 className={`${getSectionTitleClasses()} mb-2`} style={getSectionTitleStyle()}>
+                        {title}
+                    </h2>
+                );
+        }
     };
 
     // Get the appropriate link icon based on customization options
@@ -222,15 +306,25 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
     // Add Google Fonts
     useEffect(() => {
-        // Create a link element for Google Fonts
+        const fontFamilies = [
+            'Tinos', 'Volkhov', 'Gelasio', 'PT+Serif', 'Alegreya', 'Aleo',
+            'Crimson+Pro', 'EB+Garamond', 'Zilla+Slab', 'Cormorant+Garamond',
+            'Crimson+Text', 'Source+Serif+Pro', 'Playfair+Display', 'Noto+Serif',
+            'Bitter', 'Arvo', 'Source+Sans+Pro', 'Karla', 'Mulish', 'Lato',
+            'Titillium+Web', 'Work+Sans', 'Barlow', 'Jost', 'Fira+Sans', 'Roboto',
+            'Rubik', 'Asap', 'Nunito', 'Open+Sans', 'Montserrat', 'Poppins', 'Inter',
+            'Raleway', 'Noto+Sans', 'Cabin', 'Exo+2', 'Chivo', 'Oswald'
+        ];
         const linkElement = document.createElement('link');
         linkElement.rel = 'stylesheet';
-        linkElement.href = 'https://fonts.googleapis.com/css2?family=Tinos&family=Volkhov&family=Gelasio&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Playfair+Display&family=Noto+Serif&family=Bitter&family=Arvo&family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&family=Exo+2&family=Chivo&family=Oswald&display=swap';
 
-        // Add to the document head
+        const familiesParam = fontFamilies
+            .map(f => `family=${f.replace(/ /g, '+')}:wght@100..900`)
+            .join('&');
+
+        linkElement.href = `https://fonts.googleapis.com/css2?${familiesParam}&display=swap`;
         document.head.appendChild(linkElement);
 
-        // Clean up function
         return () => {
             document.head.removeChild(linkElement);
         };
@@ -238,7 +332,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
     return (
         <div
-            className="bg-white rounded mx-auto border overflow-hidden shadow-lg transition-all w-full print:shadow-none print:border-0 printable-content"
+            className="bg-white mx-auto border overflow-hidden shadow-lg transition-all w-full print:shadow-none print:border-0 printable-content"
             data-id="resume-root"
             style={{
                 maxHeight: fullScreen ? '297mm' : '100%',
@@ -250,11 +344,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 pageBreakInside: 'avoid',
                 width: '210mm',
                 minHeight: '297mm',
+                WebkitFontSmoothing: 'antialiased',
+                MozOsxFontSmoothing: 'grayscale',
+                textRendering: 'optimizeLegibility',
             }}
         >
             {/* Load Google Fonts */}
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Tinos&family=Volkhov&family=Gelasio&family=PT+Serif&family=Alegreya&family=Aleo&family=Crimson+Pro&family=EB+Garamond&family=Zilla+Slab&family=Cormorant+Garamond&family=Crimson+Text&family=Source+Serif+Pro&family=Playfair+Display&family=Noto+Serif&family=Bitter&family=Arvo&family=Source+Sans+Pro&family=Karla&family=Mulish&family=Lato&family=Titillium+Web&family=Work+Sans&family=Barlow&family=Jost&family=Fira+Sans&family=Roboto&family=Rubik&family=Asap&family=Nunito&family=Open+Sans&family=Montserrat&family=Poppins&family=Inter&family=Raleway&family=Noto+Sans&family=Cabin&family=Exo+2&family=Chivo&family=Oswald&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Tinos:wght@100..900&family=Volkhov:wght@100..900&family=Gelasio:wght@100..900&family=PT+Serif:wght@100..900&family=Alegreya:wght@100..900&family=Aleo:wght@100..900&family=Crimson+Pro:wght@100..900&family=EB+Garamond:wght@100..900&family=Zilla+Slab:wght@100..900&family=Cormorant+Garamond:wght@100..900&family=Crimson+Text:wght@100..900&family=Source+Serif+Pro:wght@100..900&family=Playfair+Display:wght@100..900&family=Noto+Serif:wght@100..900&family=Bitter:wght@100..900&family=Arvo:wght@100..900&family=Source+Sans+Pro:wght@100..900&family=Karla:wght@100..900&family=Mulish:wght@100..900&family=Lato:wght@100..900&family=Titillium+Web:wght@100..900&family=Work+Sans:wght@100..900&family=Barlow:wght@100..900&family=Jost:wght@100..900&family=Fira+Sans:wght@100..900&family=Roboto:wght@100..900&family=Rubik:wght@100..900&family=Asap:wght@100..900&family=Nunito:wght@100..900&family=Open+Sans:wght@100..900&family=Montserrat:wght@100..900&family=Poppins:wght@100..900&family=Inter:wght@100..900&family=Raleway:wght@100..900&family=Noto+Sans:wght@100..900&family=Cabin:wght@100..900&family=Exo+2:wght@100..900&family=Chivo:wght@100..900&family=Oswald:wght@100..900&display=swap');
             `}</style>
 
             {/* Inject a style tag with important rules to override any conflicting styles */}
@@ -270,7 +367,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     
                     /* Header-specific styling */
                     [data-id="resume-header"] h1 {
-                        font-weight: ${customizationOptions.header.nameBold ? '700' : '500'} !important;
+                        font-weight: ${customizationOptions.header.nameBold ? '600' : '500'} !important;
+                        letter-spacing: 0.01em;
                     }
                     
                     /* Header name size */
@@ -287,8 +385,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     /* Section title styling */
                     .section-title {
                         transition: all 0.2s ease-in-out;
-                        font-weight: ${customizationOptions.sectionTitles.bold ? '700' : '400'} !important;
+                        font-weight: ${customizationOptions.sectionTitles.bold ? '600' : '500'} !important;
                         text-transform: ${customizationOptions.sectionTitles.style} !important;
+                        letter-spacing: 0.025em;
                     }
                     .section-title.text-sm { font-size: 0.875rem !important; }
                     .section-title.text-base { font-size: 1rem !important; }
@@ -333,7 +432,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     /* Enhanced bold styling for all fonts */
                     [data-id="resume-content"] b,
                     [data-id="resume-content"] strong {
-                        font-weight: 800 !important;
+                        font-weight: 600 !important;
                         letter-spacing: -0.01em;
                     }
                     
@@ -362,17 +461,17 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 {/* Header */}
                 <div className={`flex flex-col md:flex-row ${customizationOptions.header.alignment === 'center' ? 'md:justify-center' : 'md:justify-between'} md:items-start mb-8`} data-id="resume-header">
                     <div className={`${customizationOptions.header.alignment === 'center' ? 'text-center w-full' : ''}`}>
-                        <h1 className={`${getNameFontSize()} font-${customizationOptions.header.nameBold ? 'bold' : 'medium'} uppercase tracking-tight`} style={{ color: getHeadingColor() }}>
+                        <h1 className={`${getNameFontSize()} font-${customizationOptions.header.nameBold ? 'semibold' : 'medium'} uppercase tracking-tight`} style={{ color: getHeadingColor() }}>
                             {resumeData.personalInfo.name || 'YOUR NAME'}
                         </h1>
                         {resumeData.personalInfo.position && (
-                            <h2 className={`${getJobTitleFontSize()} font-normal mt-1`} style={{ color: getAccentColor(1) }}>
+                            <h2 className={`${getJobTitleFontSize()} font-normal`} style={{ color: getAccentColor(1) }}>
                                 {resumeData.personalInfo.position}
                             </h2>
                         )}
 
-                        <div className={`flex flex-wrap mt-3 text-sm gap-y-2 gap-x-6 ${customizationOptions.header.alignment === 'center' ? 'justify-center' : ''}`}>
-                            {resumeData.personalInfo.phone && (
+                        <div className={`flex flex-wrap mt-1 text-sm gap-y-2 gap-x-6 ${customizationOptions.header.alignment === 'center' ? 'justify-center' : ''}`}>
+                            {fieldVisibility['personalInfo.phone'] !== false && resumeData.personalInfo.phone && (
                                 <a
                                     href={`tel:${resumeData.personalInfo.phone}`}
                                     className="flex items-center transition-colors"
@@ -403,7 +502,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     <span>{resumeData.personalInfo.phone}</span>
                                 </a>
                             )}
-                            {resumeData.personalInfo.email && (
+                            {fieldVisibility['personalInfo.email'] !== false && resumeData.personalInfo.email && (
                                 <a
                                     href={`mailto:${resumeData.personalInfo.email}`}
                                     className="flex items-center transition-colors"
@@ -434,7 +533,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     <span>{resumeData.personalInfo.email}</span>
                                 </a>
                             )}
-                            {resumeData.personalInfo.location && (
+                            {fieldVisibility['personalInfo.location'] !== false && resumeData.personalInfo.location && (
                                 <div className="flex items-center">
                                     <MapPin
                                         className={`${customizationOptions.socialIcons?.style === 'filled' ? 'lucide-icon-filled' : ''} ${(() => {
@@ -462,7 +561,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     <span>{resumeData.personalInfo.location}</span>
                                 </div>
                             )}
-                            {resumeData.personalInfo.socialLinks && resumeData.personalInfo.socialLinks.map((link, index) => {
+                            {fieldVisibility['personalInfo.socialLinks'] !== false && resumeData.personalInfo.socialLinks && resumeData.personalInfo.socialLinks.map((link, index) => {
                                 if (!link.url || !link.url.startsWith('http')) return null;
 
                                 // Platform-specific URL validation
@@ -583,7 +682,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     </div>
 
                     {/* Profile picture or initials - only show if enabled in customization */}
-                    {customizationOptions.header.showPhoto ? (
+                    {/* {customizationOptions.header.showPhoto ? (
                         resumeData.personalInfo.profilePicture && resumeData.personalInfo.profilePicture.startsWith('data:image') ? (
                             <div
                                 className={`overflow-hidden mt-4 md:mt-0 ${customizationOptions.header.photoSize === 'small' ? 'w-16 h-16' :
@@ -608,7 +707,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             </div>
                         ) : (
                             <div
-                                className={`flex items-center justify-center mt-4 md:mt-0 text-white font-bold ${customizationOptions.header.photoSize === 'small' ? 'w-16 h-16 text-xl' :
+                                className={`flex items-center justify-center mt-4 md:mt-0 text-white font-semibold ${customizationOptions.header.photoSize === 'small' ? 'w-16 h-16 text-xl' :
                                     customizationOptions.header.photoSize === 'large' ? 'w-32 h-32 text-4xl' :
                                         'w-24 h-24 text-3xl'
                                     } rounded-full ${customizationOptions.header.photoBorder === 'none' ? '' : 'shadow-md border'
@@ -627,12 +726,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 {getInitials}
                             </div>
                         )
-                    ) : null}
+                    ) : null} */}
                 </div>
 
-                <div className={`flex flex-col ${customizationOptions.layout.columns === 'two' ? 'md:flex-row gap-6' : ''}`} data-id="resume-body">
+                <div className={`flex flex-col ${isTwoColumnLayout() ? 'md:flex-row gap-6' : ''}`} data-id="resume-body">
                     {/* Left Column - Main Content */}
-                    <div className={`${customizationOptions.layout.columns === 'two' ? 'md:w-3/5' : 'w-full'}`} data-id="resume-main-column">
+                    <div className={`${isTwoColumnLayout() ? 'md:w-3/5' : 'w-full'}`} data-id="resume-main-column">
                         {/* Render sections according to custom order */}
                         {customizationOptions.layout.sectionOrder.map((sectionKey) => {
                             // Skip hidden sections (except Personal Info, which should always be shown)
@@ -640,13 +739,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 return null;
                             }
 
+                            // Skip Skills and Projects in main column for two-column layouts (they're rendered in right column)
+                            if (isTwoColumnLayout() && (sectionKey === 'skills' || sectionKey === 'projects')) {
+                                return null;
+                            }
+
                             // Summary
-                            if (sectionKey === 'personalInfo' && showSummary) {
+                            if (sectionKey === 'personalInfo' && fieldVisibility['personalInfo.summary'] !== false && showSummary) {
                                 return (
-                                    <div key={sectionKey} className="mb-6">
-                                        <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {'SUMMARY'}
-                                        </h2>
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle('SUMMARY')}
                                         <div className="text-sm">
                                             <SafeHTML html={resumeData.personalInfo.summary} />
                                         </div>
@@ -657,50 +759,52 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             // Work Experience
                             if (sectionKey === 'workExperience' && resumeData.workExperience.some(exp => exp.position || exp.company || exp.description)) {
                                 return (
-                                    <div key={sectionKey} className="mb-6">
-                                        <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'EXPERIENCE'}
-                                        </h2>
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'EXPERIENCE')}
                                         <div className="space-y-4">
                                             {resumeData.workExperience
                                                 .filter(exp => exp.position || exp.company || exp.description)
                                                 .map((exp, index) => (
                                                     <div key={exp.id || index} className="mb-4">
-                                                        <div className={`${customizationOptions.layout.columns === 'one' ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
-                                                                <div className="flex flex-wrap items-baseline">
-                                                                    <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
-                                                                        {exp.position || 'Position'}
-                                                                    </h3>
-                                                                    {exp.company && (
-                                                                        <span className="text-base ml-1.5 text-gray-700">
-                                                                            at {exp.company}
-                                                                        </span>
-                                                                    )}
-                                                                    {exp.experienceLink && exp.experienceLink.startsWith('http') && (
-                                                                        <a
-                                                                            href={exp.experienceLink}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            className="flex items-center ml-2 hover:text-blue-600 transition-colors"
-                                                                            style={{ color: getAccentColor(0.9) }}
-                                                                            onClick={(e) => e.stopPropagation()}
-                                                                        >
-                                                                            {renderLinkIcon()}
-                                                                        </a>
-                                                                    )}
+                                                                <div className="flex flex-col">
+                                                                    <div className="flex items-baseline">
+                                                                        <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                            {exp.company || 'Company'}
+                                                                        </h3>
+                                                                        {exp.experienceLink && exp.experienceLink.startsWith('http') && (
+                                                                            <a
+                                                                                href={exp.experienceLink}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                                style={{ color: getAccentColor(0.9) }}
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                            >
+                                                                                {renderLinkIcon()}
+                                                                            </a>
+                                                                        )}
+                                                                    </div>
+                                                                    <div>
+                                                                        {exp.company && (
+                                                                            <span className="text-base italic text-gray-700">
+                                                                                {exp.position}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
 
-                                                                {customizationOptions.layout.columns !== 'one' && (exp.startDate || exp.endDate || exp.location) && (
+                                                                {!isSingleColumnLayout() && (exp.startYear || exp.endYear || exp.location) && (
                                                                     <div className="flex items-center text-sm opacity-80 mb-1">
-                                                                        {exp.startDate && (
-                                                                            <span>
-                                                                                {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
+                                                                        {exp.startYear && (
+                                                                            <span className="italic">
+                                                                                {formatDateFromFields(exp.startMonth, exp.startYear, exp.showStartMonth)} - {exp.current ? 'Present' : (exp.endYear ? formatDateFromFields(exp.endMonth, exp.endYear, exp.showEndMonth) : '')}
                                                                             </span>
                                                                         )}
                                                                         {exp.location && <span className='px-1'>{"|"}</span>}
                                                                         {exp.location && (
-                                                                            <span>{exp.location || ''}</span>
+                                                                            <span className="italic">{exp.location || ''}</span>
                                                                         )}
                                                                     </div>
                                                                 )}
@@ -708,7 +812,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                     isHTML(exp.description) ? (
                                                                         <SafeHTML
                                                                             html={exp.description}
-                                                                            className={`text-sm ${getLineHeightClass(exp.description)}`}
+                                                                            className={`text-sm mt-1 pl-2 ${getLineHeightClass(exp.description)}`}
                                                                         />
                                                                     ) : (
                                                                         <ul className="list-disc pl-5 space-y-1">
@@ -724,15 +828,15 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
                                                             </div>
 
-                                                            {customizationOptions.layout.columns === 'one' && (exp.startDate || exp.endDate || exp.location) && (
+                                                            {isSingleColumnLayout() && (exp.startYear || exp.endYear || exp.location) && (
                                                                 <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
-                                                                    {exp.startDate && (
-                                                                        <div>
-                                                                            {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
+                                                                    {exp.startYear && (
+                                                                        <div className="italic">
+                                                                            {formatDateFromFields(exp.startMonth, exp.startYear, exp.showStartMonth)} - {exp.current ? 'Present' : (exp.endYear ? formatDateFromFields(exp.endMonth, exp.endYear, exp.showEndMonth) : '')}
                                                                         </div>
                                                                     )}
                                                                     {exp.location && (
-                                                                        <div className="mt-0.5">{exp.location}</div>
+                                                                        <div className="mt-0.5 italic">{exp.location}</div>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -747,18 +851,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             // Education
                             if (sectionKey === 'education' && resumeData.education.some((edu) => edu.degree || edu.institution)) {
                                 return (
-                                    <div key={sectionKey} className="mb-6">
-                                        <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'EDUCATION'}
-                                        </h2>
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'EDUCATION')}
                                         <div className="space-y-4">
                                             {resumeData.education
                                                 .filter((edu) => edu.degree || edu.institution)
                                                 .map((edu, index) => (
                                                     <div key={index} className="mb-3">
-                                                        <div className={`${customizationOptions.layout.columns === 'one' ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
-                                                                <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
+                                                                <h3 className="font-semibold text-base">
                                                                     {edu.degree || 'Degree'}
                                                                     {(edu.institutionLink || edu.degreeLink) &&
                                                                         (edu.institutionLink?.startsWith('http') || edu.degreeLink?.startsWith('http')) && (
@@ -775,36 +877,36 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                         )}
                                                                 </h3>
                                                                 {edu.institution && (
-                                                                    <div className="text-base text-gray-700">
+                                                                    <div className="text-base italic text-gray-700">
                                                                         {edu.institution}
                                                                     </div>
                                                                 )}
-                                                                {customizationOptions.layout.columns !== 'one' && (edu.startDate || edu.endDate || edu.location) && (
-                                                                    <div className="flex items-center text-sm opacity-80">
-                                                                        {edu.startDate && edu.endDate && (
-                                                                            <span>
-                                                                                {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
+                                                                {!isSingleColumnLayout() && (edu.startYear || edu.endYear || edu.location) && (
+                                                                    <div className="flex items-center text-sm opacity-80 pl-4">
+                                                                        {edu.startYear && edu.endYear && (
+                                                                            <span className="italic">
+                                                                                {formatDateFromFields(edu.startMonth, edu.startYear, edu.showStartMonth)} - {edu.current ? 'Present' : formatDateFromFields(edu.endMonth, edu.endYear, edu.showEndMonth)}
                                                                             </span>
                                                                         )}
-                                                                        {(edu.startDate || edu.endDate) && edu.location && (
+                                                                        {(edu.startYear || edu.endYear) && edu.location && (
                                                                             <span className='px-1'>{"|"}</span>
                                                                         )}
                                                                         {edu.location && (
-                                                                            <span>{edu.location}</span>
+                                                                            <span className="italic">{edu.location}</span>
                                                                         )}
                                                                     </div>
                                                                 )}
                                                             </div>
 
-                                                            {customizationOptions.layout.columns === 'one' && (edu.startDate || edu.endDate || edu.location) && (
+                                                            {isSingleColumnLayout() && (edu.startYear || edu.endYear || edu.location) && (
                                                                 <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
-                                                                    {edu.startDate && edu.endDate && (
-                                                                        <div>
-                                                                            {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
+                                                                    {edu.startYear && edu.endYear && (
+                                                                        <div className="italic">
+                                                                            {formatDateFromFields(edu.startMonth, edu.startYear, edu.showStartMonth)} - {edu.current ? 'Present' : formatDateFromFields(edu.endMonth, edu.endYear, edu.showEndMonth)}
                                                                         </div>
                                                                     )}
                                                                     {edu.location && (
-                                                                        <div className="mt-0.5">{edu.location}</div>
+                                                                        <div className="mt-0.5 italic">{edu.location}</div>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -816,202 +918,291 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 );
                             }
 
-                            // Skills - only in one column layout
-                            if (sectionKey === 'skills' && customizationOptions.layout.columns === 'one' && topSkills.length > 0) {
+                            // Skills
+                            if (sectionKey === 'skills' && resumeData.skills.length > 0) {
+                                // Check if any skill category has skills
+                                const hasSkills = resumeData.skills.some(category =>
+                                    category.skills && category.skills.length > 0
+                                );
+
+                                if (!hasSkills) return null;
+
                                 return (
-                                    <div key={sectionKey} className="mb-6">
-                                        <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'SKILLS'}
-                                        </h2>
-
-                                        {/* Pills/Bubble Format */}
-                                        {(customizationOptions.skills.format === 'pills' || customizationOptions.skills.format === 'bubble') && (
-                                            <div
-                                                className={`flex flex-wrap gap-1.5 mt-2 ${customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns}` : ''
-                                                    }`}
-                                            >
-                                                {topSkills.map((skill) => (
-                                                    <span
-                                                        key={skill}
-                                                        className="px-2.5 py-1 rounded-full border text-sm"
-                                                        style={{
-                                                            borderColor: getAccentColor(0.3),
-                                                            backgroundColor: `${getAccentColor(0.1)}`
-                                                        }}
-                                                    >
-                                                        {skill}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Grid Format */}
-                                        {customizationOptions.skills.format === 'grid' && (
-                                            <div
-                                                className={`grid gap-2 mt-2 ${customizationOptions.skills.columns === 1 ? 'grid-cols-1' :
-                                                    customizationOptions.skills.columns === 2 ? 'grid-cols-2' :
-                                                        'grid-cols-3'
-                                                    }`}
-                                            >
-                                                {topSkills.map((skill) => (
-                                                    <div
-                                                        key={skill}
-                                                        className="p-2 border rounded text-sm"
-                                                        style={{
-                                                            borderColor: getAccentColor(0.3),
-                                                            backgroundColor: 'white'
-                                                        }}
-                                                    >
-                                                        {skill}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Level Format */}
-                                        {customizationOptions.skills.format === 'level' && (
-                                            <div
-                                                className={`grid gap-2 mt-2 ${customizationOptions.skills.columns === 1 ? 'grid-cols-1' :
-                                                    customizationOptions.skills.columns === 2 ? 'grid-cols-2' :
-                                                        'grid-cols-3'
-                                                    }`}
-                                            >
-                                                {topSkills.map((skill) => (
-                                                    <div
-                                                        key={skill}
-                                                        className="flex justify-between items-center text-sm border-b pb-1 mb-1"
-                                                        style={{ borderColor: getAccentColor(0.2) }}
-                                                    >
-                                                        <span>{skill}</span>
-                                                        <div className="flex">
-                                                            {[1, 2, 3, 4, 5].map((i) => (
-                                                                <div
-                                                                    key={i}
-                                                                    className="w-1.5 h-1.5 rounded-full ml-0.5"
-                                                                    style={{
-                                                                        backgroundColor: i <= Math.floor(Math.random() * 3) + 3
-                                                                            ? getAccentColor(1)
-                                                                            : '#e5e7eb'
-                                                                    }}
-                                                                />
-                                                            ))}
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'SKILLS')}
+                                        <div className="space-y-1 mt-2">
+                                            {resumeData.skills
+                                                .filter(category => category.skills && category.skills.length > 0)
+                                                .map((category) => (
+                                                    <div key={category.id} className="flex items-start text-sm">
+                                                        <div className="pr-2 shrink-0">
+                                                            <h3 className="font-semibold" style={{ fontWeight: 600 }}>
+                                                                {`${category.name}:`}
+                                                            </h3>
+                                                        </div>
+                                                        <div>
+                                                            <p>
+                                                                {Array.isArray(category.skills) ? category.skills.join(', ') : ''}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 ))}
-                                            </div>
-                                        )}
-
-                                        {/* Compact Format */}
-                                        {customizationOptions.skills.format === 'compact' && (
-                                            <div
-                                                className={`flex flex-wrap gap-1 mt-2 ${customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns}` : ''
-                                                    }`}
-                                            >
-                                                {topSkills.map((skill) => (
-                                                    <span
-                                                        key={skill}
-                                                        className="px-1.5 py-0.5 text-xs border border-transparent mr-1"
-                                                    >
-                                                        {skill}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Comma-separated List */}
-                                        {customizationOptions.skills.format === 'comma' && (
-                                            <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
-                                                <p className="text-sm">
-                                                    {topSkills.join(', ')}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Pipe Format */}
-                                        {customizationOptions.skills.format === 'pipe' && (
-                                            <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
-                                                <p className="text-sm">
-                                                    {topSkills.join('  |  ')}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Newline Format */}
-                                        {customizationOptions.skills.format === 'newline' && (
-                                            <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
-                                                {topSkills.map((skill) => (
-                                                    <div key={skill} className="text-sm mb-1">
-                                                        {skill}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Bullet Points */}
-                                        {customizationOptions.skills.format === 'bullets' && (
-                                            <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
-                                                {topSkills.map((skill) => (
-                                                    <div key={skill} className="flex items-center text-sm mb-1">
-                                                        <span className="mr-2" style={{ color: getAccentColor(1) }}>•</span>
-                                                        <span>{skill}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                        </div>
                                     </div>
                                 );
                             }
 
-                            // Projects - only in one column layout
-                            if (sectionKey === 'projects' && customizationOptions.layout.columns === 'one' && resumeData.projects.some((project) => project.name || project.description)) {
+                            // Projects
+                            if (sectionKey === 'projects' && resumeData.projects.some((project) => project.name || project.description)) {
                                 return (
-                                    <div key={sectionKey} className="mb-6">
-                                        <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'PROJECTS'}
-                                        </h2>
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'PROJECTS')}
                                         <div className="space-y-4">
                                             {resumeData.projects?.slice(0, 3)
+                                                .filter((project) => project.name || project.description)
                                                 .map((project, index) => (
                                                     <div key={index} className="mb-3">
-                                                        <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
-                                                            {project.name || 'Project Name'}
-                                                            {project.link && project.link.startsWith('http') && (
-                                                                <a
-                                                                    href={project.link}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
-                                                                    style={{ color: getAccentColor(0.9) }}
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    {renderLinkIcon()}
-                                                                </a>
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                    {project.name || 'Project Name'}
+                                                                    {project.link && project.link.startsWith('http') && (
+                                                                        <a
+                                                                            href={project.link}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
+                                                                </h3>
+                                                                <div className="pl-4">
+                                                                    {
+                                                                        project.description && (
+                                                                            <SafeHTML
+                                                                                html={project.description}
+                                                                                className="text-sm mt-1"
+                                                                            />
+                                                                        )
+                                                                    }
+                                                                    {
+                                                                        project.technologies && (
+                                                                            <div className="text-sm mt-1 italic text-gray-600">
+                                                                                {project.technologies}
+                                                                            </div>
+                                                                        )
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                            {isSingleColumnLayout() && (project.startYear || project.endYear) && (
+                                                                <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
+                                                                    <div className="italic">
+                                                                        {formatDateFromFields(project.startMonth, project.startYear, project.showStartMonth)} - {project.current ? 'Present' : (project.endYear ? formatDateFromFields(project.endMonth, project.endYear, project.showEndMonth) : '')}
+                                                                    </div>
+                                                                </div>
                                                             )}
-                                                        </h3>
-                                                        {(project.startDate || project.endDate) && (
-                                                            <div className="text-sm opacity-80 mb-1">
-                                                                {project.startDate && project.endDate && (
-                                                                    <span>{formatDate(project.startDate)} - {formatDate(project.endDate)}</span>
-                                                                )}
-                                                                {project.startDate && !project.endDate && (
-                                                                    <span>{formatDate(project.startDate)}</span>
-                                                                )}
-                                                            </div>
-                                                        )}
-
-                                                        {project.description && (
-                                                            <SafeHTML
-                                                                html={project.description}
-                                                                className="text-sm"
-                                                            />
-                                                        )}
-                                                        {project.technologies && (
-                                                            <div className="text-sm mt-1 text-gray-600">
-                                                                {project.technologies}
-                                                            </div>
-                                                        )}
+                                                        </div>
                                                     </div>
                                                 ))}
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            // Achievements
+                            if (sectionKey === 'achievements') {
+                                const hasAny = resumeData.achievements.some(a => a.title || a.description || a.organization || a.year || a.link);
+                                if (!hasAny) return null;
+
+                                return (
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'ACHIEVEMENTS')}
+                                        <div className="space-y-4">
+                                            {resumeData.achievements
+                                                .filter(achievement => achievement.title || achievement.description || achievement.organization || achievement.year || achievement.link)
+                                                .map((achievement, index) => (
+                                                    <div key={achievement.id || index} className="mb-3">
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                    {achievement.title || 'Achievement Title'}
+                                                                    {achievement.showLink && achievement.link && achievement.link.startsWith('http') && (
+                                                                        <a
+                                                                            href={achievement.link}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
+                                                                </h3>
+                                                                {achievement.showOrganization && achievement.organization && (
+                                                                    <div className="text-base italic text-gray-700">
+                                                                        {achievement.organization}
+                                                                    </div>
+                                                                )}
+                                                                {!isSingleColumnLayout() && achievement.year && (
+                                                                    <div className="text-sm opacity-80 mt-1">
+                                                                        <span className="italic">{formatDateFromFields(achievement.month, achievement.year, achievement.showMonth, achievement.current)}</span>
+                                                                    </div>
+                                                                )}
+                                                                {achievement.showDescription && achievement.description && (
+                                                                    <div className="text-sm mt-1">
+                                                                        {achievement.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {isSingleColumnLayout() && achievement.year && (
+                                                                <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
+                                                                    <div className="italic">{formatDateFromFields(achievement.month, achievement.year, achievement.showMonth, achievement.current)}</div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            // Publications
+                            if (sectionKey === 'publications') {
+                                const hasAny = resumeData.publications.some(p => p.title || p.authors || p.journal || p.year || p.doi || p.link || p.description);
+                                if (!hasAny) return null;
+
+                                return (
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'PUBLICATIONS')}
+                                        <div className="space-y-4">
+                                            {resumeData.publications
+                                                .filter(publication => publication.title || publication.authors || publication.journal || publication.year || publication.doi || publication.link || publication.description)
+                                                .map((publication, index) => (
+                                                    <div key={publication.id || index} className="mb-3">
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                    {publication.title || 'Publication Title'}
+                                                                    {((publication.showLink && publication.link) || (publication.showDoi && publication.doi)) && (
+                                                                        <a
+                                                                            href={publication.link || `https://doi.org/${publication.doi}`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
+                                                                </h3>
+                                                                {publication.showAuthors && publication.authors && (
+                                                                    <div className="text-base italic text-gray-700">
+                                                                        {publication.authors}
+                                                                    </div>
+                                                                )}
+                                                                {publication.showJournal && publication.journal && (
+                                                                    <div className="text-sm text-gray-600">
+                                                                        {publication.journal}
+                                                                    </div>
+                                                                )}
+                                                                {!isSingleColumnLayout() && publication.year && (
+                                                                    <div className="text-sm opacity-80 mt-1">
+                                                                        <span className="italic">{formatDateFromFields(publication.month, publication.year, publication.showMonth, publication.current)}</span>
+                                                                    </div>
+                                                                )}
+                                                                {publication.showDescription && publication.description && (
+                                                                    <div className="text-sm mt-1">
+                                                                        {publication.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {isSingleColumnLayout() && publication.year && (
+                                                                <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
+                                                                    <div className="italic">{formatDateFromFields(publication.month, publication.year, publication.showMonth, publication.current)}</div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            // Certifications
+                            if (sectionKey === 'certifications') {
+                                const hasAny = resumeData.certifications.some(c => c.name || c.issuer || c.year || c.expiryYear || c.credentialId || c.link || c.description);
+                                if (!hasAny) return null;
+
+                                return (
+                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'CERTIFICATIONS')}
+                                        <div className="space-y-4">
+                                            {resumeData.certifications
+                                                .filter(certification => certification.name || certification.issuer || certification.year || certification.expiryYear || certification.credentialId || certification.link || certification.description)
+                                                .map((certification, index) => (
+                                                    <div key={certification.id || index} className="mb-3">
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                    {certification.name || 'Certification Name'}
+                                                                    {certification.showLink && certification.link && certification.link.startsWith('http') && (
+                                                                        <a
+                                                                            href={certification.link}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
+                                                                </h3>
+                                                                {certification.showIssuer && certification.issuer && (
+                                                                    <div className="text-base italic text-gray-700">
+                                                                        {certification.issuer}
+                                                                    </div>
+                                                                )}
+                                                                {!isSingleColumnLayout() && (certification.year || certification.expiryYear) && (
+                                                                    <div className="text-sm opacity-80 mt-1">
+                                                                        <div className="italic">{formatDateFromFields(certification.month, certification.year, certification.showMonth, certification.current)}</div>
+                                                                        {certification.expiryYear && (
+                                                                            <div className="italic text-xs">Expires: {formatDateFromFields(certification.expiryMonth, certification.expiryYear, certification.showExpiryMonth)}</div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                                {certification.showCredentialId && certification.credentialId && (
+                                                                    <div className="text-sm text-gray-600">
+                                                                        ID: {certification.credentialId}
+                                                                    </div>
+                                                                )}
+                                                                {certification.showDescription && certification.description && (
+                                                                    <div className="text-sm mt-1">
+                                                                        {certification.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {isSingleColumnLayout() && (certification.year || certification.expiryYear) && (
+                                                                <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
+                                                                    <div className="italic">{formatDateFromFields(certification.month, certification.year, certification.showMonth, certification.current)}</div>
+                                                                    {certification.expiryYear && (
+                                                                        <div className="italic text-xs">Expires: {formatDateFromFields(certification.expiryMonth, certification.expiryYear, certification.showExpiryMonth)}</div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            }
                                         </div>
                                     </div>
                                 );
@@ -1024,10 +1215,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                         {customizationOptions.customSections
                             ?.filter(customSection => customizationOptions.layout.visibleSections?.[customSection.id] !== false)
                             ?.map((customSection) => (
-                                <div key={customSection.id} className="mb-6">
-                                    <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                        {customSection.title.toUpperCase()}
-                                    </h2>
+                                <div key={customSection.id} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                    {renderSectionTitle(customSection.title.toUpperCase())}
                                     <div className="space-y-4 text-sm">
                                         <SafeHTML html={customSection.content} />
                                     </div>
@@ -1036,229 +1225,112 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     </div>
 
                     {/* Right Column - Skills & Projects - only in 2-column layout */}
-                    {customizationOptions.layout.columns === 'two' && (
-                        <div className="md:w-2/5" data-id="resume-side-column">
-                            {/* Skills */}
-                            {topSkills.length > 0 && customizationOptions.layout.visibleSections?.skills !== false && (
-                                <div className="mb-6">
-                                    <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                        {customizationOptions.layout.sectionTitles['skills']?.toUpperCase() || 'SKILLS'}
-                                    </h2>
+                    {
+                        isTwoColumnLayout() && (
+                            <div className="md:w-2/5" data-id="resume-side-column">
+                                {/* Skills */}
+                                {resumeData.skills.length > 0 && customizationOptions.layout.visibleSections?.skills !== false && (() => {
+                                    const hasSkills = resumeData.skills.some(category =>
+                                        category.skills && category.skills.length > 0
+                                    );
+                                    if (!hasSkills) return null;
 
-                                    {/* Pills/Bubble Format */}
-                                    {(customizationOptions.skills.format === 'pills' || customizationOptions.skills.format === 'bubble') && (
-                                        <div
-                                            className={`flex flex-wrap gap-1.5 mt-2 ${customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns}` : ''
-                                                }`}
-                                        >
-                                            {topSkills.map((skill) => (
-                                                <span
-                                                    key={skill}
-                                                    className="px-2.5 py-1 rounded-full border text-sm"
-                                                    style={{
-                                                        borderColor: getAccentColor(0.3),
-                                                        backgroundColor: `${getAccentColor(0.1)}`
-                                                    }}
-                                                >
-                                                    {skill}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Grid Format */}
-                                    {customizationOptions.skills.format === 'grid' && (
-                                        <div
-                                            className={`grid gap-2 mt-2 ${customizationOptions.skills.columns === 1 ? 'grid-cols-1' :
-                                                customizationOptions.skills.columns === 2 ? 'grid-cols-2' :
-                                                    'grid-cols-3'
-                                                }`}
-                                        >
-                                            {topSkills.map((skill) => (
-                                                <div
-                                                    key={skill}
-                                                    className="p-2 border rounded text-sm"
-                                                    style={{
-                                                        borderColor: getAccentColor(0.3),
-                                                        backgroundColor: 'white'
-                                                    }}
-                                                >
-                                                    {skill}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Level Format */}
-                                    {customizationOptions.skills.format === 'level' && (
-                                        <div
-                                            className={`grid gap-2 mt-2 ${customizationOptions.skills.columns === 1 ? 'grid-cols-1' :
-                                                customizationOptions.skills.columns === 2 ? 'grid-cols-2' :
-                                                    'grid-cols-3'
-                                                }`}
-                                        >
-                                            {topSkills.map((skill) => (
-                                                <div
-                                                    key={skill}
-                                                    className="flex justify-between items-center text-sm border-b pb-1 mb-1"
-                                                    style={{ borderColor: getAccentColor(0.2) }}
-                                                >
-                                                    <span>{skill}</span>
-                                                    <div className="flex">
-                                                        {[1, 2, 3, 4, 5].map((i) => (
-                                                            <div
-                                                                key={i}
-                                                                className="w-1.5 h-1.5 rounded-full ml-0.5"
-                                                                style={{
-                                                                    backgroundColor: i <= Math.floor(Math.random() * 3) + 3
-                                                                        ? getAccentColor(1)
-                                                                        : '#e5e7eb'
-                                                                }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Compact Format */}
-                                    {customizationOptions.skills.format === 'compact' && (
-                                        <div
-                                            className={`flex flex-wrap gap-1 mt-2 ${customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns}` : ''
-                                                }`}
-                                        >
-                                            {topSkills.map((skill) => (
-                                                <span
-                                                    key={skill}
-                                                    className="px-1.5 py-0.5 text-xs border border-transparent mr-1"
-                                                    style={{ color: getAccentColor(1) }}
-                                                >
-                                                    {skill}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Comma-separated List */}
-                                    {customizationOptions.skills.format === 'comma' && (
-                                        <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
-                                            <p className="text-sm">
-                                                {topSkills.join(', ')}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {/* Pipe Format */}
-                                    {customizationOptions.skills.format === 'pipe' && (
-                                        <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
-                                            <p className="text-sm">
-                                                {topSkills.join('  |  ')}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {/* Newline Format */}
-                                    {customizationOptions.skills.format === 'newline' && (
-                                        <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
-                                            {topSkills.map((skill) => (
-                                                <div key={skill} className="text-sm mb-1">
-                                                    {skill}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Bullet Points */}
-                                    {customizationOptions.skills.format === 'bullets' && (
-                                        <div className={customizationOptions.skills.columns > 1 ? `columns-${customizationOptions.skills.columns} mt-2 gap-x-6` : 'mt-2'}>
-                                            {topSkills.map((skill) => (
-                                                <div key={skill} className="flex items-center text-sm mb-1">
-                                                    <span className="mr-2" style={{ color: getAccentColor(1) }}>•</span>
-                                                    <span>{skill}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Projects */}
-                            {resumeData.projects.some(
-                                (project) => project.name || project.description
-                            ) && customizationOptions.layout.visibleSections?.projects !== false && (
-                                    <div className="mb-6">
-                                        <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {customizationOptions.layout.sectionTitles['projects']?.toUpperCase() || 'PROJECTS'}
-                                        </h2>
-                                        <div className="space-y-4">
-                                            {resumeData.projects?.slice(0, 2)
-                                                .filter((project) => project.name || project.description)
-                                                .map((project, index) => (
-                                                    <div key={index} className="mb-3">
-                                                        <h3 className="font-bold text-base" style={getSectionTitleStyle()}>
-                                                            {project.name || 'Project Name'}
-                                                            {project.link && project.link.startsWith('http') && (
-                                                                <a
-                                                                    href={project.link}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
-                                                                    style={{ color: getAccentColor(0.9) }}
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    {renderLinkIcon()}
-                                                                </a>
-                                                            )}
-                                                        </h3>
-                                                        {(project.startDate || project.endDate) && (
-                                                            <div className="text-sm opacity-80 mb-1">
-                                                                {project.startDate && project.endDate && (
-                                                                    <span>{formatDate(project.startDate)} - {formatDate(project.endDate)}</span>
-                                                                )}
-                                                                {project.startDate && !project.endDate && (
-                                                                    <span>{formatDate(project.startDate)}</span>
-                                                                )}
-                                                                {!project.startDate && project.endDate && (
-                                                                    <span>{formatDate(project.endDate)}</span>
-                                                                )}
+                                    return (
+                                        <div style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                            {renderSectionTitle(customizationOptions.layout.sectionTitles['skills']?.toUpperCase() || 'SKILLS')}
+                                            <div className="space-y-1 mt-2">
+                                                {resumeData.skills
+                                                    .filter(category => category.skills && category.skills.length > 0)
+                                                    .map((category) => (
+                                                        <div key={category.id} className="flex items-start text-sm py-1">
+                                                            <div className="w-2/5 pr-2 shrink-0">
+                                                                <h3 className="font-semibold" style={{ fontWeight: 600 }}>
+                                                                    {category.name}
+                                                                </h3>
                                                             </div>
-                                                        )}
-                                                        {project.description && (
-                                                            <SafeHTML
-                                                                html={project.description}
-                                                                className="text-sm"
-                                                            />
-                                                        )}
-                                                        {project.technologies && (
-                                                            <div className="text-sm mt-1 text-gray-600">
-                                                                {project.technologies}
+                                                            <div className="w-3/5">
+                                                                <p>
+                                                                    {Array.isArray(category.skills) ? category.skills.join(', ') : ''}
+                                                                </p>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                ))}
+                                                        </div>
+                                                    ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
 
-                            {/* Custom Sections - only in right column if layout is two columns */}
-                            {customizationOptions.customSections
-                                ?.filter(customSection => customizationOptions.layout.visibleSections?.[customSection.id] !== false)
-                                ?.map((customSection) => (
-                                    <div key={customSection.id} className="mb-6">
-                                        <h2 className={getSectionTitleClasses()} style={getSectionTitleStyle()}>
-                                            {customSection.title.toUpperCase()}
-                                        </h2>
-                                        <div className="space-y-4 text-sm">
-                                            <SafeHTML html={customSection.content} />
+                                {/* Projects */}
+                                {resumeData.projects.some(
+                                    (project) => project.name || project.description
+                                ) && customizationOptions.layout.visibleSections?.projects !== false && (
+                                        <div style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                            {renderSectionTitle(customizationOptions.layout.sectionTitles['projects']?.toUpperCase() || 'PROJECTS')}
+                                            <div className="space-y-4">
+                                                {resumeData.projects?.slice(0, 2)
+                                                    .filter((project) => project.name || project.description)
+                                                    .map((project, index) => (
+                                                        <div key={index} className="mb-3">
+                                                            <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                {project.name || 'Project Name'}
+                                                                {project.link && project.link.startsWith('http') && (
+                                                                    <a
+                                                                        href={project.link}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                        style={{ color: getAccentColor(0.9) }}
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        {renderLinkIcon()}
+                                                                    </a>
+                                                                )}
+                                                            </h3>
+                                                            <div className="pl-4">
+                                                                {
+                                                                    project.description && (
+                                                                        <SafeHTML
+                                                                            html={project.description}
+                                                                            className="text-sm mt-1"
+                                                                        />
+                                                                    )
+                                                                }
+                                                                {
+                                                                    project.technologies && (
+                                                                        <div className="text-sm mt-1 italic text-gray-600">
+                                                                            {project.technologies}
+                                                                        </div>
+                                                                    )
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+                                    )
+                                }
+
+                                {/* Custom Sections - only in right column if layout is two columns */}
+                                {
+                                    customizationOptions.customSections
+                                        ?.filter(customSection =>
+                                            customizationOptions.layout.visibleSections?.[customSection.id] !== false &&
+                                            customSection.content && customSection.content.trim() !== ''
+                                        )
+                                        ?.map((customSection) => (
+                                            <div key={customSection.id} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                                {renderSectionTitle(customSection.title.toUpperCase())}
+                                                <div className="space-y-4 text-sm">
+                                                    <SafeHTML html={customSection.content} />
+                                                </div>
+                                            </div>
+                                        ))
+                                }
+                            </div >
+                        )}
+                </div >
+            </div >
+        </div >
     );
 };
 

@@ -284,6 +284,7 @@ const FullAnalysisView: React.FC<FullAnalysisViewProps> = ({
                                         runAnalysis(category);
                                     }}
                                     size="sm"
+                                    isLoading={analysis.isLoading}
                                     className="text-xs py-1"
                                 >
                                     Retry
@@ -296,6 +297,7 @@ const FullAnalysisView: React.FC<FullAnalysisViewProps> = ({
                                     runAnalysis(category);
                                 }}
                                 size="sm"
+                                isLoading={analysis.isLoading}
                                 className="text-xs py-1"
                             >
                                 Analyze
@@ -326,7 +328,7 @@ const FullAnalysisView: React.FC<FullAnalysisViewProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[55] flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full h-[90vh] max-h-[800px] flex flex-col overflow-hidden">
                 {/* Header */}
                 <div className="p-4 md:p-6 border-b border-slate-200 flex items-center justify-between">

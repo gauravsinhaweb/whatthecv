@@ -6,8 +6,8 @@ export interface ResumeData {
         phone: string;
         location: string;
         summary: string;
-        profilePicture?: string;
-        socialLinks?: {
+        profilePicture: string | null;
+        socialLinks: {
             platform: 'linkedin' | 'github' | 'twitter' | 'leetcode' | 'medium' | 'stackoverflow' | 'peerlist' | 'other';
             url: string;
             label?: string;
@@ -15,8 +15,11 @@ export interface ResumeData {
     };
     workExperience: WorkExperience[];
     education: Education[];
-    skills: string[];
+    skills: SkillCategory[];
     projects: Project[];
+    achievements: Achievement[];
+    publications: Publication[];
+    certifications: Certification[];
 }
 
 export interface WorkExperience {
@@ -24,9 +27,13 @@ export interface WorkExperience {
     position: string;
     company: string;
     location: string;
-    startDate: string;
-    endDate: string;
+    startMonth: string;
+    startYear: string;
+    endMonth: string;
+    endYear: string;
     current: boolean;
+    showStartMonth: boolean;
+    showEndMonth: boolean;
     description: string;
     experienceLink?: string;
 }
@@ -36,8 +43,13 @@ export interface Education {
     degree: string;
     institution: string;
     location: string;
-    startDate: string;
-    endDate: string;
+    startMonth: string;
+    startYear: string;
+    endMonth: string;
+    endYear: string;
+    current: boolean;
+    showStartMonth: boolean;
+    showEndMonth: boolean;
     description: string;
     degreeLink?: string;
     institutionLink?: string;
@@ -49,13 +61,78 @@ export interface Project {
     description: string;
     technologies: string;
     link: string;
-    startDate?: string;
-    endDate?: string;
+    startMonth?: string;
+    startYear?: string;
+    endMonth?: string;
+    endYear?: string;
+    current?: boolean;
+    showStartMonth?: boolean;
+    showEndMonth?: boolean;
+}
+
+export interface SkillCategory {
+    id: string;
+    name: string;
+    skills: string[];
+}
+
+export interface Achievement {
+    id: string;
+    title: string;
+    description: string;
+    month: string;
+    year: string;
+    current?: boolean;
+    showMonth?: boolean;
+    organization?: string;
+    link?: string;
+    showOrganization?: boolean;
+    showDescription?: boolean;
+    showLink?: boolean;
+}
+
+export interface Publication {
+    id: string;
+    title: string;
+    authors: string;
+    journal: string;
+    month: string;
+    year: string;
+    current?: boolean;
+    showMonth?: boolean;
+    doi?: string;
+    link?: string;
+    description?: string;
+    showAuthors?: boolean;
+    showJournal?: boolean;
+    showDoi?: boolean;
+    showLink?: boolean;
+    showDescription?: boolean;
+}
+
+export interface Certification {
+    id: string;
+    name: string;
+    issuer: string;
+    month: string;
+    year: string;
+    current?: boolean;
+    showMonth?: boolean;
+    expiryMonth?: string;
+    expiryYear?: string;
+    showExpiryMonth?: boolean;
+    credentialId?: string;
+    link?: string;
+    description?: string;
+    showIssuer?: boolean;
+    showCredentialId?: boolean;
+    showLink?: boolean;
+    showDescription?: boolean;
 }
 
 export interface ResumeCustomizationOptions {
     layout: {
-        columns: 'one' | 'two';
+        templates: 'classic' | 'modern' | 'minimal' | 'professional' | 'creative' | 'executive';
         sectionOrder: string[];
         sectionTitles: Record<string, string>;
         visibleSections: Record<string, boolean>;
@@ -68,6 +145,7 @@ export interface ResumeCustomizationOptions {
     spacing: {
         fontSize: number;
         lineHeight: number;
+        sectionGap: number;
         margins: {
             left: number;
             right: number;
@@ -94,11 +172,11 @@ export interface ResumeCustomizationOptions {
         size: 's' | 'm' | 'l' | 'xl';
         style: 'uppercase' | 'lowercase' | 'capitalize' | 'normal';
         bold: boolean;
-        underline: boolean;
+        decoration: 'underline' | 'fullBorder' | 'bottomBorder' | 'clean';
     };
     skills: {
-        format: 'pills' | 'comma' | 'bullets' | 'grid' | 'compact' | 'bubble' | 'pipe' | 'newline' | 'level';
-        columns: 1 | 2 | 3;
+        format: 'compact' | 'comma' | 'bullets' | 'pills' | 'bubble' | 'grid' | 'level' | 'pipe' | 'newline';
+        templates: 1 | 2 | 3;
     };
     links: {
         icon: 'external' | 'arrow' | 'chain' | 'none';
@@ -120,31 +198,38 @@ export interface ResumeCustomizationOptions {
 
 export const defaultCustomizationOptions: ResumeCustomizationOptions = {
     layout: {
-        columns: 'one',
-        sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects'],
+        templates: 'classic',
+        sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
         sectionTitles: {
             personalInfo: 'Personal Info',
             workExperience: 'Work Experience',
             education: 'Education',
-            skills: 'Skills',
-            projects: 'Projects'
+            skills: 'Technical Skills',
+            projects: 'Projects',
+            achievements: 'Achievements',
+            publications: 'Publications',
+            certifications: 'Certifications'
         },
         visibleSections: {
             personalInfo: true,
             workExperience: true,
             education: true,
             skills: true,
-            projects: true
+            projects: true,
+            achievements: false,
+            publications: false,
+            certifications: false
         }
     },
     colors: {
         accent: '#000000',
         text: '#000000',
-        headings: '#000000',
+        headings: '#0074E3',
     },
     spacing: {
-        fontSize: 11.5,
-        lineHeight: 1.2,
+        fontSize: 10.5,
+        lineHeight: 1.25,
+        sectionGap: 24,
         margins: {
             left: 10,
             right: 10,
@@ -161,21 +246,21 @@ export const defaultCustomizationOptions: ResumeCustomizationOptions = {
         nameBold: false,
         jobTitleSize: 'm',
         showPhoto: false,
-        headerFont: 'Source Sans Pro',
+        headerFont: 'Times New Roman',
         photoSize: 'medium',
         photoBorder: 'thin',
         photoStyle: 'accent',
-        alignment: 'left',
+        alignment: 'center',
     },
     sectionTitles: {
-        size: 'l',
+        size: 'm',
         style: 'uppercase',
         bold: true,
-        underline: true,
+        decoration: 'underline',
     },
     skills: {
         format: 'compact',
-        columns: 2
+        templates: 2
     },
     links: {
         icon: 'external',
@@ -199,41 +284,44 @@ export const initialResumeData: ResumeData = {
         location: 'San Francisco, CA',
         summary: 'Experienced software engineer with over 8 years of expertise in full-stack web development, specializing in React, Node.js, and cloud infrastructure. Passionate about creating scalable, user-friendly applications and mentoring junior developers.',
         profilePicture: '',
-        socialLinks: []
+        socialLinks: [
+            {
+                platform: 'linkedin',
+                url: 'https://www.linkedin.com/in/johnson',
+                label: 'linkedin.com/johnson'
+            }]
     },
     workExperience: [
         {
-            id: '1',
-            position: 'Senior Software Engineer',
-            company: 'TechCorp Inc.',
-            location: 'San Francisco, CA',
-            startDate: 'Jan 2020',
-            endDate: 'Present',
+            id: "work-1",
+            position: "Senior Software Engineer",
+            company: "TechCorp Inc.",
+            location: "San Francisco, CA",
+            startMonth: "Jan",
+            startYear: "2020",
+            endMonth: "Present",
+            endYear: "",
             current: true,
-            description: '• Led a team of 5 developers to build and maintain a high-traffic SaaS platform\n• Redesigned authentication system, improving security and reducing login time by 40%\n• Implemented CI/CD pipeline using GitHub Actions, reducing deployment time by 60%\n• Mentored junior developers and conducted code reviews',
-            experienceLink: 'https://techcorp-example.com',
+            showStartMonth: true,
+            showEndMonth: false,
+            description: "<p>StartUp Vision is a fast-paced mobile-first startup delivering innovative digital tools for small businesses and entrepreneurs.</p><ul><li>Built cross-platform features using <strong>React Native</strong> and Firebase, increasing user engagement by over <strong>20%</strong>.</li><li>Resolved 100+ bugs through rigorous testing and debugging, enhancing app stability and user experience.</li><li>Implemented A/B testing strategies that improved feature adoption rates by <strong>15%</strong>.</li></ul>",
+            experienceLink: null
         },
         {
-            id: '2',
-            position: 'Software Engineer',
-            company: 'WebSolutions LLC',
-            location: 'Oakland, CA',
-            startDate: 'Mar 2017',
-            endDate: 'Dec 2019',
+            id: "work-2",
+            position: "Software Engineer",
+            company: "WebSolutions LLC",
+            location: "Oakland, CA",
+            startMonth: "Mar",
+            startYear: "2017",
+            endMonth: "Dec",
+            endYear: "2019",
             current: false,
-            description: '• Developed and maintained multiple client-facing web applications using React and Node.js\n• Optimized database queries, improving application performance by 35%\n• Collaborated with UX designers to implement responsive and accessible interfaces\n• Participated in agile development processes and daily scrums',
-            experienceLink: 'https://websolutions-example.com',
-        },
-        {
-            id: '3',
-            position: 'Junior Developer',
-            company: 'StartUp Vision',
-            location: 'San Jose, CA',
-            startDate: 'Jun 2015',
-            endDate: 'Feb 2017',
-            current: false,
-            description: '• Built and maintained features for a customer-facing mobile app\n• Collaborated with the QA team to identify and fix bugs\n• Participated in code reviews and implemented feedback',
-        },
+            showStartMonth: true,
+            showEndMonth: true,
+            description: "<p>A boutique development agency delivering responsive, high-performance web applications for mid-sized businesses.</p><ul><li>Developed scalable web apps using <strong>React</strong> and <strong>Node.js</strong> for over <strong>10 enterprise clients</strong>, ensuring responsive performance and clean architecture.</li><li>Optimized complex database queries, boosting overall app performance by <strong>35%</strong> and reducing server load.</li><li>Worked closely with designers to deliver <strong>accessible, WCAG-compliant interfaces</strong>, improving usability and client satisfaction.</li></ul>",
+            experienceLink: null
+        }
     ],
     education: [
         {
@@ -241,8 +329,13 @@ export const initialResumeData: ResumeData = {
             degree: 'Master of Science in Computer Science',
             institution: 'Stanford University',
             location: 'Stanford, CA',
-            startDate: 'Aug 2013',
-            endDate: 'May 2015',
+            startMonth: 'Aug',
+            startYear: '2013',
+            endMonth: 'May',
+            endYear: '2015',
+            current: true,
+            showStartMonth: true,
+            showEndMonth: true,
             description: 'Specialized in Human-Computer Interaction and Machine Learning. GPA: 3.85',
         },
         {
@@ -250,34 +343,398 @@ export const initialResumeData: ResumeData = {
             degree: 'Bachelor of Science in Computer Engineering',
             institution: 'University of California, Berkeley',
             location: 'Berkeley, CA',
-            startDate: 'Aug 2009',
-            endDate: 'May 2013',
+            startMonth: 'Aug',
+            startYear: '2009',
+            endMonth: 'May',
+            endYear: '2013',
+            current: true,
+            showStartMonth: true,
+            showEndMonth: true,
             description: 'Minor in Mathematics. Dean\'s List for 6 semesters. GPA: 3.7',
         },
     ],
     skills: [
-        'JavaScript', 'TypeScript', 'React', 'Node.js', 'Express', 'GraphQL',
-        'MongoDB', 'PostgreSQL', 'Docker', 'AWS', 'CI/CD', 'Jest', 'Cypress',
-        'Agile Methodology', 'Git', 'RESTful APIs'
+        {
+            id: '1',
+            name: 'Frontend Development',
+            skills: ['JavaScript', 'TypeScript', 'Next.js', 'React.js', 'Redux Toolkit']
+        },
+        {
+            id: '2',
+            name: 'Backend Integration',
+            skills: ['Node.js', 'MongoDB', 'RESTful API', 'GraphQL']
+        },
+        {
+            id: '3',
+            name: 'Testing and Debugging',
+            skills: ['Jest', 'A/B Testing']
+        },
+        {
+            id: '4',
+            name: 'Version Control',
+            skills: ['Git', 'CI/CD', 'Jenkins']
+        },
+        {
+            id: '5',
+            name: 'Design and Prototyping',
+            skills: ['Figma', 'Expo - React Native']
+        }
     ],
     projects: [
         {
             id: '1',
             name: 'E-commerce Platform',
-            description: 'Developed a full-featured e-commerce platform with React, Node.js, and MongoDB. Implemented payment processing, inventory management, and analytics dashboard.',
-            technologies: 'React, Redux, Node.js, Express, MongoDB, Stripe API',
-            link: 'https://github.com/alexj/ecommerce-platform',
-            startDate: '2019-06',
-            endDate: '2019-12'
+            description: 'Built a full-stack e-commerce platform with React frontend and Node.js backend. Implemented user authentication, payment processing, and inventory management.',
+            technologies: 'React, Node.js, MongoDB, Stripe',
+            link: 'https://github.com/example/ecommerce',
+            current: true,
+            showStartMonth: true,
+            showEndMonth: true,
         },
         {
             id: '2',
             name: 'Task Management App',
-            description: 'Built a collaborative task management application with real-time updates and notifications. Features include Kanban boards, task assignments, and deadline tracking.',
-            technologies: 'React, Firebase, Material-UI, Jest',
-            link: 'https://github.com/alexj/task-master',
-            startDate: '2018-10',
-            endDate: '2019-03'
+            description: 'Developed a collaborative task management application with real-time updates and team collaboration features.',
+            technologies: 'React, Socket.io, Express.js',
+            link: 'https://github.com/example/taskapp',
+            current: true,
+            showStartMonth: true,
+            showEndMonth: true,
         },
     ],
+    achievements: [
+        {
+            id: '1',
+            title: 'Employee of the Month',
+            description: 'Awarded for outstanding performance and dedication.',
+            month: 'May',
+            year: '2022',
+            current: false,
+            showMonth: true,
+            organization: 'Innovate Corp',
+            link: '',
+        },
+    ],
+    publications: [
+        {
+            id: '1',
+            title: 'The Rise of AI in Modern Software',
+            authors: 'John Doe',
+            journal: 'Tech Journal Quarterly',
+            month: 'Sep',
+            year: '2021',
+            current: false,
+            showMonth: true,
+            doi: '10.1234/tps.5678',
+            link: 'https://example.com/publication1',
+            description: 'A deep dive into the integration of AI in software engineering.',
+            showAuthors: true,
+            showJournal: true,
+            showDoi: true,
+            showLink: true,
+            showDescription: true,
+        },
+    ],
+    certifications: [
+        {
+            id: '1',
+            name: 'Certified JavaScript Developer',
+            issuer: 'FreeCodeCamp',
+            month: 'Feb',
+            year: '2020',
+            current: false,
+            showMonth: true,
+            expiryMonth: 'Feb',
+            expiryYear: '2024',
+            showExpiryMonth: true,
+            credentialId: 'FCC-XYZ-123',
+            link: 'https://example.com/certification1',
+            description: 'Covers fundamental and advanced topics in JavaScript.',
+        },
+    ],
+};
+
+// Template presets with different default customization options
+export const templatePresets: Record<string, Partial<ResumeCustomizationOptions>> = {
+    classic: {
+        layout: {
+            templates: 'classic',
+            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
+            sectionTitles: {
+                personalInfo: 'Personal Info',
+                workExperience: 'Work Experience',
+                education: 'Education',
+                skills: 'Technical Skills',
+                projects: 'Projects',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
+            },
+            visibleSections: {
+                personalInfo: true,
+                workExperience: true,
+                education: true,
+                skills: true,
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: false
+            }
+        },
+        colors: {
+            accent: '#000000',
+            text: '#000000',
+            headings: '#0074E3',
+        },
+        spacing: {
+            fontSize: 10.5,
+            lineHeight: 1.25,
+            sectionGap: 24,
+            margins: { left: 10, right: 10, top: 10, bottom: 10 }
+        },
+        font: {
+            family: 'serif',
+            specificFont: 'Times New Roman',
+        },
+        header: {
+            nameSize: 'l',
+            nameBold: false,
+            jobTitleSize: 'm',
+            showPhoto: false,
+            headerFont: 'Times New Roman',
+            alignment: 'center',
+        },
+        sectionTitles: {
+            size: 'm',
+            style: 'uppercase',
+            bold: true,
+            decoration: 'underline',
+        },
+        showSummary: false,
+    },
+    modern: {
+        layout: {
+            templates: 'modern',
+            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
+            sectionTitles: {
+                personalInfo: 'About',
+                workExperience: 'Experience',
+                education: 'Education',
+                skills: 'Skills',
+                projects: 'Projects',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
+            },
+            visibleSections: {
+                personalInfo: true,
+                workExperience: true,
+                education: true,
+                skills: true,
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: false
+            }
+        },
+        colors: {
+            accent: '#0074E3',
+            text: '#2E3A59',
+            headings: '#1c398e',
+        },
+        spacing: {
+            fontSize: 10.5,
+            lineHeight: 1.3,
+            sectionGap: 20,
+            margins: { left: 12, right: 12, top: 12, bottom: 12 }
+        },
+        font: {
+            family: 'sans',
+            specificFont: 'Inter',
+        },
+        header: {
+            nameSize: 'xl',
+            nameBold: true,
+            jobTitleSize: 'l',
+            showPhoto: true,
+            photoSize: 'medium',
+            headerFont: 'Times New Roman',
+            alignment: 'left',
+        },
+        sectionTitles: {
+            size: 'l',
+            style: 'normal',
+            bold: true,
+            decoration: 'bottomBorder',
+        },
+        showSummary: true,
+    },
+    minimal: {
+        layout: {
+            templates: 'minimal',
+            sectionOrder: ['personalInfo', 'projects', 'education', 'skills', 'achievements', 'publications', 'certifications'],
+            sectionTitles: {
+                personalInfo: 'Contact',
+                projects: 'Projects',
+                education: 'Education',
+                skills: 'Skills',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
+            },
+            visibleSections: {
+                personalInfo: true,
+                workExperience: false,
+                education: true,
+                skills: true,
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: true
+            }
+        },
+        colors: {
+            accent: '#666666',
+            text: '#333333',
+            headings: '#000000',
+        },
+        spacing: {
+            fontSize: 10,
+            lineHeight: 1.3,
+            sectionGap: 16,
+            margins: { left: 15, right: 15, top: 15, bottom: 15 }
+        },
+        font: {
+            family: 'sans',
+            specificFont: 'Helvetica',
+        },
+        header: {
+            nameSize: 'm',
+            nameBold: false,
+            jobTitleSize: 's',
+            showPhoto: false,
+            headerFont: 'Times New Roman',
+            alignment: 'left',
+        },
+        sectionTitles: {
+            size: 's',
+            style: 'uppercase',
+            bold: false,
+            decoration: 'clean',
+        },
+        showSummary: true,
+    },
+    professional: {
+        layout: {
+            templates: 'professional',
+            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
+            sectionTitles: {
+                personalInfo: 'Professional Summary',
+                workExperience: 'Professional Experience',
+                education: 'Education',
+                skills: 'Core Competencies',
+                projects: 'Key Projects',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
+            },
+            visibleSections: {
+                personalInfo: true,
+                workExperience: true,
+                education: true,
+                skills: true,
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: false
+            }
+        },
+        colors: {
+            accent: '#000000',
+            text: '#495057',
+            headings: '#1c398e',
+        },
+        spacing: {
+            fontSize: 10,
+            lineHeight: 1.15,
+            sectionGap: 22,
+            margins: { left: 12, right: 12, top: 12, bottom: 12 }
+        },
+        font: {
+            family: 'serif',
+            specificFont: 'Georgia',
+        },
+        header: {
+            nameSize: 'l',
+            nameBold: true,
+            jobTitleSize: 'm',
+            showPhoto: false,
+            headerFont: 'Times New Roman',
+            alignment: 'center',
+        },
+        sectionTitles: {
+            size: 'm',
+            style: 'uppercase',
+            bold: true,
+            decoration: 'underline',
+        },
+        showSummary: true,
+    },
+    creative: {
+        layout: {
+            templates: 'creative',
+            sectionOrder: ['personalInfo', 'workExperience', 'education', 'skills', 'projects', 'achievements', 'publications', 'certifications'],
+            sectionTitles: {
+                personalInfo: 'About Me',
+                workExperience: 'Work History',
+                education: 'Academic Background',
+                skills: 'Expertise',
+                projects: 'Portfolio',
+                achievements: 'Achievements',
+                publications: 'Publications',
+                certifications: 'Certifications'
+            },
+            visibleSections: {
+                personalInfo: true,
+                workExperience: true,
+                education: true,
+                skills: true,
+                projects: true,
+                achievements: false,
+                publications: false,
+                certifications: false
+            }
+        },
+        colors: {
+            accent: '#e83e8c',
+            text: '#495057',
+            headings: '#343a40',
+        },
+        spacing: {
+            fontSize: 10.5,
+            lineHeight: 1.3,
+            sectionGap: 28,
+            margins: { left: 14, right: 14, top: 14, bottom: 14 }
+        },
+        font: {
+            family: 'sans',
+            specificFont: 'Poppins',
+        },
+        header: {
+            nameSize: 'xl',
+            nameBold: true,
+            jobTitleSize: 'l',
+            showPhoto: true,
+            photoSize: 'large',
+            headerFont: 'Times New Roman',
+            alignment: 'center',
+        },
+        sectionTitles: {
+            size: 'l',
+            style: 'capitalize',
+            bold: true,
+            decoration: 'fullBorder',
+        },
+        showSummary: true,
+    },
 }; 
