@@ -2,7 +2,6 @@ import { Brush, Pen } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
-import StorageLimitModal from '../../../components/modals/StorageLimitModal';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { ResumeData, initialResumeData } from '../../../types/resume';
 import { exportResumeToPDF } from '../../../utils/resumeExport';
@@ -29,6 +28,7 @@ const CreateResume: React.FC = () => {
         setFieldVisibility,
         setEnhancedResumeData,
         setShouldShowSaveModal,
+        setSelectedDocument,
         save: { isSavingDraft }
     } = useResumeState();
     const [activeTab, setActiveTab] = useState<string>('content');
@@ -36,7 +36,6 @@ const CreateResume: React.FC = () => {
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-    const [isStorageLimitModalOpen, setIsStorageLimitModalOpen] = useState(false);
 
     // Check if this is an existing resume (has been saved before with a title)
     const isExistingResume = selectedDocument?.title;
@@ -48,18 +47,8 @@ const CreateResume: React.FC = () => {
         }
     }, [selectedDocument, resumeData, setResumeData]);
 
-    // Auto-show save modal when coming from enhancement flow
-    useEffect(() => {
-        if (
-            resumeData &&
-            Object.keys(resumeData).length > 0 &&
-            !selectedDocument &&
-            resumeData.personalInfo?.name &&
-            resumeData.personalInfo.name !== 'Alex Johnson'
-        ) {
-            setShouldShowSaveModal(true);
-        }
-    }, [resumeData, selectedDocument, setShouldShowSaveModal]);
+
+
 
     // Create handlers object from store actions
     const handlers = {
@@ -481,6 +470,9 @@ const CreateResume: React.FC = () => {
                 certifications: [],
             };
 
+            // Clear selected document to treat this as a new resume
+            setSelectedDocument(null);
+
             // Update resume data with the enhanced content
             setResumeData(convertedData);
 
@@ -489,7 +481,7 @@ const CreateResume: React.FC = () => {
         } catch (error) {
             console.error('Error loading enhanced resume data:', error);
         }
-    }, [enhancedResumeData, setResumeData, setEnhancedResumeData]);
+    }, [enhancedResumeData, setResumeData, setEnhancedResumeData, setSelectedDocument]);
 
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
@@ -548,14 +540,6 @@ const CreateResume: React.FC = () => {
                 isOpen={isExportModalOpen}
                 onClose={() => setIsExportModalOpen(false)}
                 onConfirm={handleConfirmExport}
-            />
-            <StorageLimitModal
-                isOpen={isStorageLimitModalOpen}
-                onClose={() => setIsStorageLimitModalOpen(false)}
-                onPurchaseSuccess={() => {
-                    setIsStorageLimitModalOpen(false);
-                    // Optionally retry the save operation
-                }}
             />
 
             <div className="flex-1 p-6 pb-0 overflow-hidden">

@@ -1,160 +1,20 @@
-import { Briefcase, Coins, FileEdit, FileSearch, FileText, GraduationCap, HardDrive, History, Lightbulb, MessageSquare, Plus, RefreshCw, Settings, Sparkles, Target, Wallet } from 'lucide-react'
+import { Briefcase, FileText, Plus, Timer } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { DeleteConfirmModal } from '../components/dashboard/DeleteConfirmModal'
 import { ResumeCard, ResumeCardSkeleton } from '../components/dashboard/ResumeCard'
 import { StatsCard } from '../components/dashboard/StatsCard'
-import BuyTokenModal from '../components/modals/BuyTokenModal'
-import Button from '../components/ui/Button'
 import { useDeleteResume, useResumeVersions, useSaveResume } from '../hooks/queries/useResumeQueries'
-import { useTokenActions, useTokenBalance, useTokenTransactions } from '../hooks/queries/useTokenQueries'
+import { useStorageAndActionInfo } from '../hooks/queries/useStorageQueries'
+import { useAuth } from '../hooks/useAuth'
 import { useResumeStore } from '../store/resumeStore'
-import { useUserStore } from '../store/userStore'
 import { defaultCustomizationOptions, initialResumeData, ResumeData } from '../types/resume'
 import type { EnhancedResumeData } from '../utils/types'
 
-declare global {
-    interface Window {
-        Razorpay: any;
-    }
-}
-
-const getActionDetails = (actionId: string, tokenActions: Record<string, any> = {}) => {
-    const formatActionText = (text: string) => {
-        return text
-            .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    };
-
-    // Check if we have dynamic action data from backend
-    const dynamicAction = tokenActions[actionId];
-    if (dynamicAction) {
-        // Use dynamic action data with fallback icons
-        const getIconForCategory = (category: string) => {
-            switch (category.toLowerCase()) {
-                case 'resume': return FileEdit;
-                case 'analysis': return FileSearch;
-                case 'enhancement': return Sparkles;
-                case 'advice': return Lightbulb;
-                case 'preparation': return MessageSquare;
-                case 'development': return GraduationCap;
-                case 'search': return Briefcase;
-                case 'storage': return HardDrive;
-                default: return Settings;
-            }
-        };
-
-        const getColorForCategory = (category: string) => {
-            switch (category.toLowerCase()) {
-                case 'resume': return { bg: 'bg-pink-50', text: 'text-pink-600' };
-                case 'analysis': return { bg: 'bg-orange-50', text: 'text-orange-600' };
-                case 'enhancement': return { bg: 'bg-purple-50', text: 'text-purple-600' };
-                case 'advice': return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
-                case 'preparation': return { bg: 'bg-green-50', text: 'text-green-600' };
-                case 'development': return { bg: 'bg-indigo-50', text: 'text-indigo-600' };
-                case 'search': return { bg: 'bg-cyan-50', text: 'text-cyan-600' };
-                case 'storage': return { bg: 'bg-blue-50', text: 'text-blue-600' };
-                default: return { bg: 'bg-slate-50', text: 'text-slate-600' };
-            }
-        };
-
-        const colors = getColorForCategory(dynamicAction.category);
-        return {
-            text: dynamicAction.name,
-            icon: getIconForCategory(dynamicAction.category),
-            iconBgColor: colors.bg,
-            iconColor: colors.text
-        };
-    }
-
-    // Fallback to hardcoded cases for special actions
-    switch (actionId) {
-        case 'add_token':
-            return {
-                text: 'Credited',
-                icon: Wallet,
-                iconBgColor: 'bg-emerald-50',
-                iconColor: 'text-emerald-600'
-            };
-        case 'initial_balance':
-            return {
-                text: 'Initial Balance',
-                icon: Wallet,
-                iconBgColor: 'bg-emerald-50',
-                iconColor: 'text-emerald-600'
-            };
-        case 'resume_enhancement':
-            return {
-                text: 'Resume Enhancement',
-                icon: Sparkles,
-                iconBgColor: 'bg-purple-50',
-                iconColor: 'text-purple-600'
-            };
-        case 'job_description_analysis':
-            return {
-                text: 'Job Description Analysis',
-                icon: Target,
-                iconBgColor: 'bg-blue-50',
-                iconColor: 'text-blue-600'
-            };
-        case 'career_advice':
-            return {
-                text: 'Career Advice',
-                icon: Lightbulb,
-                iconBgColor: 'bg-yellow-50',
-                iconColor: 'text-yellow-600'
-            };
-        case 'interview_prep':
-            return {
-                text: 'Interview Preparation',
-                icon: MessageSquare,
-                iconBgColor: 'bg-green-50',
-                iconColor: 'text-green-600'
-            };
-        case 'skill_development':
-            return {
-                text: 'Skill Development',
-                icon: GraduationCap,
-                iconBgColor: 'bg-indigo-50',
-                iconColor: 'text-indigo-600'
-            };
-        case 'resume_template':
-            return {
-                text: 'Resume Template',
-                icon: FileEdit,
-                iconBgColor: 'bg-pink-50',
-                iconColor: 'text-pink-600'
-            };
-        case 'job_search':
-            return {
-                text: 'Job Search',
-                icon: Briefcase,
-                iconBgColor: 'bg-cyan-50',
-                iconColor: 'text-cyan-600'
-            };
-        case 'resume_analysis':
-            return {
-                text: 'Resume Analysis',
-                icon: FileSearch,
-                iconBgColor: 'bg-orange-50',
-                iconColor: 'text-orange-600'
-            };
-        default:
-            // Generic fallback for unknown actions
-            return {
-                text: formatActionText(actionId),
-                icon: Settings,
-                iconBgColor: 'bg-slate-50',
-                iconColor: 'text-slate-600'
-            };
-    }
-};
-
 const Dashboard = () => {
     const navigate = useNavigate()
-    const { user, isAuthenticated } = useUserStore()
+    const { user, isAuthenticated } = useAuth()
     const { documents, setDocuments, setResumeData, setCustomizationOptions, setSelectedDocument, resetStore } = useResumeStore()
     const [activeTab, setActiveTab] = useState<'resumes' | 'cover-letters'>('resumes')
     const [editingTitle, setEditingTitle] = useState<string | null>(null)
@@ -165,16 +25,12 @@ const Dashboard = () => {
     })
 
     // React Query hooks
-    const { data: tokenBalance = 0, isLoading: isBalanceLoading, error } = useTokenBalance()
-    const { data: transactions = [], isLoading: historyLoading } = useTokenTransactions()
     const { data: resumeVersions, isLoading: isResumeVersionsLoading, refetch: refetchResumeVersions } = useResumeVersions()
-    const { data: tokenActions = {} } = useTokenActions()
+    const { storageInfo, isLoading: isStorageLoading } = useStorageAndActionInfo()
     const deleteResumeMutation = useDeleteResume()
     const saveResumeMutation = useSaveResume()
 
     const isLoading = isResumeVersionsLoading && isAuthenticated && user
-    const [buyModalOpen, setBuyModalOpen] = useState(false)
-    const [historyModalOpen, setHistoryModalOpen] = useState(false)
 
     // Refetch resume versions when component mounts to ensure fresh data
     useEffect(() => {
@@ -568,12 +424,19 @@ const Dashboard = () => {
             toast.success('Title updated successfully')
         } catch (error) {
             console.error('Failed to update title:', error)
-            toast.error('Failed to update title')
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update title';
+
+            if (errorMessage.includes('Resume version not found') || errorMessage.includes('404')) {
+                toast.error('Resume not found. It may have been deleted.');
+                // Refresh the resume list to remove the deleted resume
+                refetchResumeVersions();
+            } else {
+                toast.error('Failed to update title');
+            }
         } finally {
             setEditingTitle(null)
         }
     }
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
             {!isAuthenticated || !user ? (
@@ -595,7 +458,27 @@ const Dashboard = () => {
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
                         <StatsCard
                             title="Total Resumes"
-                            value={resumes.length}
+                            value={
+                                isStorageLoading ? (
+                                    <div className="flex items-center space-x-2">
+                                        <div className="animate-pulse h-8 w-20 bg-slate-200 rounded-lg"></div>
+                                        <span className="text-sm text-slate-500">/</span>
+                                        <div className="animate-pulse h-8 w-16 bg-slate-200 rounded-lg"></div>
+                                    </div>
+                                ) : storageInfo ? (
+                                    <div className="flex items-center space-x-2">
+                                        <span className="font-semibold text-lg text-slate-900">
+                                            {resumes.length}
+                                        </span>
+                                        <span className="text-sm text-slate-500">/</span>
+                                        <span className="font-semibold text-lg text-slate-900">
+                                            {storageInfo.total_limit}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <span className="font-semibold text-lg text-slate-900">{resumes.length}</span>
+                                )
+                            }
                             icon={FileText}
                             iconBgColor="bg-blue-100"
                             iconColor="text-blue-600"
@@ -606,58 +489,6 @@ const Dashboard = () => {
                             icon={Briefcase}
                             iconBgColor="bg-green-100"
                             iconColor="text-green-600"
-                        />
-                        <StatsCard
-                            title="Token Balance"
-                            value={
-                                isBalanceLoading ? (
-                                    <div className="flex items-center space-x-2">
-                                        <div className="animate-pulse h-8 w-20 bg-slate-200 rounded-lg"></div>
-                                        <div className="animate-pulse h-4 w-4 bg-slate-200 rounded-full"></div>
-                                    </div>
-                                ) : error ? (
-                                    <div className="flex items-center space-x-2">
-                                        <span className="text-red-500 text-sm font-medium">{error}</span>
-                                        <button
-                                            onClick={() => window.location.reload()}
-                                            className="p-1 hover:bg-red-50 rounded-full transition-colors"
-                                            title="Retry"
-                                        >
-                                            <RefreshCw className="h-4 w-4 text-red-500" />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center space-x-2">
-                                        <span className="font-semibold text-lg bg-gradient-to-r from-yellow-600 to-yellow-500 bg-clip-text text-transparent">
-                                            {tokenBalance}
-                                        </span>
-                                        <span className="text-sm text-slate-500">tokens</span>
-                                    </div>
-                                )
-                            }
-                            icon={Coins}
-                            iconBgColor="bg-gradient-to-br from-yellow-100 to-yellow-50"
-                            iconColor="text-yellow-600"
-                            actions={
-                                <div className="flex items-center space-x-2">
-                                    <Button
-                                        onClick={() => setBuyModalOpen(true)}
-                                        className="group relative px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md flex items-center space-x-2"
-                                        rightIcon={<Plus className="h-4 w-4 group-hover:scale-110 transition-transform" />}
-                                    >
-                                        Buy
-                                    </Button>
-                                    <Button
-                                        onClick={() => setHistoryModalOpen(true)}
-                                        variant="ghost"
-                                        className="group p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-                                        title="Transaction History"
-                                        rightIcon={<History className="h-4 w-4 group-hover:scale-110 transition-transform" />}
-                                    >
-                                        <span className="sr-only">Transaction History</span>
-                                    </Button>
-                                </div>
-                            }
                         />
                     </div>
 
@@ -755,11 +586,12 @@ const Dashboard = () => {
                                 <h3 className="text-lg font-medium text-slate-900 mb-1">No Cover Letters yet</h3>
                                 <p className="text-slate-500 mb-6">Create your first cover letter to get started</p>
                                 <button
+                                    disabled
                                     onClick={handleCreateResume}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                    className="inline-flex cursor-progress items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                 >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Create Letter
+                                    <Timer className="h-4 w-4 mr-2" />
+                                    Coming soon
                                 </button>
                             </div>
                         )}
@@ -779,84 +611,6 @@ const Dashboard = () => {
                 }}
             />
 
-            {/* Buy Tokens Modal */}
-            <BuyTokenModal
-                isOpen={buyModalOpen}
-                onClose={() => setBuyModalOpen(false)}
-                title="Buy Tokens"
-                description="Purchase tokens to unlock premium features and services."
-            />
-
-            {/* Transaction History Modal */}
-            {historyModalOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[64vh] flex flex-col">
-                        <div className="flex justify-between items-center p-5 border-b border-slate-100">
-                            <div className="flex items-center gap-2.5">
-                                <div className="flex-shrink-0 bg-blue-50 rounded-xl p-3">
-                                    <History className="h-6 w-6 text-blue-600" />
-                                </div>
-                                <h3 className="text-base font-semibold text-slate-900">Transaction History</h3>
-                            </div>
-                            <button
-                                onClick={() => setHistoryModalOpen(false)}
-                                className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-lg"
-                            >
-                                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div className="p-5 overflow-y-auto flex-1">
-                            {historyLoading ? (
-                                <div className="flex justify-center items-center py-10">
-                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                                </div>
-                            ) : transactions.length === 0 ? (
-                                <div className="text-center py-10">
-                                    <div className="flex-shrink-0 bg-slate-50 rounded-xl p-3 inline-block mb-3">
-                                        <History className="h-6 w-6 text-slate-600" />
-                                    </div>
-                                    <p className="text-slate-500 text-base font-medium">No transactions yet</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-2.5">
-                                    {transactions.map((transaction) => {
-                                        const actionDetails = getActionDetails(transaction.action_id, tokenActions);
-                                        const Icon = actionDetails.icon;
-                                        return (
-                                            <div
-                                                key={transaction.id}
-                                                className="flex items-center justify-between p-3.5 bg-slate-50/50 rounded-xl hover:bg-slate-100/50 transition-all duration-200 border border-slate-100 hover:border-slate-200 hover:shadow-sm"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`flex-shrink-0 ${actionDetails.iconBgColor} rounded-xl p-3`}>
-                                                        <Icon className={`h-6 w-6 ${actionDetails.iconColor}`} />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-medium text-slate-900 text-base">{actionDetails.text}</p>
-                                                        <p className="text-sm text-slate-500 mt-0.5">
-                                                            {new Date(transaction.timestamp).toLocaleString()}
-                                                        </p>
-                                                        <p className="text-xs text-slate-400 mt-0.5">
-                                                            Balance: {transaction.available_token || '-'} {transaction.available_token && <Coins className="inline-block h-3 w-3" />}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex flex-col items-end">
-                                                    <div className={`font-semibold text-base ${transaction.action_id === 'add_token' || transaction.action_id === 'initial_balance' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                                        {transaction.action_id === 'add_token' || transaction.action_id === 'initial_balance' ? '+' : '-'}{Math.abs(transaction.token)} <Coins className="inline-block h-4 w-4 text-amber-500" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }

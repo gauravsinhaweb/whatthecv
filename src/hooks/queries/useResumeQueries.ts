@@ -4,11 +4,11 @@ import { resumeService } from '../../services/resumeService'
 import { queryKeys } from '../../lib/queryClient'
 import { handleApiError } from '../../services/apiService'
 import type { ResumeData } from '../../types/resume'
-import { useUserStore } from '../../store/userStore'
+import { useAuth } from '../useAuth'
 
 // Resume versions queries
 export const useResumeVersions = () => {
-    const { isAuthenticated } = useUserStore()
+    const { isAuthenticated } = useAuth()
 
     return useQuery({
         queryKey: queryKeys.resumes.versions(),

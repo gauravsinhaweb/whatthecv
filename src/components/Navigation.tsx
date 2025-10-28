@@ -1,45 +1,39 @@
-import { ChevronDown, FileDown, FileText, Loader2, LogIn, LogOut, Menu, Save, Settings, Upload, User, X, Coins, RefreshCw } from 'lucide-react';
+import { ChevronDown, FileDown, FileText, Loader2, LogIn, LogOut, Menu, Save, Settings, Upload, User, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useStorageAndActionInfo } from '../hooks/queries/useStorageQueries';
-import { useTokenActions } from '../hooks/useTokenActions';
-import { useTokenBalance, useBuyTokens } from '../hooks/queries/useTokenQueries';
-import { useSaveResume, useResumeVersions } from '../hooks/queries/useResumeQueries';
-import { getSession, getUser, signInWithGoogle, signOut } from '../lib/supabase';
+import { useSaveResume } from '../hooks/queries/useResumeQueries';
+import { useAuth } from '../hooks/useAuth';
 import { getPageFromPath } from '../routes';
+import { resumeService } from '../services/resumeService';
 import { useResumeStore } from '../store/resumeStore';
-import { useUserStore } from '../store/userStore';
 import { exportResumeToPDF } from '../utils/resumeExport';
-import { removeToken } from '../utils/storage';
 import { isSuperUser } from '../utils/superuser';
-import StorageLimitModal from './modals/StorageLimitModal';
+import SaveResumeModal from './modals/SaveResumeModal';
+import SignInModal from './modals/SignInModal';
 import AutoSaveIndicator from './ui/AutoSaveIndicator';
 import Button from './ui/Button';
 import ExportConfirmationModal from './ui/ExportConfirmationModal';
-import SaveResumeModal from './modals/SaveResumeModal';
-import { resumeService } from '../services/resumeService';
 
 const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [resumeTitle, setResumeTitle] = useState('');
-  const [isStorageLimitModalOpen, setIsStorageLimitModalOpen] = useState(false);
   const [saveMode, setSaveMode] = useState<'new' | 'replace'>('new');
   const [userResumes, setUserResumes] = useState<any[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>('');
   const [isLoadingResumes, setIsLoadingResumes] = useState(false);
-  const [pendingSaveAfterPurchase, setPendingSaveAfterPurchase] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = getPageFromPath(location.pathname);
   const isCreateResumePage = location.pathname === '/create-resume';
-  const { user, isAuthenticated, setUser, setIsAuthenticated, setLoginError } = useUserStore();
+
+  const { user, isAuthenticated, isLoading: authLoading, error: authError, signIn, signOut, clearError } = useAuth();
   const {
     resumeData,
     selectedDocument,
@@ -48,23 +42,13 @@ const Navigation: React.FC = () => {
     ui,
     setShouldShowSaveModal
   } = useResumeStore();
-  const { actionInfo, storageInfo, refetch: refetchStorageInfo } = useStorageAndActionInfo();
-  const { executeAction } = useTokenActions();
-  const { data: tokenBalance = 0, refetch: refreshBalance } = useTokenBalance();
-  const buyTokensMutation = useBuyTokens();
   const saveResumeMutation = useSaveResume();
-  const [buyModalOpen, setBuyModalOpen] = useState(false);
-  const [buyAmount, setBuyAmount] = useState(100);
-
-  // Get the resume storage action info
-  const resumeStorageAction = actionInfo;
 
   // Centralized modal management
   const closeAllModals = () => {
     setIsSaveModalOpen(false);
-    setIsStorageLimitModalOpen(false);
-    setBuyModalOpen(false);
     setIsExportModalOpen(false);
+    setIsSignInModalOpen(false);
     setResumeTitle('');
     setSelectedResumeId('');
     setSaveMode('new');
@@ -72,49 +56,24 @@ const Navigation: React.FC = () => {
 
   const openSaveModal = () => {
     closeAllModals();
+
+    // Pre-populate title if we have an existing resume
+    if (selectedDocument?.id && selectedDocument?.title) {
+      setResumeTitle(selectedDocument.title);
+    } else {
+      setResumeTitle('');
+    }
+
     setIsSaveModalOpen(true);
   };
 
-  const openBuyModal = (amount: number = 100) => {
-    closeAllModals();
-    setBuyAmount(amount);
-    setBuyModalOpen(true);
-  };
 
-  const openStorageLimitModal = () => {
-    closeAllModals();
-    setIsStorageLimitModalOpen(true);
-  };
-
-  // Handle successful token purchase
-  const handleTokenPurchaseSuccess = async () => {
-    closeAllModals();
-    await refreshBalance();
-
-    // If there was a pending save operation, retry it
-    if (pendingSaveAfterPurchase) {
-      setPendingSaveAfterPurchase(false);
-      // Small delay to ensure balance is updated
-      setTimeout(() => {
-        handleSaveClick();
-      }, 500);
-    }
-  };
-
-  // Override the setBuyModalOpen to handle modal flow
-  const handleSetBuyModalOpen = (open: boolean) => {
-    if (!open) {
-      closeAllModals();
-    } else {
-      setBuyModalOpen(true);
-    }
-  };
 
   const handleSaveClick = () => {
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
       toast.error('Please sign in to save your resume');
-      handleLogin();
+      signIn();
       return;
     }
 
@@ -134,36 +93,11 @@ const Navigation: React.FC = () => {
       return;
     }
 
-    // If we have a selected document with a meaningful title, save directly
-    if (selectedDocument?.title && selectedDocument.title !== 'Untitled') {
-      handleSaveDraftDirect();
-    } else {
-      // For new resumes or untitled resumes, show the modal
-      openSaveModal();
-    }
+    // Always show the save modal
+    // The modal will handle different scenarios based on whether we have an existing resume ID
+    openSaveModal();
   };
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { session } = await getSession();
-      if (session) {
-        const user = await getUser();
-        setUser({
-          id: user.id,
-          email: user.email || '',
-          name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
-          avatar_url: user.user_metadata?.picture || user.user_metadata?.avatar_url || '',
-          created_at: user.created_at,
-          updated_at: user.updated_at
-        });
-        setIsAuthenticated(true);
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-      }
-    };
-    checkAuth();
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -185,28 +119,25 @@ const Navigation: React.FC = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      setIsAuthenticated(false);
-      setUser(null);
       setShowUserMenu(false);
-      removeToken();
-      setLoginError(null);
-      navigate('/');
       useResumeStore.getState().resetStore();
     } catch (error) {
       console.error('Logout error:', error);
-      setLoginError('Failed to logout');
+      toast.error('Failed to logout');
     }
   };
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
+    setIsSignInModalOpen(true);
+  };
+
+  const handleSignIn = async () => {
     try {
-      setIsLoading(true);
-      setLoginError(null);
-      await signInWithGoogle();
+      await signIn();
+      setIsSignInModalOpen(false);
     } catch (error) {
       console.error('Login error:', error);
-      setLoginError('Failed to initiate login');
-      setIsLoading(false);
+      toast.error('Failed to login');
     }
   };
 
@@ -221,49 +152,45 @@ const Navigation: React.FC = () => {
     }
   };
 
-  const handleSaveDraftWithTitle = async () => {
-    // Validate title
-    if (!resumeTitle.trim()) {
+  const handleSaveDraftWithTitle = async (): Promise<void> => {
+    // For new resumes, title is required
+    if (!selectedDocument?.id && !resumeTitle.trim()) {
       toast.error('Please enter a resume title');
       return;
     }
 
-    // Validate title length
-    if (resumeTitle.trim().length > 100) {
+    // Validate title length if provided
+    if (resumeTitle.trim() && resumeTitle.trim().length > 100) {
       toast.error('Resume title must be less than 100 characters');
       return;
     }
 
-    // Check for duplicate titles
-    const isDuplicate = userResumes.some(resume =>
-      resume.title.toLowerCase() === resumeTitle.trim().toLowerCase()
-    );
+    // Check for duplicate titles only for new resumes
+    if (!selectedDocument?.id) {
+      const isDuplicate = userResumes.some(resume =>
+        resume.title.toLowerCase() === resumeTitle.trim().toLowerCase()
+      );
 
-    if (isDuplicate) {
-      toast.error('A resume with this title already exists. Please choose a different title.');
-      return;
+      if (isDuplicate) {
+        toast.error('A resume with this title already exists. Please choose a different title.');
+        return;
+      }
     }
 
     let saveToast: string | undefined;
     try {
       saveToast = toast.loading('Saving your resume...');
 
-      if (storageInfo && !storageInfo.can_create_new) {
-        // Use the generic token execution flow (like AnalysisDashboard)
-        await executeAction('resume_storage_space', async () => {
-          return saveResumeMutation.mutateAsync({
-            resumeData,
-            title: resumeTitle.trim(),
-            customizationOptions,
-          });
-        });
-      } else {
-        await saveResumeMutation.mutateAsync({
-          resumeData,
-          title: resumeTitle.trim(),
-          customizationOptions,
-        });
-      }
+      // Determine if this is an existing resume update
+      const isExistingResume = !!selectedDocument?.id;
+      const titleToUse = resumeTitle.trim() || selectedDocument?.title || 'Untitled Resume';
+
+      await saveResumeMutation.mutateAsync({
+        resumeData,
+        title: titleToUse,
+        customizationOptions,
+        resumeId: isExistingResume ? selectedDocument.id : undefined,
+      });
 
       toast.dismiss(saveToast);
       toast.success('Resume saved successfully!');
@@ -279,92 +206,26 @@ const Navigation: React.FC = () => {
 
       const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
 
-      if (errorMessage.includes('Storage limit reached')) {
-        toast.error('Storage limit reached. Please upgrade your plan or delete some resumes.');
-        openStorageLimitModal();
-      } else if (errorMessage.includes('Failed to reserve tokens') || errorMessage.includes('Insufficient tokens')) {
-        toast.error('Insufficient tokens. Please purchase more tokens to continue.');
-        setPendingSaveAfterPurchase(true);
-        openBuyModal(100);
-      } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
+      if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
         toast.error('Network error. Please check your connection and try again.');
+        closeAllModals();
       } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
         toast.error('Session expired. Please sign in again.');
         handleLogout();
-      } else if (errorMessage.includes('Token reservation expired') || errorMessage.includes('released')) {
-        toast.error('Save operation timed out. Please try again.');
-      } else {
-        toast.error(`Save failed: ${errorMessage}`);
-      }
-
-      // Close modal on any error to reset state
-      closeAllModals();
-    }
-  };
-
-  const handleSaveDraftDirect = async () => {
-    const title = selectedDocument?.title;
-    const id = selectedDocument?.id;
-    if (!id || !title || title.trim() === '' || title === 'Untitled') {
-      openSaveModal();
-      return;
-    }
-
-    let saveToast: string | undefined;
-    try {
-      // Show saving indicator
-      saveToast = toast.loading('Saving your resume...');
-
-      // For existing resumes, no token deduction is needed
-      await saveResumeMutation.mutateAsync({
-        resumeData,
-        title,
-        customizationOptions,
-        resumeId: id,
-      });
-
-      // Dismiss loading toast and show success
-      toast.dismiss(saveToast);
-      toast.success('Resume saved successfully!');
-
-      // Update last saved time in store
-      useResumeStore.getState().setSavingState({
-        isSavingDraft: false,
-        lastSavedTime: new Date()
-      });
-    } catch (error) {
-      console.error('Failed to save draft:', error);
-
-      // Always dismiss the loading toast
-      if (saveToast) {
-        toast.dismiss(saveToast);
-      }
-
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
-
-      // Handle different types of errors
-      if (errorMessage.includes('Storage limit reached')) {
-        toast.error('Storage limit reached. Please upgrade your plan or delete some resumes.');
-        openStorageLimitModal();
-      } else if (errorMessage.includes('Insufficient tokens') || errorMessage.includes('Failed to reserve tokens')) {
-        toast.error('Insufficient tokens. Please purchase more tokens to continue.');
-        setPendingSaveAfterPurchase(true);
-        openBuyModal(100);
-      } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
-        toast.error('Network error. Please check your connection and try again.');
-      } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
-        toast.error('Session expired. Please sign in again.');
-        handleLogout();
-      } else if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
+      } else if (errorMessage.includes('Resume version not found') || errorMessage.includes('404')) {
         toast.error('Resume not found. It may have been deleted. Please save as a new resume.');
-        openSaveModal();
-      } else if (errorMessage.includes('Token reservation expired') || errorMessage.includes('released')) {
-        toast.error('Save operation timed out. Please try again.');
+        // Clear the selected document since it doesn't exist
+        useResumeStore.getState().setSelectedDocument(null);
+        closeAllModals();
       } else {
         toast.error(`Save failed: ${errorMessage}`);
+        // Close modal on other errors to reset state
+        closeAllModals();
       }
     }
   };
+
+
 
   const fetchUserResumes = async () => {
     try {
@@ -403,15 +264,18 @@ const Navigation: React.FC = () => {
       return;
     }
 
+    // Find the original resume to get its title
+    const originalResume = userResumes.find(resume => resume.id === selectedResumeId);
+    const titleToUse = resumeTitle.trim() || originalResume?.title || 'Untitled Resume';
+
     let saveToast: string | undefined;
     try {
       // Show saving indicator
       saveToast = toast.loading('Updating your resume...');
 
-      // For replacing existing resumes, no token deduction is needed
       await saveResumeMutation.mutateAsync({
         resumeData,
-        title: resumeTitle.trim() || 'Updated Resume',
+        title: titleToUse,
         customizationOptions,
         resumeId: selectedResumeId,
       });
@@ -434,7 +298,7 @@ const Navigation: React.FC = () => {
 
       const errorMessage = error instanceof Error ? error.message : 'Failed to update resume';
 
-      if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
+      if (errorMessage.includes('Not Found') || errorMessage.includes('404') || errorMessage.includes('Resume version not found')) {
         toast.error('Selected resume not found. It may have been deleted. Please try again.');
         fetchUserResumes();
       } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
@@ -442,8 +306,6 @@ const Navigation: React.FC = () => {
         handleLogout();
       } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
         toast.error('Network error. Please check your connection and try again.');
-      } else if (errorMessage.includes('Token reservation expired') || errorMessage.includes('released')) {
-        toast.error('Update operation timed out. Please try again.');
       } else {
         toast.error(`Update failed: ${errorMessage}`);
       }
@@ -452,7 +314,6 @@ const Navigation: React.FC = () => {
       closeAllModals();
     }
   };
-
   const navItems = [
     ...(isAuthenticated && user ? [{
       name: 'Dashboard',
@@ -479,7 +340,7 @@ const Navigation: React.FC = () => {
     //   page: 'recruiter-coming-soon',
     // },
   ];
-
+  console.log('auth', user, isAuthenticated)
   const handleNavigation = (path: string) => {
     navigate(path);
     setIsMobileMenuOpen(false);
@@ -511,12 +372,6 @@ const Navigation: React.FC = () => {
         onClose={() => setIsExportModalOpen(false)}
         onConfirm={handleConfirmExport}
       />
-      <StorageLimitModal
-        isOpen={isStorageLimitModalOpen}
-        onClose={closeAllModals}
-        onPurchaseSuccess={handleTokenPurchaseSuccess}
-      />
-
       {/* Save Draft Modal */}
       <SaveResumeModal
         isOpen={isSaveModalOpen}
@@ -533,70 +388,16 @@ const Navigation: React.FC = () => {
         isLoadingResumes={isLoadingResumes}
         selectedResumeId={selectedResumeId}
         setSelectedResumeId={setSelectedResumeId}
-        tokenAmount={storageInfo && !storageInfo.can_create_new ? resumeStorageAction?.amount : undefined}
+        hasExistingResume={!!selectedDocument?.id}
+      />
+      {/* Sign In Modal */}
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+        onSignIn={handleSignIn}
+        isLoading={authLoading}
       />
 
-      {/* Buy Tokens Modal */}
-      {buyModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-slate-900">Buy Tokens</h3>
-              <button
-                onClick={closeAllModals}
-                className="text-slate-400 hover:text-slate-500"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Amount (₹)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₹</span>
-                  <input
-                    type="number"
-                    value={buyAmount}
-                    onChange={(e) => setBuyAmount(Number((e.target as HTMLInputElement).value))}
-                    className="w-full pl-8 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter amount"
-                    min="5"
-                    step={10}
-                    defaultValue={100}
-                  />
-                </div>
-              </div>
-              <div className="bg-slate-50 p-4 rounded-lg">
-                <p className="text-sm text-slate-600">You will receive {buyAmount} tokens</p>
-              </div>
-              <button
-                onClick={async () => {
-                  try {
-                    await buyTokensMutation.mutateAsync(buyAmount);
-                    // The success handler in useBuyTokens will close the modal and refresh balance
-                    // We'll handle the pending save in the success callback
-                  } catch (error) {
-                    console.error('Payment failed:', error);
-                  }
-                }}
-                disabled={buyTokensMutation.isPending || !buyAmount}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                {buyTokensMutation.isPending ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <Coins className="h-5 w-5 mr-2 text-amber-500" />
-                    Credit Token
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="container mx-auto px-4">
         <div className="flex justify-between h-16">
@@ -711,13 +512,13 @@ const Navigation: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={handleLogin}
-                  disabled={isLoading}
+                  disabled={authLoading}
                   className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-blue-500 hover:underline underline-offset-2 bg-white-600 hover:bg-white-700 focus:outline-none transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading && (
+                  {authLoading && (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   )}
-                  {isLoading ? 'Signing in...' : 'Sign In'}
+                  {authLoading ? 'Signing in...' : 'Sign In'}
                 </button>
               </div>
             )}
@@ -792,7 +593,6 @@ const Navigation: React.FC = () => {
                     onClick={handleSaveClick}
                     disabled={isSavingDraft}
                     isLoading={isSavingDraft}
-                    tokenAmount={storageInfo && !storageInfo.can_create_new ? resumeStorageAction?.amount : undefined}
                     fullWidth
                     size="lg"
                   >

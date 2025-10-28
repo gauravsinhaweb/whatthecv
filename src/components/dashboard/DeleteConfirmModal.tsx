@@ -12,10 +12,10 @@ export const DeleteConfirmModal = ({ isOpen, onClose, onConfirm }: DeleteConfirm
     return (
         <>
             <div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-200"
+                className="fixed inset-0 bg-black/50 z-[55] transition-opacity duration-200"
                 onClick={onClose}
             />
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 transition-all duration-200">
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] transition-all duration-200">
                 <div className="bg-white rounded-xl shadow-2xl p-6 w-[400px] border border-slate-200">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center space-x-3">

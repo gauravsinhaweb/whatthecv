@@ -1,9 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { getStorageInfo, purchaseStorageSpace, getStorageActionInfo } from '../utils/api';
-import { useTokens } from './useTokens';
-import { useTokenActions } from './useTokenActions';
-import { useInsufficientTokens } from './useInsufficientTokens';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../lib/queryClient';
 
 interface StorageInfo {
     free_limit: number;
@@ -29,12 +28,6 @@ interface UseStorageReturn {
     isPurchasing: boolean;
     refreshStorageInfo: () => Promise<void>;
     purchaseSpace: () => Promise<void>;
-    hasSufficientTokens: boolean;
-    requiredTokens: number;
-    isBuyModalOpen: boolean;
-    closeBuyModal: () => void;
-    currentActionId: string | null;
-    onSuccessCallback: (() => void) | null;
 }
 
 export const useStorage = (): UseStorageReturn => {
@@ -43,9 +36,7 @@ export const useStorage = (): UseStorageReturn => {
     const [isLoading, setIsLoading] = useState(true);
     const [isPurchasing, setIsPurchasing] = useState(false);
 
-    const { tokenBalance, refreshBalance } = useTokens();
-    const { getAmount, hasSufficientTokens: checkSufficientTokens } = useTokenActions();
-    const { isBuyModalOpen, closeBuyModal, checkAndHandleInsufficientTokens, currentActionId, onSuccessCallback } = useInsufficientTokens();
+    const queryClient = useQueryClient();
 
     const refreshStorageInfo = useCallback(async () => {
         try {
@@ -69,19 +60,22 @@ export const useStorage = (): UseStorageReturn => {
             return;
         }
 
-        if (!checkAndHandleInsufficientTokens('resume_storage_space', async () => {
-            await purchaseSpace();
-        })) {
-            return;
-        }
 
         try {
             setIsPurchasing(true);
-            await purchaseStorageSpace();
-            await Promise.all([
-                refreshStorageInfo(),
-                refreshBalance()
-            ]);
+            const result = await purchaseStorageSpace();
+
+            // Update local state
+            await refreshStorageInfo();
+
+            // Update React Query cache to ensure Dashboard shows updated data
+            if (result && typeof result === 'object') {
+                // The backend returns the updated storage info directly
+                queryClient.setQueryData(queryKeys.storage.info(), result);
+                // Also invalidate the query to ensure fresh data
+                queryClient.invalidateQueries({ queryKey: queryKeys.storage.info() });
+            }
+
             toast.success('Storage space purchased successfully!');
         } catch (error) {
             console.error('Failed to purchase storage space:', error);
@@ -89,14 +83,12 @@ export const useStorage = (): UseStorageReturn => {
         } finally {
             setIsPurchasing(false);
         }
-    }, [actionInfo, checkAndHandleInsufficientTokens, refreshStorageInfo, refreshBalance]);
+    }, [actionInfo, refreshStorageInfo, queryClient]);
 
     useEffect(() => {
         refreshStorageInfo();
     }, [refreshStorageInfo]);
 
-    const requiredTokens = actionInfo?.amount || 0;
-    const hasSufficientTokens = checkSufficientTokens('resume_storage_space', tokenBalance);
 
     return {
         storageInfo,
@@ -104,12 +96,6 @@ export const useStorage = (): UseStorageReturn => {
         isLoading,
         isPurchasing,
         refreshStorageInfo,
-        purchaseSpace,
-        hasSufficientTokens,
-        requiredTokens,
-        isBuyModalOpen,
-        closeBuyModal,
-        currentActionId,
-        onSuccessCallback
+        purchaseSpace
     };
 }; 

@@ -13,57 +13,26 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
         storage: {
             getItem: (key) => {
-                return getCookie(key);
+                const value = getCookie(key);
+                console.log('Supabase storage getItem:', { key, value });
+                return value;
             },
             setItem: (key, value) => {
+                console.log('Supabase storage setItem:', { key, value });
                 setCookie(key, value);
             },
             removeItem: (key) => {
+                console.log('Supabase storage removeItem:', { key });
                 removeCookie(key);
             },
         },
         persistSession: true,
         autoRefreshToken: true,
+        detectSessionInUrl: true,
     },
 });
 
 export default supabase;
-
-// Set up auth state change listener
-supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'TOKEN_REFRESHED' && session) {
-        setToken(session.access_token);
-        // Update user profile if needed
-        if (session.user) {
-            const profile = {
-                id: session.user.id,
-                email: session.user.email || '',
-                name: session.user.user_metadata?.full_name,
-                avatar_url: session.user.user_metadata?.avatar_url,
-                created_at: session.user.created_at,
-                updated_at: session.user.updated_at
-            };
-            setUserProfile(profile);
-        }
-    } else if (event === 'SIGNED_OUT') {
-        removeToken();
-        removeUserProfile();
-    } else if (event === 'SIGNED_IN' && session) {
-        setToken(session.access_token);
-        // Update user profile on sign in
-        if (session.user) {
-            const profile = {
-                id: session.user.id,
-                email: session.user.email || '',
-                name: session.user.user_metadata?.full_name,
-                avatar_url: session.user.user_metadata?.avatar_url,
-                created_at: session.user.created_at,
-                updated_at: session.user.updated_at
-            };
-            setUserProfile(profile);
-        }
-    }
-});
 
 export const signInWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -77,12 +46,7 @@ export const signInWithGoogle = async () => {
         }
     })
 
-    if (error) {
-        console.error('Error signing in with Google:', error)
-        throw error
-    }
-
-    return data
+    return { data, error }
 }
 
 export const signOut = async () => {

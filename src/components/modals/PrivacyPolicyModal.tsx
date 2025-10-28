@@ -27,7 +27,7 @@ const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, onClose
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="privacy-policy-title">
+        <div className="fixed inset-0 z-[55] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="privacy-policy-title">
             <div className="flex min-h-screen items-center justify-center p-4">
                 <div
                     className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
