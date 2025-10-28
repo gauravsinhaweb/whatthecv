@@ -10,6 +10,7 @@ import { useResumeStore } from '../store/resumeStore';
 import { exportResumeToPDF } from '../utils/resumeExport';
 import { isSuperUser } from '../utils/superuser';
 import SaveResumeModal from './modals/SaveResumeModal';
+import SignInModal from './modals/SignInModal';
 import AutoSaveIndicator from './ui/AutoSaveIndicator';
 import Button from './ui/Button';
 import ExportConfirmationModal from './ui/ExportConfirmationModal';
@@ -19,6 +20,7 @@ const Navigation: React.FC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [resumeTitle, setResumeTitle] = useState('');
   const [saveMode, setSaveMode] = useState<'new' | 'replace'>('new');
   const [userResumes, setUserResumes] = useState<any[]>([]);
@@ -46,6 +48,7 @@ const Navigation: React.FC = () => {
   const closeAllModals = () => {
     setIsSaveModalOpen(false);
     setIsExportModalOpen(false);
+    setIsSignInModalOpen(false);
     setResumeTitle('');
     setSelectedResumeId('');
     setSaveMode('new');
@@ -124,9 +127,14 @@ const Navigation: React.FC = () => {
     }
   };
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
+    setIsSignInModalOpen(true);
+  };
+
+  const handleSignIn = async () => {
     try {
       await signIn();
+      setIsSignInModalOpen(false);
     } catch (error) {
       console.error('Login error:', error);
       toast.error('Failed to login');
@@ -381,6 +389,13 @@ const Navigation: React.FC = () => {
         selectedResumeId={selectedResumeId}
         setSelectedResumeId={setSelectedResumeId}
         hasExistingResume={!!selectedDocument?.id}
+      />
+      {/* Sign In Modal */}
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+        onSignIn={handleSignIn}
+        isLoading={authLoading}
       />
 
 
