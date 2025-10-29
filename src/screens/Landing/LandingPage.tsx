@@ -335,7 +335,7 @@ const LandingPage: React.FC = () => {
                             ATS Optimization
                         </motion.div>
                         <motion.h2
-                            className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6 max-w-3xl"
+                            className="font-display text-4xl lg:text-5xl font-medium text-slate-900 mb-6 max-w-3xl"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -417,112 +417,110 @@ const LandingPage: React.FC = () => {
             </Section>
 
             {/* Templates Section */}
-            <Section className="py-24 bg-white" threshold={0.2}>
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-16">
-                        <Item className="inline-block px-4 py-1.5 bg-orange-100 rounded-full text-orange-700 font-medium text-sm mb-6">
-                            Professional Templates
-                        </Item>
-                        <Item as={motion.h2} className="text-4xl font-bold text-slate-900 mb-6">
-                            30+ HR-Approved Templates
-                        </Item>
-                        <Item as={motion.p} className="text-xl text-slate-600 max-w-2xl mx-auto">
-                            Choose from professionally designed templates tailored for different industries and career levels.
-                        </Item>
-                    </div>
-
-                    <motion.div
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-                        variants={containerVariants}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.3 }}
-                    >
-                        {[
-                            {
-                                name: "Classic Professional",
-                                category: "Corporate",
-                                description: "Clean and traditional design for corporate environments",
-                                features: ["ATS-friendly", "Professional fonts", "Clean layout"],
-                                gradient: "from-slate-500/10 to-gray-500/10",
-                                borderColor: "border-slate-200",
-                                categoryColor: "bg-slate-100 text-slate-700"
-                            },
-                            {
-                                name: "Modern Creative",
-                                category: "Tech & Design",
-                                description: "Contemporary design for creative and tech industries",
-                                features: ["Modern styling", "Color accents", "Visual hierarchy"],
-                                gradient: "from-blue-500/10 to-purple-500/10",
-                                borderColor: "border-blue-200",
-                                categoryColor: "bg-blue-100 text-blue-700"
-                            },
-                            {
-                                name: "Executive",
-                                category: "Leadership",
-                                description: "Sophisticated design for senior-level positions",
-                                features: ["Premium layout", "Executive styling", "Impact focus"],
-                                gradient: "from-amber-500/10 to-orange-500/10",
-                                borderColor: "border-amber-200",
-                                categoryColor: "bg-amber-100 text-amber-700"
-                            }
-                        ].map((template, index) => (
+            <Section className="py-24 lg:py-32 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50" threshold={0.2}>
+                <div className="container mx-auto px-4 lg:px-8">
+                    <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                        {/* Left Column - Visual Preview */}
+                        <motion.div
+                            className="flex items-center justify-center lg:justify-start"
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                        >
                             <motion.div
-                                key={index}
-                                variants={cardVariants}
-                                whileHover={{ scale: 1.02, y: -5 }}
-                                whileTap={{ scale: 0.98 }}
-                                className={`bg-gradient-to-br ${template.gradient} p-8 rounded-2xl ${template.borderColor} shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm relative overflow-hidden`}
+                                className="bg-white/50 backdrop-blur-sm rounded-3xl p-6 border border-slate-200/50 shadow-xl"
+                                whileHover={{ y: -5 }}
+                                transition={{ duration: 0.3 }}
                             >
-                                {/* Background Pattern */}
-                                <div className="absolute inset-0 opacity-5">
-                                    <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                                        <defs>
-                                            <pattern id={`template-grid-${index}`} width="30" height="30" patternUnits="userSpaceOnUse">
-                                                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="currentColor" strokeWidth="0.5" />
-                                            </pattern>
-                                        </defs>
-                                        <rect width="100%" height="100%" fill={`url(#template-grid-${index})`} />
-                                    </svg>
+                                {/* Mini Template Preview */}
+                                <div className="bg-white rounded-2xl shadow-lg p-8 w-64 h-72">
+                                    <div className="space-y-3">
+                                        {/* Header */}
+                                        <div className="border-b border-slate-200 pb-3">
+                                            <div className="h-5 bg-slate-900 rounded w-3/4 mb-1.5"></div>
+                                            <div className="h-3 bg-slate-300 rounded w-1/2"></div>
+                                        </div>
+
+                                        {/* Sections */}
+                                        <div className="space-y-1.5">
+                                            <div className="h-4 bg-slate-700 rounded w-2/5"></div>
+                                            <div className="h-2.5 bg-slate-200 rounded w-full"></div>
+                                            <div className="h-2.5 bg-slate-200 rounded w-4/5"></div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <div className="h-4 bg-slate-700 rounded w-1/3"></div>
+                                            <div className="h-2.5 bg-slate-200 rounded w-full"></div>
+                                            <div className="h-2.5 bg-slate-200 rounded w-5/6"></div>
+                                            <div className="h-2.5 bg-slate-200 rounded w-4/5"></div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <div className="h-4 bg-slate-700 rounded w-2/5"></div>
+                                            <div className="h-2.5 bg-slate-200 rounded w-3/4"></div>
+                                            <div className="h-2.5 bg-slate-200 rounded w-2/3"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                {/* Floating Elements */}
-                                <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-white/10 blur-xl"></div>
-                                <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-white/5 blur-lg"></div>
-                                <div className="mb-6">
-                                    <motion.div
-                                        className={`inline-block px-3 py-1 ${template.categoryColor} text-sm font-medium rounded-full mb-3 transition-all duration-300`}
-                                        whileHover={{ scale: 1.05 }}
-                                    >
-                                        {template.category}
-                                    </motion.div>
-                                    <h3 className="text-xl font-bold text-slate-900 mb-3">{template.name}</h3>
-                                    <p className="text-slate-600 mb-4 leading-relaxed">{template.description}</p>
-                                </div>
-                                <motion.ul className="space-y-2 mb-6" variants={containerVariants}>
-                                    {template.features.map((feature, i) => (
-                                        <motion.li
-                                            key={i}
-                                            className="flex items-center text-sm text-slate-600"
-                                            variants={itemVariants}
-                                            whileHover={{ x: 5 }}
-                                        >
-                                            <CheckCircle className="h-4 w-4 text-slate-500 mr-2 flex-shrink-0" />
-                                            {feature}
-                                        </motion.li>
-                                    ))}
-                                </motion.ul>
-                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => handleNavigate('/templates')}
-                                        className="w-full rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 transition-all duration-300"
-                                    >
-                                        Use Template
-                                    </Button>
-                                </motion.div>
                             </motion.div>
-                        ))}
-                    </motion.div>
+                        </motion.div>
+
+                        {/* Right Column - Content */}
+                        <motion.div
+                            className="flex flex-col justify-center items-center lg:items-start"
+                            initial={{ opacity: 0, x: 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                        >
+                            <motion.div
+                                className="px-4 py-1.5 bg-orange-100 rounded-full text-orange-700 font-medium text-sm mb-6"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                            >
+                                Professional Templates
+                            </motion.div>
+
+                            <motion.h2
+                                className="font-display text-4xl lg:text-5xl font-medium text-slate-900 leading-[1.6] mb-6 text-center lg:text-left"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.1 }}
+                            >
+                                HR Approved Templates<br />to Get You Hired
+                            </motion.h2>
+
+                            <motion.p
+                                className="text-lg text-slate-600 mb-10 leading-relaxed max-w-md mx-auto lg:mx-0"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2 }}
+                            >
+                                Choose from over 30+ professionally designed templates tailored for different industries and career levels.
+                            </motion.p>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.3 }}
+                                className="mx-auto lg:mx-0"
+                            >
+                                <motion.button
+                                    onClick={() => handleNavigate('/templates')}
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all duration-200"
+                                    whileHover={{ y: -2 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    Browse Templates
+                                </motion.button>
+                            </motion.div>
+                        </motion.div>
+                    </div>
                 </div>
             </Section>
 
