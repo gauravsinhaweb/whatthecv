@@ -393,8 +393,8 @@ const Navigation: React.FC = () => {
                 alt="WhatTheCV Logo"
                 className="h-9 w-9"
               />
-              <span className="text-xl font-medium text-slate-900">
-                WhatTheCV
+              <span className="font-display text-xl font-medium text-slate-900">
+                what the cv
               </span>
             </div>
             <div className="hidden sm:ml-12 sm:flex sm:items-center sm:space-x-10">
