@@ -119,12 +119,12 @@ const LandingPage: React.FC = () => {
 
                             {/* Main Heading */}
                             <motion.h1
-                                className="text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 leading-[1.1] mb-6"
+                                className="font-display text-4xl lg:text-5xl xl:text-6xl font-medium text-slate-900 leading-[1.15] mb-6"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
                             >
-                                Resumes That Get You Interviews. Guaranteed.
+                                Resumes That Get<br />You Interviews. Guaranteed.
                             </motion.h1>
 
                             {/* Subtitle */}
@@ -323,9 +323,9 @@ const LandingPage: React.FC = () => {
             </Section>
 
             {/* ATS Analysis Section */}
-            <Section className="py-24 bg-slate-50 paper-texture" threshold={0.2}>
+            <Section className="py-24 bg-white paper-texture" threshold={0.2}>
                 <div className="container mx-auto px-4 lg:px-8">
-                    <div className="text-center mb-16">
+                    <div className="mb-16">
                         <motion.div
                             className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6"
                             initial={{ opacity: 0, y: 20 }}
@@ -335,7 +335,7 @@ const LandingPage: React.FC = () => {
                             ATS Optimization
                         </motion.div>
                         <motion.h2
-                            className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6"
+                            className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6 max-w-3xl"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -344,7 +344,7 @@ const LandingPage: React.FC = () => {
                             Pass Every ATS System
                         </motion.h2>
                         <motion.p
-                            className="text-lg text-slate-600 max-w-3xl mx-auto"
+                            className="text-lg text-slate-600 max-w-2xl"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -354,70 +354,62 @@ const LandingPage: React.FC = () => {
                         </motion.p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
                             {
-                                icon: <FileCheck className="h-10 w-10 text-blue-600" />,
+                                standout: "99%",
+                                standoutLabel: "Success Rate",
                                 title: "ATS Compatibility Check",
                                 description: "Analyze your resume against 200+ ATS systems to ensure maximum visibility to hiring managers.",
-                                highlight: "99% Success Rate",
-                                features: ["200+ ATS systems", "Real-time analysis", "Instant feedback"],
-                                bgColor: "bg-blue-50",
-                                iconBg: "bg-blue-100",
-                                highlightColor: "text-blue-600"
+                                features: ["200+ ATS systems", "Real-time analysis", "Instant feedback"]
                             },
                             {
-                                icon: <Search className="h-10 w-10 text-purple-600" />,
+                                standout: "2x",
+                                standoutLabel: "Interview Rate",
                                 title: "AI Keyword Optimization",
                                 description: "Our AI scans job descriptions and intelligently integrates relevant keywords into your resume.",
-                                highlight: "2x Interview Rate",
-                                features: ["Smart keyword matching", "Industry-specific terms", "SEO optimization"],
-                                bgColor: "bg-purple-50",
-                                iconBg: "bg-purple-100",
-                                highlightColor: "text-purple-600"
+                                features: ["Smart keyword matching", "Industry-specific terms", "SEO optimization"]
                             },
                             {
-                                icon: <Target className="h-10 w-10 text-emerald-600" />,
+                                standout: "100%",
+                                standoutLabel: "Coverage",
                                 title: "Detailed ATS Score",
                                 description: "Get a comprehensive score with section-by-section feedback and actionable improvements.",
-                                highlight: "Step-by-Step Guidance",
-                                features: ["Section-by-section analysis", "Actionable improvements", "Progress tracking"],
-                                bgColor: "bg-emerald-50",
-                                iconBg: "bg-emerald-100",
-                                highlightColor: "text-emerald-600"
+                                features: ["Section-by-section analysis", "Actionable improvements", "Progress tracking"]
                             }
                         ].map((feature, index) => (
                             <motion.div
                                 key={index}
-                                className={`${feature.bgColor} p-8 rounded-2xl border border-slate-200 hover:shadow-lg transition-all duration-300 relative`}
+                                className="bg-slate-100 p-8 rounded-2xl"
                                 initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.1 + 0.3 }}
                             >
-                                {/* Highlight Badge */}
-                                <div className={`absolute right-4 top-4 ${feature.highlightColor} text-sm font-semibold`}>
-                                    {feature.highlight}
+                                {/* Standout Stat */}
+                                <div className="mb-6">
+                                    <div className="font-display text-5xl font-bold text-slate-900 mb-1">
+                                        {feature.standout}
+                                    </div>
+                                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        {feature.standoutLabel}
+                                    </div>
                                 </div>
 
-                                {/* Icon */}
-                                <div className={`mb-6 p-3 ${feature.iconBg} rounded-xl inline-block`}>
-                                    {feature.icon}
-                                </div>
+                                {/* Title */}
+                                <h3 className="text-base font-semibold text-slate-900 mb-3">{feature.title}</h3>
 
-                                {/* Content */}
-                                <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
-                                <p className="text-slate-600 mb-6 leading-relaxed">{feature.description}</p>
+                                {/* Description */}
+                                <p className="text-sm text-slate-600 mb-4 leading-relaxed">{feature.description}</p>
 
                                 {/* Features List */}
-                                <ul className="space-y-2">
+                                <div className="space-y-1.5 text-sm text-slate-600">
                                     {feature.features.map((item, i) => (
-                                        <li key={i} className="flex items-center text-sm text-slate-600">
-                                            <CheckCircle className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
+                                        <div key={i}>
                                             {item}
-                                        </li>
+                                        </div>
                                     ))}
-                                </ul>
+                                </div>
                             </motion.div>
                         ))}
                     </div>
