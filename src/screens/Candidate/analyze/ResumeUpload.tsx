@@ -173,101 +173,46 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <p className="text-slate-600 max-w-2xl mx-auto text-lg">
-          Our advanced AI analyzes your resume for ATS compatibility, keyword optimization,
-          and provides tailored recommendations to help you land more interviews
-        </p>
-      </div>
-
-      <div className="max-w-4xl mx-auto">
-        {/* Job Description Section */}
-        {!externalJobDescription && !file && (
-          <div className="bg-white rounded-xl p-6 shadow-md border border-slate-200 mb-6 backdrop-blur-sm bg-white/50">
-            <div className="flex items-center mb-4">
-              <input
-                id="has-job-description"
-                type="checkbox"
-                className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                checked={hasJobDescription}
-                onChange={() => setHasJobDescription(!hasJobDescription)}
-                disabled={isUploading || isAnalyzing}
-              />
-              <label htmlFor="has-job-description" className="ml-3 text-base font-medium text-slate-700">
-                I have a job description I'd like to tailor my resume for
-              </label>
-            </div>
-
-            {hasJobDescription && (
-              <div className="transition-all duration-500 ease-in-out">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-4 border border-blue-100">
-                  <p className="text-sm text-blue-700 mb-1 flex items-center font-medium">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Recommended for best results
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    Adding a job description helps our AI tailor the analysis specifically to the role you're applying for,
-                    increasing your chances of getting past ATS systems.
-                  </p>
-                </div>
-                <textarea
-                  className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base shadow-inner transition-all duration-300"
-                  rows={4}
-                  placeholder="Paste the job description here for more accurate analysis..."
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription((e.target as HTMLTextAreaElement).value)}
-                  disabled={isUploading || isAnalyzing}
-                ></textarea>
+    <div className="min-h-screen bg-slate-50 paper-texture flex items-center">
+      <div className="container mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Main Content Box */}
+          {!file && uploadStatus === 'idle' && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:p-8">
+              <div className="text-center mb-6">
+                <h1 className="font-display text-3xl lg:text-4xl font-medium text-slate-900 mb-2">
+                  Analyse my resume
+                </h1>
+                <p className="text-base text-slate-600 max-w-2xl mx-auto">
+                  Our advanced AI analyzes your resume for ATS compatibility, keyword optimization, and provides tailored recommendations
+                </p>
               </div>
-            )}
-          </div>
-        )}
 
-        {/* Upload Area */}
-        {!file && uploadStatus === 'idle' && (
-          <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-slate-200 transition-all duration-300 hover:shadow-lg">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="p-2 bg-white/20 rounded-lg mr-3">
-                    <Sparkles className="h-6 w-6" />
-                  </div>
-                  <h2 className="text-xl font-bold">Resume Analyzer</h2>
-                </div>
-                <span className="px-3 py-1 bg-white bg-opacity-20 rounded-full text-xs font-medium backdrop-blur-sm">
-                  AI-Powered
-                </span>
-              </div>
-            </div>
-
-            <div className="p-0">
+              {/* Upload Area */}
               <div
-                className={`border-4 border-dashed transition-all duration-300 ease-in-out rounded-xl m-6 ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50'
+                className={`border-2 border-dashed transition-all duration-300 ease-in-out rounded-2xl mb-5 ${isDragging ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-slate-50'
                   }`}
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
               >
-                <div className="py-12 px-4 flex flex-col items-center justify-center">
-                  <div className={`w-20 h-20 mb-4 rounded-full flex items-center justify-center ${isDragging ? 'bg-blue-100' : 'bg-slate-100'
+                <div className="py-12 px-6 flex flex-col items-center justify-center">
+                  <div className={`w-16 h-16 mb-5 rounded-2xl flex items-center justify-center ${isDragging ? 'bg-slate-900' : 'bg-slate-100'
                     }`}>
-                    <Upload className={`h-8 w-8 ${isDragging ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <Upload className={`h-8 w-8 ${isDragging ? 'text-white' : 'text-slate-600'}`} />
                   </div>
-                  <h3 className="text-xl font-medium text-slate-700 mb-2">Drag & Drop Your Resume</h3>
-                  <p className="text-slate-500 text-center mb-6 max-w-md">
-                    Drop your resume file here, or click the button below to select a file from your computer.
+                  <p className="text-lg text-slate-900 text-center mb-2 font-medium">
+                    Choose a file or drag & drop it here
                   </p>
-                  <Button
+                  <p className="text-sm text-slate-500 text-center mb-6">
+                    PDF, DOC, DOCX and TXT formats, upto 5MB
+                  </p>
+                  <button
                     onClick={triggerFileInput}
-                    size="lg"
-                    className="px-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-md"
+                    className="inline-flex items-center justify-center px-7 py-3 text-base font-semibold text-slate-900 bg-white border-2 border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all duration-200"
                   >
-                    Select File
-                  </Button>
-                  <p className="mt-4 text-xs text-slate-400">
-                    Supported formats: PDF, DOC, DOCX, TXT (Max size: 5MB)
-                  </p>
+                    Browse File
+                  </button>
                 </div>
                 <input
                   id="file-upload"
@@ -277,46 +222,88 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
                   onChange={handleInputChange}
                 />
               </div>
+
+              {/* Job Description Section */}
+              {!externalJobDescription && (
+                <div className="bg-slate-50 rounded-2xl p-4">
+                  <div className="flex items-start">
+                    <input
+                      id="has-job-description"
+                      type="checkbox"
+                      className="w-5 h-5 mt-0.5 text-slate-900 bg-white border-slate-300 rounded focus:ring-slate-900 focus:ring-2"
+                      checked={hasJobDescription}
+                      onChange={() => setHasJobDescription(!hasJobDescription)}
+                      disabled={isUploading || isAnalyzing}
+                    />
+                    <label htmlFor="has-job-description" className="ml-3 text-sm font-medium text-slate-900 cursor-pointer">
+                      I have a job description I'd like to tailor my resume for
+                    </label>
+                  </div>
+
+                  {hasJobDescription && (
+                    <div className="transition-all duration-500 ease-in-out mt-4">
+                      <div className="bg-slate-100 rounded-xl p-4 mb-4">
+                        <p className="text-xs text-slate-900 mb-1 flex items-center font-semibold">
+                          <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                          Recommended for best results
+                        </p>
+                        <p className="text-xs text-slate-600">
+                          Adding a job description helps our AI tailor the analysis specifically to the role you're applying for,
+                          increasing your chances of getting past ATS systems.
+                        </p>
+                      </div>
+                      <textarea
+                        className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 text-sm bg-white transition-all duration-200 resize-none"
+                        rows={3}
+                        placeholder="Paste the job description here for more accurate analysis..."
+                        value={jobDescription}
+                        onChange={(e) => setJobDescription((e.target as HTMLTextAreaElement).value)}
+                        disabled={isUploading || isAnalyzing}
+                      ></textarea>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Processing State */}
-        {(isUploading || isAnalyzing || isCheckingResume) && (
-          <div className="bg-white rounded-xl p-8 shadow-xl border border-slate-200 transition-all duration-300">
-            <ProgressStatus
-              isUploading={isUploading}
-              isAnalyzing={isAnalyzing}
-              isCheckingResume={isCheckingResume}
-              file={file}
-            />
-          </div>
-        )}
+          {/* Processing State */}
+          {(isUploading || isAnalyzing || isCheckingResume) && (
+            <div className="bg-white rounded-2xl p-8 border border-slate-200 transition-all duration-300">
+              <ProgressStatus
+                isUploading={isUploading}
+                isAnalyzing={isAnalyzing}
+                isCheckingResume={isCheckingResume}
+                file={file}
+              />
+            </div>
+          )}
 
-        {/* Error State */}
-        {uploadStatus === 'error' && (
-          <div className="bg-white rounded-xl p-8 shadow-xl border border-slate-200 transition-all duration-300">
-            <ErrorState
-              errorMessage={errorMessage}
-              clearFile={clearFile}
-              tryAgain={tryAgain}
-              hasFile={!!file}
-              resumeCheckResult={resumeCheckResult}
-            />
-          </div>
-        )}
+          {/* Error State */}
+          {uploadStatus === 'error' && (
+            <div className="bg-white rounded-2xl p-8 border border-slate-200 transition-all duration-300">
+              <ErrorState
+                errorMessage={errorMessage}
+                clearFile={clearFile}
+                tryAgain={tryAgain}
+                hasFile={!!file}
+                resumeCheckResult={resumeCheckResult}
+              />
+            </div>
+          )}
 
-        {/* Analysis Results */}
-        {uploadStatus === 'success' && analysisResult && (
-          <div>
-            <AnalysisDashboard
-              analysisResult={analysisResult}
-              extractedText={extractedText}
-              file={file}
-              clearFile={clearFile}
-            />
-          </div>
-        )}
+          {/* Analysis Results */}
+          {uploadStatus === 'success' && analysisResult && (
+            <div>
+              <AnalysisDashboard
+                analysisResult={analysisResult}
+                extractedText={extractedText}
+                file={file}
+                clearFile={clearFile}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

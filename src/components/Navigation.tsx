@@ -523,7 +523,7 @@ const Navigation: React.FC = () => {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="sm:hidden">
+        <div className="sm:hidden bg-white border-t border-slate-200">
           <div className="pt-2 pb-3 space-y-1">
             {/* User profile for mobile - only show when not on create-resume page */}
             {!isCreateResumePage && isAuthenticated && user && (
