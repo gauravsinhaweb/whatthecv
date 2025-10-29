@@ -225,35 +225,35 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
 
               {/* Job Description Section */}
               {!externalJobDescription && (
-                <div className="bg-slate-50 rounded-2xl p-4">
+                <div className="bg-slate-50 rounded-2xl p-5">
                   <div className="flex items-start">
                     <input
                       id="has-job-description"
                       type="checkbox"
-                      className="w-5 h-5 mt-0.5 text-slate-900 bg-white border-slate-300 rounded focus:ring-slate-900 focus:ring-2"
+                      className="w-5 h-5 mt-1 text-slate-900 bg-white border-slate-300 rounded focus:ring-slate-900 focus:ring-2"
                       checked={hasJobDescription}
                       onChange={() => setHasJobDescription(!hasJobDescription)}
                       disabled={isUploading || isAnalyzing}
                     />
-                    <label htmlFor="has-job-description" className="ml-3 text-sm font-medium text-slate-900 cursor-pointer">
+                    <label htmlFor="has-job-description" className="ml-3 text-base font-medium text-slate-900 cursor-pointer">
                       I have a job description I'd like to tailor my resume for
                     </label>
                   </div>
 
                   {hasJobDescription && (
-                    <div className="transition-all duration-500 ease-in-out mt-4">
-                      <div className="bg-slate-100 rounded-xl p-4 mb-4">
-                        <p className="text-xs text-slate-900 mb-1 flex items-center font-semibold">
-                          <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                    <div className="transition-all duration-500 ease-in-out mt-5">
+                      <div className="bg-slate-100 rounded-xl p-5 mb-4">
+                        <p className="text-sm text-slate-900 mb-2 flex items-center font-semibold">
+                          <CheckCircle className="h-4 w-4 mr-2" />
                           Recommended for best results
                         </p>
-                        <p className="text-xs text-slate-600">
+                        <p className="text-sm text-slate-600 leading-relaxed">
                           Adding a job description helps our AI tailor the analysis specifically to the role you're applying for,
                           increasing your chances of getting past ATS systems.
                         </p>
                       </div>
                       <textarea
-                        className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 text-sm bg-white transition-all duration-200 resize-none"
+                        className="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 text-base bg-white transition-all duration-200 resize-none"
                         rows={3}
                         placeholder="Paste the job description here for more accurate analysis..."
                         value={jobDescription}
