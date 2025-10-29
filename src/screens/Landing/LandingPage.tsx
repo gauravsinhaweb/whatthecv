@@ -87,267 +87,340 @@ const LandingPage: React.FC = () => {
     return (
         <div className="min-h-screen">
 
-            {/* Hero Section */}
-            <Section className="relative pt-20 pb-32 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50">
-                {/* <motion.div
-                    className="absolute top-6 right-4 z-30 flex items-center"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.6 }}
-                >
-                    <a
-                        href="https://github.com/gauravsinhaweb/whatthecv"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center px-4 py-2 bg-white/80 backdrop-blur-sm rounded-md gap-1.5 text-slate-800 hover:text-slate-900 transition-colors hover:-translate-y-[2px] shadow-sm hover:shadow-md"
-                    >
-                        <Github className="h-4 w-4" />
-                        <span className="text-xs font-medium">Star on GitHub</span>
-                    </a>
-                </motion.div> */}
-                <motion.div
-                    className="absolute inset-0 overflow-hidden"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1 }}
-                >
-                    <motion.div
-                        className="absolute inset-0 bg-grid-slate-900/[0.03] bg-[size:20px_20px]"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 1 }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#f8faff] via-[#f8faff]/80 to-transparent pointer-events-none" />
-                </motion.div>
-                <div className="absolute top-0 right-0 -translate-y-12 translate-x-56 transform-gpu blur-3xl opacity-30">
-                    <svg viewBox="0 0 1368 1521" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
-                        <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-                            <g fill="#3B82F6" fillRule="nonzero">
-                                <path d="M860.52,550a138.19,138.19,0,0,1,25.42,9.79A121.83,121.83,0,0,1,924.35,585a119.16,119.16,0,0,1,38.35,87.08c.15,54.12-19.72,69.79-21.35,129.45-1.65,60.92,17.54,86.71,12.74,96.54-5.37,11-44.85,30.21-173.44,11.32-96.25-14.13-160.17-50.08-155.11-78.39,5.82-32.68,93.61-18.6,125.3-56.66,27.81-33.55,11.08-84.5,52.25-130.15C847.59,586.37,860.52,550,860.52,550Z" />
-                            </g>
-                        </g>
-                    </svg>
-                </div>
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="flex flex-col items-center text-center mb-16">
-                        <Item className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6">
-                            AI-Powered Resume Platform
-                        </Item>
-                        <Item as={motion.h1} className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 leading-tight max-w-5xl">
-                            Build an <span className="text-blue-600 relative inline-block" aria-label="ATS-Optimized Resume">
-                                ATS-Optimized
-                                <motion.span
-                                    className="absolute -bottom-2 left-0 right-0 h-1.5 bg-blue-600 rounded-full"
-                                    initial={{ scaleX: 0 }}
-                                    animate={{ scaleX: 1 }}
-                                    transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
-                                    aria-hidden="true"
-                                />
-                            </span> Resume That Gets You Hired
-                        </Item>
-                        <Item as={motion.p} className="mt-8 text-xl text-slate-600 max-w-2xl">
-                            Our AI-powered platform helps you create, customize, and manage multiple versions of your resume with high accuracy analysis for maximum success with Applicant Tracking Systems.
-                        </Item>
+            {/* Hero Section - Split Layout */}
+            <Section className="relative pt-8 pb-16 overflow-hidden bg-white paper-texture">
+                <div className="container mx-auto px-4 lg:px-8">
+                    <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[calc(100vh-8rem)]">
+                        {/* Left Column - Content */}
                         <motion.div
-                            className="mt-10 flex flex-col sm:flex-row gap-5"
-                            initial="hidden"
-                            animate="visible"
-                            variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
+                            className="flex flex-col justify-center"
+                            initial={{ opacity: 0, x: -30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6 }}
                         >
-                            <Item as={Button} size="lg" onClick={() => handleNavigate('/analyze')} className="rounded-full group" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-                                Analyze Your Resume
-                            </Item>
-                            <Item as={Button} variant="outline" size="lg" onClick={() => handleNavigate('/templates')} className="rounded-full group" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-                                Browse Templates
-                            </Item>
-                        </motion.div>
-                    </div>
-                    <motion.div
-                        style={{ opacity, scale }}
-                        className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 transform-gpu will-change-transform -mt-8 sm:mt-0"
-                    >
-                        {/* Video Container with Enhanced Styling */}
-                        <motion.div
-                            className="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 backdrop-blur-sm group hover:shadow-xl transition-all duration-300"
-                            initial={{ opacity: 0, y: 50 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.5 }}
-                            whileHover={{ scale: 1.02, y: -5 }}
-                        >
-                            {/* Background Pattern */}
-                            <div className="absolute inset-0 opacity-5">
-                                <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                                    <defs>
-                                        <pattern id="video-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="1" />
-                                        </pattern>
-                                    </defs>
-                                    <rect width="100%" height="100%" fill="url(#video-grid)" />
-                                </svg>
-                            </div>
-
-                            {/* Floating Elements */}
-                            <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-white/10 blur-xl"></div>
-                            <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-white/5 blur-lg"></div>
-
-                            {/* Video Container */}
-                            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
-                                <Video
-                                    src="/assets/demo.mp4"
-                                    className="w-full h-full object-cover transform-gpu rounded-2xl"
-                                />
-
-                                {/* Subtle Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 via-transparent to-transparent pointer-events-none"></div>
-
-                                {/* Demo Badge */}
-                                <motion.div
-                                    className="absolute top-4 left-4 bg-blue-600/90 backdrop-blur-sm rounded-full px-3 py-1 text-white text-sm font-medium border border-blue-500/30"
-                                    whileHover={{ scale: 1.05 }}
-                                >
-                                    Demo
-                                </motion.div>
-                            </div>
-
-                            {/* Bottom Info Bar */}
+                            {/* Product Hunt Badge */}
                             <motion.div
-                                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/80 via-slate-900/40 to-transparent backdrop-blur-sm p-4"
+                                className="mb-8 relative inline-block group"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1.2, duration: 0.5 }}
+                                transition={{ duration: 0.6, delay: 0.1 }}
                             >
-                                <div className="text-center text-white">
-                                    <span className="text-sm font-medium">AI-Powered Resume Analysis</span>
+                                <img
+                                    src="/project-rank-one-badge-weekly.svg"
+                                    alt="#1 Product of the Week"
+                                    className="h-14 w-auto cursor-pointer transition-transform hover:scale-105"
+                                />
+                                {/* Hover Tooltip */}
+                                <div className="absolute left-0 top-full mt-3 px-4 py-2.5 bg-white text-slate-700 text-sm font-medium rounded-xl shadow-xl border border-slate-200 opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10">
+                                    #1 Peerlist product of the Week
+                                    <div className="absolute -top-1.5 left-6 w-3 h-3 bg-white border-l border-t border-slate-200 transform rotate-45"></div>
                                 </div>
+                            </motion.div>
+
+                            {/* Main Heading */}
+                            <motion.h1
+                                className="text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 leading-[1.1] mb-6"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                            >
+                                Resumes That Get You Interviews. Guaranteed.
+                            </motion.h1>
+
+                            {/* Subtitle */}
+                            <motion.p
+                                className="text-lg text-slate-600 leading-relaxed mb-10 max-w-xl"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.3 }}
+                            >
+                                We've helped thousands of professionals land interviews at top companies. Our AI-powered resume builder creates ATS-optimized resumes that cut through filters and put you in front of recruiters.
+                            </motion.p>
+
+                            {/* CTA Buttons */}
+                            <motion.div
+                                className="flex flex-col sm:flex-row gap-4 mb-10"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.4 }}
+                            >
+                                <motion.button
+                                    onClick={() => handleNavigate('/analyze')}
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                    whileHover={{ y: -2 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    Get Started Free
+                                </motion.button>
+                                <motion.button
+                                    onClick={() => handleNavigate('/templates')}
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all duration-200"
+                                    whileHover={{ y: -2 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    Browse Templates
+                                </motion.button>
+                            </motion.div>
+
+                            {/* User Avatars */}
+                            <motion.div
+                                className="flex items-center gap-3"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.5 }}
+                            >
+                                <div className="flex -space-x-2">
+                                    <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden">
+                                        <img
+                                            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces"
+                                            alt="User"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden">
+                                        <img
+                                            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces"
+                                            alt="User"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden">
+                                        <img
+                                            src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=faces"
+                                            alt="User"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden">
+                                        <img
+                                            src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces"
+                                            alt="User"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                </div>
+                                <span className="text-sm text-slate-600 font-medium">
+                                    Join 10,000+ professionals
+                                </span>
                             </motion.div>
                         </motion.div>
 
-                        {/* Decorative Elements */}
+                        {/* Right Column - Visual Showcase */}
                         <motion.div
-                            className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-60"
-                            animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.8, 0.6] }}
-                            transition={{ duration: 3, repeat: Infinity }}
-                        />
-                        <motion.div
-                            className="absolute -bottom-4 -right-4 w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-xl opacity-40"
-                            animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.6, 0.4] }}
-                            transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-                        />
-                    </motion.div>
+                            className="relative lg:h-[600px] flex items-center justify-center"
+                            initial={{ opacity: 0, x: 30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8, delay: 0.3 }}
+                        >
+                            {/* Main Video/Image Container */}
+                            <div className="relative w-full h-full rounded-3xl overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 shadow-2xl">
+                                <Video
+                                    src="/assets/demo.mp4"
+                                    className="w-full h-full object-cover opacity-90"
+                                />
+
+                                {/* Overlay gradient */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent pointer-events-none"></div>
+
+                                {/* Demo Badge */}
+                                <motion.div
+                                    className="absolute top-6 left-6 bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 text-slate-700 text-sm font-semibold shadow-lg"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.8, duration: 0.5 }}
+                                >
+                                    ✨ Live Demo
+                                </motion.div>
+                            </div>
+
+                            {/* Floating accent - bottom left */}
+                            <motion.div
+                                className="absolute -bottom-4 -left-4 w-24 h-24 bg-blue-100 rounded-full blur-3xl opacity-60"
+                                animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.8, 0.6] }}
+                                transition={{ duration: 4, repeat: Infinity }}
+                            />
+
+                            {/* Floating accent - top right */}
+                            <motion.div
+                                className="absolute -top-4 -right-4 w-32 h-32 bg-indigo-100 rounded-full blur-3xl opacity-60"
+                                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.8, 0.6] }}
+                                transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+                            />
+                        </motion.div>
+                    </div>
+                </div>
+            </Section>
+
+            {/* Trusted By Section */}
+            <Section className="py-16 bg-white border-y border-slate-100">
+                <div className="container mx-auto px-4 lg:px-8">
+                    <motion.p
+                        className="text-center text-sm font-medium text-slate-500 mb-8"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        Trusted by people from
+                    </motion.p>
+
+                    {/* Logo Scroll Container */}
+                    <div className="relative overflow-hidden">
+                        {/* Gradient Overlays */}
+                        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+                        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+
+                        {/* Scrolling Logos */}
+                        <div className="flex">
+                            <div className="flex animate-scroll">
+                                {/* First set of logos */}
+                                {[
+                                    "Company One",
+                                    "Company Two",
+                                    "Company Three",
+                                    "Company Four",
+                                    "Company Five",
+                                    "Company Six",
+                                    "Company Seven",
+                                    "Company Eight"
+                                ].map((company, index) => (
+                                    <div
+                                        key={`logo-1-${index}`}
+                                        className="flex-shrink-0 mx-8 flex items-center justify-center"
+                                        style={{ width: '140px' }}
+                                    >
+                                        <div className="text-slate-400 font-semibold text-lg whitespace-nowrap">
+                                            {company}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {/* Duplicate set for seamless loop */}
+                            <div className="flex animate-scroll" aria-hidden="true">
+                                {[
+                                    "Company One",
+                                    "Company Two",
+                                    "Company Three",
+                                    "Company Four",
+                                    "Company Five",
+                                    "Company Six",
+                                    "Company Seven",
+                                    "Company Eight"
+                                ].map((company, index) => (
+                                    <div
+                                        key={`logo-2-${index}`}
+                                        className="flex-shrink-0 mx-8 flex items-center justify-center"
+                                        style={{ width: '140px' }}
+                                    >
+                                        <div className="text-slate-400 font-semibold text-lg whitespace-nowrap">
+                                            {company}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </Section>
 
             {/* ATS Analysis Section */}
-            <Section className="py-24 bg-gradient-to-br from-blue-50 to-indigo-50" threshold={0.2}>
-                <div className="container mx-auto px-4">
+            <Section className="py-24 bg-slate-50 paper-texture" threshold={0.2}>
+                <div className="container mx-auto px-4 lg:px-8">
                     <div className="text-center mb-16">
-                        <Item className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6">
+                        <motion.div
+                            className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                        >
                             ATS Optimization
-                        </Item>
-                        <Item as={motion.h2} className="text-4xl font-bold text-slate-900 mb-6">
+                        </motion.div>
+                        <motion.h2
+                            className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.1 }}
+                        >
                             Pass Every ATS System
-                        </Item>
-                        <Item as={motion.p} className="text-xl text-slate-600 max-w-2xl mx-auto">
+                        </motion.h2>
+                        <motion.p
+                            className="text-lg text-slate-600 max-w-3xl mx-auto"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.2 }}
+                        >
                             Our advanced AI ensures your resume gets past Applicant Tracking Systems and reaches human recruiters.
-                        </Item>
+                        </motion.p>
                     </div>
 
-                    <motion.div
-                        className="grid grid-cols-1 md:grid-cols-3 gap-8"
-                        variants={containerVariants}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.3 }}
-                    >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
                         {[
                             {
-                                icon: <FileCheck className="h-12 w-12 text-blue-500" />,
+                                icon: <FileCheck className="h-10 w-10 text-blue-600" />,
                                 title: "ATS Compatibility Check",
                                 description: "Analyze your resume against 200+ ATS systems to ensure maximum visibility to hiring managers.",
                                 highlight: "99% Success Rate",
                                 features: ["200+ ATS systems", "Real-time analysis", "Instant feedback"],
-                                bgGradient: "from-blue-500/10 to-indigo-500/10",
-                                borderColor: "border-blue-200",
-                                iconBg: "bg-blue-500/10",
-                                highlightBg: "bg-blue-600"
+                                bgColor: "bg-blue-50",
+                                iconBg: "bg-blue-100",
+                                highlightColor: "text-blue-600"
                             },
                             {
-                                icon: <Search className="h-12 w-12 text-purple-500" />,
+                                icon: <Search className="h-10 w-10 text-purple-600" />,
                                 title: "AI Keyword Optimization",
                                 description: "Our AI scans job descriptions and intelligently integrates relevant keywords into your resume.",
                                 highlight: "2x Interview Rate",
                                 features: ["Smart keyword matching", "Industry-specific terms", "SEO optimization"],
-                                bgGradient: "from-purple-500/10 to-pink-500/10",
-                                borderColor: "border-purple-200",
-                                iconBg: "bg-purple-500/10",
-                                highlightBg: "bg-purple-600"
+                                bgColor: "bg-purple-50",
+                                iconBg: "bg-purple-100",
+                                highlightColor: "text-purple-600"
                             },
                             {
-                                icon: <Target className="h-12 w-12 text-emerald-500" />,
+                                icon: <Target className="h-10 w-10 text-emerald-600" />,
                                 title: "Detailed ATS Score",
                                 description: "Get a comprehensive score with section-by-section feedback and actionable improvements.",
                                 highlight: "Step-by-Step Guidance",
                                 features: ["Section-by-section analysis", "Actionable improvements", "Progress tracking"],
-                                bgGradient: "from-emerald-500/10 to-teal-500/10",
-                                borderColor: "border-emerald-200",
-                                iconBg: "bg-emerald-500/10",
-                                highlightBg: "bg-emerald-600"
+                                bgColor: "bg-emerald-50",
+                                iconBg: "bg-emerald-100",
+                                highlightColor: "text-emerald-600"
                             }
                         ].map((feature, index) => (
                             <motion.div
                                 key={index}
-                                variants={cardVariants}
-                                whileHover={{ scale: 1.02, y: -5 }}
-                                whileTap={{ scale: 0.98 }}
-                                className={`bg-gradient-to-br ${feature.bgGradient} p-8 rounded-2xl ${feature.borderColor} shadow-lg flex flex-col h-full relative overflow-hidden group hover:shadow-xl transition-all duration-300 backdrop-blur-sm`}
+                                className={`${feature.bgColor} p-8 rounded-2xl border border-slate-200 hover:shadow-lg transition-all duration-300 relative`}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.1 + 0.3 }}
                             >
-                                {/* Background Pattern */}
-                                <div className="absolute inset-0 opacity-5">
-                                    <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                                        <defs>
-                                            <pattern id={`ats-grid-${index}`} width="20" height="20" patternUnits="userSpaceOnUse">
-                                                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="1" />
-                                            </pattern>
-                                        </defs>
-                                        <rect width="100%" height="100%" fill={`url(#ats-grid-${index})`} />
-                                    </svg>
-                                </div>
-                                {/* Floating Elements */}
-                                <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-white/10 blur-xl"></div>
-                                <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-white/5 blur-lg"></div>
-                                <motion.div
-                                    className={`absolute right-0 top-0 ${feature.highlightBg} text-white px-4 py-2 text-sm font-semibold rounded-bl-xl`}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.1 + 0.3 }}
-                                >
+                                {/* Highlight Badge */}
+                                <div className={`absolute right-4 top-4 ${feature.highlightColor} text-sm font-semibold`}>
                                     {feature.highlight}
-                                </motion.div>
-                                <motion.div
-                                    className={`mb-6 p-4 ${feature.iconBg} rounded-2xl self-start`}
-                                    whileHover={{ y: -5, scale: 1.1, rotate: 5 }}
-                                    transition={{ type: "spring", stiffness: 300 }}
-                                >
+                                </div>
+
+                                {/* Icon */}
+                                <div className={`mb-6 p-3 ${feature.iconBg} rounded-xl inline-block`}>
                                     {feature.icon}
-                                </motion.div>
-                                <h3 className="text-2xl font-bold text-slate-900 mb-4">{feature.title}</h3>
-                                <p className="text-slate-600 mb-6 flex-grow leading-relaxed">{feature.description}</p>
-                                <motion.ul className="space-y-2" variants={containerVariants}>
+                                </div>
+
+                                {/* Content */}
+                                <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
+                                <p className="text-slate-600 mb-6 leading-relaxed">{feature.description}</p>
+
+                                {/* Features List */}
+                                <ul className="space-y-2">
                                     {feature.features.map((item, i) => (
-                                        <motion.li
-                                            key={i}
-                                            className="flex items-center text-sm text-slate-600"
-                                            variants={itemVariants}
-                                            whileHover={{ x: 5 }}
-                                        >
-                                            <CheckCircle className="h-4 w-4 text-slate-500 mr-2 flex-shrink-0" />
+                                        <li key={i} className="flex items-center text-sm text-slate-600">
+                                            <CheckCircle className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
                                             {item}
-                                        </motion.li>
+                                        </li>
                                     ))}
-                                </motion.ul>
+                                </ul>
                             </motion.div>
                         ))}
-                    </motion.div>
+                    </div>
                 </div>
             </Section>
 
