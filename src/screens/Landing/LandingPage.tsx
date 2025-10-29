@@ -94,8 +94,8 @@ const LandingPage: React.FC = () => {
                         {/* Left Column - Content */}
                         <motion.div
                             className="flex flex-col justify-center"
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: -30 }}
+                            animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
                         >
                             {/* Product Hunt Badge */}
@@ -208,8 +208,8 @@ const LandingPage: React.FC = () => {
                         {/* Right Column - Visual Showcase */}
                         <motion.div
                             className="relative lg:h-[600px] flex items-center justify-center"
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: -30 }}
+                            animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.3 }}
                         >
                             {/* Main Video/Image Container */}
@@ -327,7 +327,7 @@ const LandingPage: React.FC = () => {
                 <div className="container mx-auto px-4 lg:px-8">
                     <div className="mb-16">
                         <motion.div
-                            className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-medium text-sm mb-6"
+                            className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-mono font-normal text-sm mb-6 uppercase"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -344,7 +344,7 @@ const LandingPage: React.FC = () => {
                             Pass Every ATS System
                         </motion.h2>
                         <motion.p
-                            className="text-lg text-slate-600 max-w-2xl"
+                            className="text-lg text-slate-600 max-w-2xl leading-relaxed"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -380,7 +380,7 @@ const LandingPage: React.FC = () => {
                         ].map((feature, index) => (
                             <motion.div
                                 key={index}
-                                className="bg-slate-100 p-8 rounded-2xl"
+                                className="bg-slate-100/80 p-8 rounded-2xl"
                                 initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -388,22 +388,22 @@ const LandingPage: React.FC = () => {
                             >
                                 {/* Standout Stat */}
                                 <div className="mb-6">
-                                    <div className="font-display text-5xl font-bold text-slate-900 mb-1">
-                                        {feature.standout}
-                                    </div>
-                                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                    <div className="text-xs font-mono font-normal text-slate-500 uppercase tracking-wider mb-2">
                                         {feature.standoutLabel}
+                                    </div>
+                                    <div className="font-display text-6xl font-medium text-slate-900">
+                                        {feature.standout}
                                     </div>
                                 </div>
 
                                 {/* Title */}
-                                <h3 className="text-base font-semibold text-slate-900 mb-3">{feature.title}</h3>
+                                <h3 className="text-lg font-bold text-slate-900 mb-3">{feature.title}</h3>
 
                                 {/* Description */}
-                                <p className="text-sm text-slate-600 mb-4 leading-relaxed">{feature.description}</p>
+                                <p className="text-base text-slate-600 mb-4 leading-relaxed">{feature.description}</p>
 
                                 {/* Features List */}
-                                <div className="space-y-1.5 text-sm text-slate-600">
+                                <div className="space-y-2 text-base text-slate-600">
                                     {feature.features.map((item, i) => (
                                         <div key={i}>
                                             {item}
@@ -423,8 +423,8 @@ const LandingPage: React.FC = () => {
                         {/* Left Column - Visual Preview */}
                         <motion.div
                             className="flex items-center justify-center lg:justify-start"
-                            initial={{ opacity: 0, x: -30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: -30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6 }}
                         >
@@ -469,13 +469,13 @@ const LandingPage: React.FC = () => {
                         {/* Right Column - Content */}
                         <motion.div
                             className="flex flex-col justify-center items-center lg:items-start"
-                            initial={{ opacity: 0, x: 30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: -30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
                             <motion.div
-                                className="px-4 py-1.5 bg-orange-100 rounded-full text-orange-700 font-medium text-sm mb-6"
+                                className="px-4 py-1.5 bg-orange-100 rounded-full text-orange-700 font-mono font-normal text-sm mb-6 uppercase"
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -526,113 +526,93 @@ const LandingPage: React.FC = () => {
 
             {/* How It Works Section */}
             <Section className="py-24 bg-white" threshold={0.2}>
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-16">
-                        <Item className="inline-block px-4 py-1.5 bg-indigo-100 rounded-full text-indigo-700 font-medium text-sm mb-6">
-                            Simple Process
-                        </Item>
-                        <Item as={motion.h2} className="text-4xl font-bold text-slate-900 mb-6">
-                            How It Works
-                        </Item>
-                        <Item as={motion.p} className="text-xl text-slate-600 max-w-2xl mx-auto">
-                            From upload to interview-ready in minutes
-                        </Item>
-                    </div>
-
-                    <div className="relative max-w-5xl mx-auto">
-                        <div className="absolute top-1/2 left-0 right-0 h-1 bg-blue-200 -translate-y-1/2 hidden md:block"></div>
-
+                <div className="container mx-auto px-4 lg:px-8">
+                    <div className="mb-16">
                         <motion.div
-                            className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16"
-                            variants={containerVariants}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true, amount: 0.5 }}
+                            className="inline-block px-4 py-1.5 bg-purple-100 rounded-full text-purple-700 font-mono font-normal text-sm mb-6 uppercase"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
                         >
-                            {[
-                                {
-                                    step: "01",
-                                    title: "Upload or Create",
-                                    description: "Upload your existing resume or build from scratch with our AI-assisted editor.",
-                                    action: "Get started with any format - PDF, Word, or plain text.",
-                                    icon: <FileText className="h-6 w-6" />
-                                },
-                                {
-                                    step: "02",
-                                    title: "AI Analysis & Optimization",
-                                    description: "Our AI analyzes your resume against job descriptions and provides targeted improvements.",
-                                    action: "Receive a detailed ATS score with actionable feedback.",
-                                    icon: <BarChart className="h-6 w-6" />
-                                },
-                                {
-                                    step: "03",
-                                    title: "Download & Apply",
-                                    description: "Export your optimized resume in multiple formats ready for job applications.",
-                                    action: "Track your application success with our dashboard.",
-                                    icon: <ThumbsUp className="h-6 w-6" />
-                                }
-                            ].map((item, index) => (
-                                <motion.div
-                                    key={index}
-                                    variants={itemVariants}
-                                    className="relative z-10"
-                                >
-                                    <motion.div
-                                        className="bg-blue-600 text-white h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-8 relative"
-                                        initial={{ scale: 0 }}
-                                        whileInView={{ scale: 1 }}
-                                        transition={{ type: "spring", stiffness: 300, delay: index * 0.2 + 0.3 }}
-                                        viewport={{ once: true }}
-                                        whileHover={{ scale: 1.1, rotate: 5 }}
-                                    >
-                                        <span className="text-2xl font-bold">{item.step}</span>
-                                        <motion.div
-                                            className="absolute inset-0 rounded-full border-4 border-blue-200"
-                                            initial={{ scale: 1.2, opacity: 0 }}
-                                            animate={{ scale: 1.5, opacity: 0 }}
-                                            transition={{
-                                                repeat: Infinity,
-                                                duration: 1.5,
-                                                delay: index * 0.2
-                                            }}
-                                        />
-                                    </motion.div>
-
-                                    <motion.div
-                                        className="bg-white p-8 rounded-xl border border-slate-200 shadow-md hover:shadow-lg transition-shadow duration-300"
-                                        whileHover={{ y: -5 }}
-                                    >
-                                        <motion.div
-                                            className="p-3 bg-blue-50 rounded-full inline-block mb-4"
-                                            whileHover={{ scale: 1.1, rotate: 5 }}
-                                        >
-                                            {item.icon}
-                                        </motion.div>
-                                        <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
-                                        <p className="text-slate-600 mb-4">{item.description}</p>
-                                        <p className="text-blue-600 font-medium text-sm">{item.action}</p>
-                                    </motion.div>
-                                </motion.div>
-                            ))}
+                            How It Works
                         </motion.div>
+                        <motion.h2
+                            className="font-display text-4xl lg:text-5xl font-medium text-slate-900 mb-6 max-w-3xl"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.1 }}
+                        >
+                            How We Help You Land Your Dream Job
+                        </motion.h2>
                     </div>
 
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.6 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        className="text-center mt-16"
+                        className="grid grid-cols-1 md:grid-cols-3 gap-8"
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.2 }}
+                        variants={{
+                            visible: {
+                                transition: {
+                                    staggerChildren: 0.1
+                                }
+                            }
+                        }}
                     >
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button
-                                size="lg"
-                                onClick={() => handleNavigate('/analyze')}
-                                className="rounded-full transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg"
+                        {[
+                            {
+                                title: "Upload or Create",
+                                description: "Start by uploading your existing resume or build one from scratch with our intuitive AI-assisted editor that guides you every step of the way.",
+                                cta: "Create Resume",
+                                link: "/create-resume"
+                            },
+                            {
+                                title: "AI Analysis & Optimization",
+                                description: "Our advanced AI analyzes your resume against job descriptions, checks ATS compatibility, and provides targeted improvements to maximize your chances.",
+                                cta: "Analyse",
+                                link: "/analyze"
+                            },
+                            {
+                                title: "Download & Apply",
+                                description: "Export your optimized resume in multiple formats ready for job applications. Track your success with our built-in dashboard.",
+                                cta: "Create an Account",
+                                link: "/auth"
+                            }
+                        ].map((item, index) => (
+                            <motion.div
+                                key={index}
+                                variants={{
+                                    hidden: { opacity: 0, y: 20 },
+                                    visible: { opacity: 1, y: 0 }
+                                }}
+                                className="bg-slate-100/80 p-8 rounded-2xl flex flex-col"
                             >
-                                Get Started Now
-                            </Button>
-                        </motion.div>
+                                {/* Icon */}
+                                <div className="mb-6 text-6xl">
+                                    {index === 0 && "📄"}
+                                    {index === 1 && "⚡"}
+                                    {index === 2 && "🎯"}
+                                </div>
+
+                                {/* Title */}
+                                <h3 className="text-lg font-bold text-slate-900 mb-3">{item.title}</h3>
+
+                                {/* Description */}
+                                <p className="text-base text-slate-600 mb-6 leading-relaxed flex-grow">{item.description}</p>
+
+                                {/* CTA */}
+                                <a
+                                    href={item.link}
+                                    className="inline-flex items-center text-purple-600 hover:text-purple-700 font-medium text-base transition-colors"
+                                >
+                                    {item.cta}
+                                    <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </a>
+                            </motion.div>
+                        ))}
                     </motion.div>
                 </div>
             </Section>
@@ -665,7 +645,7 @@ const LandingPage: React.FC = () => {
                                         <li key={j}>
                                             <a
                                                 href={link.path}
-                                                className="text-slate-600 hover:text-slate-900 transition-colors text-sm"
+                                                className="text-slate-600 hover:text-slate-900 transition-colors text-base"
                                                 target={link.path.startsWith('http') ? "_blank" : undefined}
                                                 rel={link.path.startsWith('http') ? "noopener noreferrer" : undefined}
                                             >
@@ -684,7 +664,7 @@ const LandingPage: React.FC = () => {
                                         <li key={j}>
                                             <a
                                                 href={link.path}
-                                                className="text-slate-600 hover:text-slate-900 transition-colors text-sm"
+                                                className="text-slate-600 hover:text-slate-900 transition-colors text-base"
                                                 target={link.path.startsWith('http') ? "_blank" : undefined}
                                                 rel={link.path.startsWith('http') ? "noopener noreferrer" : undefined}
                                             >
@@ -698,14 +678,40 @@ const LandingPage: React.FC = () => {
                             {/* Contact Column */}
                             <div>
                                 <h4 className="font-semibold text-slate-900 mb-4">Contact</h4>
-                                <ul className="space-y-3">
-                                    <li className="flex items-center gap-2 text-slate-600 text-sm">
-                                        <Mail className="h-4 w-4" />
+                                <ul className="space-y-3 mb-6">
+                                    <li className="flex items-center gap-2 text-slate-600 text-base">
+                                        <Mail className="h-5 w-5" />
                                         <a href="mailto:support@whatthecv.com" className="hover:text-slate-900 transition-colors">
                                             support@whatthecv.com
                                         </a>
                                     </li>
                                 </ul>
+                                <div className="flex flex-col gap-3">
+                                    <a
+                                        href="https://github.com/sponsors/gauravsinhaweb"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors duration-200 w-fit"
+                                        title="Support us on GitHub Sponsors"
+                                    >
+                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                        </svg>
+                                        Sponsor
+                                    </a>
+                                    <a
+                                        href="https://www.buymeacoffee.com/gauravsinha"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 w-fit"
+                                        title="Buy us a coffee"
+                                    >
+                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M2 21h18v-2H2v2zm0-9h4v7H2v-7zm6 0h4v7H8v-7zm6 0h4v7h-4v-7zM2 3v8h18V3H2zm16 6H4V5h14v4z" />
+                                        </svg>
+                                        Buy Me a Coffee
+                                    </a>
+                                </div>
                             </div>
 
                             {/* Social Icons Column */}
@@ -722,7 +728,7 @@ const LandingPage: React.FC = () => {
                                             href={social.href}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="bg-slate-100 text-slate-600 hover:bg-slate-900 hover:text-white transition-colors p-2.5 rounded-lg"
+                                            className="bg-slate-100 text-slate-600 hover:bg-slate-900 hover:text-white transition-colors p-3.5 rounded-lg"
                                         >
                                             {social.icon}
                                         </a>
