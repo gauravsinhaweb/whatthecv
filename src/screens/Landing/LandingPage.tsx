@@ -641,106 +641,106 @@ const LandingPage: React.FC = () => {
             <FaqSection />
 
             {/* Footer */}
-            <footer className="bg-slate-900 text-white pt-16 pb-8">
-                <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-                        <div className="col-span-2">
-                            <motion.h3
-                                className="text-2xl font-bold mb-4 gradient-text"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                            >
-                                WhatTheCV
-                            </motion.h3>
-                            <p className="text-slate-400 mb-6 max-w-md">
-                                The AI-powered resume platform that helps you create, customize, and manage multiple versions of your resume with high accuracy analysis for maximum success.
-                            </p>
-                            <div className="flex space-x-4">
-                                {[
-                                    { icon: <Twitter className="h-5 w-5" />, href: "https://x.com/wtcv_app" },
-                                    { icon: <Linkedin className="h-5 w-5" />, href: "https://www.linkedin.com/in/gauravsinhaa/" },
-                                    { icon: <Github className="h-5 w-5" />, href: "https://github.com/gauravsinhaweb" },
-                                    { icon: <Mail className="h-5 w-5" />, href: "mailto:support@whatthecv.com" }
-                                ].map((social, i) => (
-                                    <motion.a
-                                        key={i}
-                                        href={social.href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="bg-slate-800 p-2 rounded-full hover:bg-blue-600 transition-colors duration-300"
-                                        whileHover={{ y: -5, scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        transition={{ type: "spring", stiffness: 400 }}
-                                    >
-                                        {social.icon}
-                                    </motion.a>
-                                ))}
-                            </div>
+            <footer className="bg-white border-t border-slate-200">
+                <div className="container mx-auto px-4 lg:px-8">
+                    {/* Top Section - Logo & Tagline */}
+                    <div className="py-12 border-b border-slate-200">
+                        <div className="flex items-center gap-3 mb-4">
+                            <img src="/wtcv.svg" alt="WhatTheCV Logo" className="h-10 w-10" />
+                            <h3 className="font-display text-2xl font-medium text-slate-900">what the cv</h3>
                         </div>
+                        <p className="text-slate-600 text-base">
+                            AI-powered resume platform that helps you land your dream job
+                        </p>
+                    </div>
 
-                        {footerLinks.map((column, i) => (
-                            <div key={i}>
-                                <motion.h4
-                                    className="font-semibold text-lg mb-4 text-white"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.1 * i }}
-                                    viewport={{ once: true }}
-                                >
-                                    {column.title}
-                                </motion.h4>
+                    {/* Middle Section - Links & Contact */}
+                    <div className="py-12 border-b border-slate-200">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+                            {/* Product Column */}
+                            <div>
+                                <h4 className="font-semibold text-slate-900 mb-4">Product</h4>
                                 <ul className="space-y-3">
-                                    {column.links.map((link, j) => (
-                                        <motion.li
-                                            key={j}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            whileInView={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.1 * i + 0.05 * j }}
-                                            viewport={{ once: true }}
-                                        >
+                                    {footerLinks[0].links.map((link, j) => (
+                                        <li key={j}>
                                             <a
                                                 href={link.path}
-                                                className="text-slate-400 hover:text-white transition-colors duration-300"
+                                                className="text-slate-600 hover:text-slate-900 transition-colors text-sm"
                                                 target={link.path.startsWith('http') ? "_blank" : undefined}
                                                 rel={link.path.startsWith('http') ? "noopener noreferrer" : undefined}
                                             >
                                                 {link.name}
                                             </a>
-                                        </motion.li>
+                                        </li>
                                     ))}
                                 </ul>
                             </div>
-                        ))}
-                        <div className="hidden sm:ml-6 sm:flex flex-col sm:items-center self-end gap-2">
-                            <a
-                                href="https://github.com/sponsors/gauravsinhaweb"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="hover:-translate-y-[2px] transition-transform duration-200 ease-out hover:shadow-lg rounded-lg p-1"
-                                title="Support us on GitHub Sponsors"
-                            >
-                                <iframe
-                                    src="https://github.com/sponsors/gauravsinhaweb/button"
-                                    title="Sponsor gauravsinhaweb"
-                                    height="40"
-                                    width="114"
-                                    style={{ border: 0, borderRadius: '6px', }}
-                                />
-                            </a>
-                            <a
-                                href="https://www.buymeacoffee.com/gauravsinha"
-                                target="_blank"
-                                className="hover:-translate-y-[2px] transition-transform duration-200 ease-out hover:shadow-lg rounded-lg p-1"
-                                title="Buy us a coffee"
-                            >
-                                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{ height: '32px', width: '114px' }} />
-                            </a>
+
+                            {/* Resources Column */}
+                            <div>
+                                <h4 className="font-semibold text-slate-900 mb-4">Resources</h4>
+                                <ul className="space-y-3">
+                                    {footerLinks[1].links.map((link, j) => (
+                                        <li key={j}>
+                                            <a
+                                                href={link.path}
+                                                className="text-slate-600 hover:text-slate-900 transition-colors text-sm"
+                                                target={link.path.startsWith('http') ? "_blank" : undefined}
+                                                rel={link.path.startsWith('http') ? "noopener noreferrer" : undefined}
+                                            >
+                                                {link.name}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            {/* Contact Column */}
+                            <div>
+                                <h4 className="font-semibold text-slate-900 mb-4">Contact</h4>
+                                <ul className="space-y-3">
+                                    <li className="flex items-center gap-2 text-slate-600 text-sm">
+                                        <Mail className="h-4 w-4" />
+                                        <a href="mailto:support@whatthecv.com" className="hover:text-slate-900 transition-colors">
+                                            support@whatthecv.com
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {/* Social Icons Column */}
+                            <div>
+                                <h4 className="font-semibold text-slate-900 mb-4">Follow Us</h4>
+                                <div className="flex gap-4">
+                                    {[
+                                        { icon: <Twitter className="h-5 w-5" />, href: "https://x.com/wtcv_app" },
+                                        { icon: <Linkedin className="h-5 w-5" />, href: "https://www.linkedin.com/in/gauravsinhaa/" },
+                                        { icon: <Github className="h-5 w-5" />, href: "https://github.com/gauravsinhaweb" }
+                                    ].map((social, i) => (
+                                        <a
+                                            key={i}
+                                            href={social.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="bg-slate-100 text-slate-600 hover:bg-slate-900 hover:text-white transition-colors p-2.5 rounded-lg"
+                                        >
+                                            {social.icon}
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="border-t border-slate-800 pt-8 mt-8 text-center text-slate-500 text-sm">
-                        <p>© {new Date().getFullYear()} WhatTheCV. All rights reserved.</p>
+                    {/* Bottom Section - Copyright & Legal */}
+                    <div className="py-6">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-600">
+                            <p>© {new Date().getFullYear()} WhatTheCV. All rights reserved.</p>
+                            <div className="flex gap-6">
+                                <a href="/terms" className="hover:text-slate-900 transition-colors">Terms & Conditions</a>
+                                <a href="/privacy-policy" className="hover:text-slate-900 transition-colors">Privacy Policy</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </footer>
