@@ -50,8 +50,8 @@ const FaqSection: React.FC = () => {
                     <div className="lg:col-span-4">
                         <motion.h2
                             className="font-display text-4xl lg:text-5xl font-medium text-slate-900"
-                            initial={{ opacity: 0, x: -30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: -30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6 }}
                         >

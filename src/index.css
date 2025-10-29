@@ -1,8 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Smooth scroll snap */
+html {
+    scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
+}
+
+section {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+}
 
 @page {
     size: 210mm 297mm;
@@ -227,10 +239,6 @@
 
 .animate-scroll {
     animation: scroll-left 30s linear infinite;
-}
-
-.animate-scroll:hover {
-    animation-play-state: paused;
 }
 
 /* Subtle paper texture background */
