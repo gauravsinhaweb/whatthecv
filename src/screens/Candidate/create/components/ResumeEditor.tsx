@@ -139,9 +139,6 @@ const ResumeEditor: React.FC = () => {
     if (!resumeData || !resumeData.personalInfo) {
         return (
             <div className="bg-white rounded-xl border border-slate-200">
-                <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                    <h2 className="text-xl font-semibold text-slate-900">Content</h2>
-                </div>
                 <div className="p-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 mx-auto"></div>
                     <p className="mt-4 text-slate-600">Loading resume data...</p>
@@ -348,11 +345,11 @@ const ResumeEditor: React.FC = () => {
         const props = { ...sectionProps, ...(specificProps[config.id as keyof typeof specificProps] || {}) };
 
         return (
-            <div key={config.id} className="border-b border-slate-200">
+            <div key={config.id} className="border-b border-slate-100">
                 <div
-                    className={`flex justify-between items-center p-4 cursor-pointer transition-all duration-200 ${isExpanded && isActive
-                        ? `bg-gradient-to-r ${config.color.bg} shadow-sm rounded-t-md`
-                        : 'hover:bg-slate-50/80'
+                    className={`flex justify-between items-center px-6 py-4 cursor-pointer transition-all duration-200 ${isExpanded && isActive
+                        ? 'bg-slate-50'
+                        : 'hover:bg-slate-50'
                         }`}
                     onClick={() => toggleSection(config.id)}
                 >
@@ -413,7 +410,7 @@ const ResumeEditor: React.FC = () => {
                     </div>
                 </div>
                 {isExpanded && isActive && (
-                    <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
+                    <div className="px-6 py-6 bg-slate-50 animate-fadeIn">
                         <Component {...props} />
                     </div>
                 )}
@@ -424,9 +421,6 @@ const ResumeEditor: React.FC = () => {
     return (
         <div className="bg-white rounded-xl border border-slate-200">
             <style>{styles}</style>
-            <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h2 className="text-xl font-semibold text-slate-900">Content</h2>
-            </div>
             <div className="divide-y divide-slate-200">
                 {sectionConfigs.map(renderSection)}
                 <CustomSections

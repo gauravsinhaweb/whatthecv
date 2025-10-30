@@ -28,20 +28,20 @@ const InputFieldWithToggle: React.FC<InputFieldWithToggleProps> = ({
 }) => {
     return (
         <div className={`relative ${className}`}>
-            <label className="block text-sm font-medium text-indigo-700 mb-1.5">
+            <label className="block text-base text-slate-900 mb-2">
                 {label}
             </label>
             <div className="relative">
                 <input
                     type={type}
-                    className={`w-full p-2.5 pr-14 border border-slate-300 rounded-md transition-all bg-white hover:border-slate-400 ${disabled ? 'bg-slate-50 cursor-not-allowed' : ''}`}
+                    className={`w-full px-4 py-3 text-base pr-14 border border-slate-200 rounded-lg transition-all bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 ${disabled ? 'bg-slate-50 cursor-not-allowed' : ''}`}
                     value={value}
                     onChange={(e) => onChange(e.currentTarget.value)}
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled}
                 />
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 border-l border-slate-200 pl-2">
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 border-l border-slate-200 pl-2">
                     <FieldVisibilityToggle
                         isVisible={isVisible}
                         onToggle={onToggleVisibility}
