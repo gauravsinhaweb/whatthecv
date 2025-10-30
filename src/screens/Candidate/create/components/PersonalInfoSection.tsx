@@ -84,13 +84,13 @@ const PersonalInfoSection = ({
                             });
                         }
                     }}
-                    className="mr-2 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                    className="mr-2.5 text-slate-900 focus:ring-slate-900 h-4 w-4 rounded"
                 />
-                <label htmlFor="showSummary" className="text-sm font-medium text-indigo-700">
+                <label htmlFor="showSummary" className="text-base text-slate-900">
                     Include Professional Summary
                 </label>
             </div>
-            <p className="text-xs text-slate-500 ml-6 mb-3">
+            <p className="text-base text-slate-600 ml-6.5 mb-3">
                 Show your professional summary at the top of your resume
             </p>
             {/* {(showProfileUploader || hasValidProfilePic) && (
@@ -116,20 +116,20 @@ const PersonalInfoSection = ({
             )} */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                    <label className="block text-sm font-medium text-indigo-700 mb-1.5">Full Name</label>
+                    <label className="block text-base text-slate-900 mb-2">Full Name</label>
                     <input
                         type="text"
-                        className="w-full p-2.5 border border-slate-300 rounded-md transition-all bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-3 text-base border border-slate-200 rounded-lg transition-all bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
                         value={resumeData.personalInfo.name}
                         onChange={(e) => onPersonalInfoChange('name', e.currentTarget.value)}
                         placeholder="John Doe"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-indigo-700 mb-1.5">Position</label>
+                    <label className="block text-base text-slate-900 mb-2">Position</label>
                     <input
                         type="text"
-                        className="w-full p-2.5 border border-slate-300 rounded-md transition-all bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-3 text-base border border-slate-200 rounded-lg transition-all bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
                         value={resumeData.personalInfo.position}
                         onChange={(e) => onPersonalInfoChange('position', e.currentTarget.value)}
                         placeholder="Senior Software Engineer"
@@ -165,19 +165,15 @@ const PersonalInfoSection = ({
                 onToggleVisibility={() => toggleFieldVisibility('personalInfo.location')}
             />
             <div>
-                <label className="block text-sm font-medium text-indigo-700 mb-1.5 flex items-center justify-between">
-                    <span>Social Links</span>
-                    <FieldVisibilityToggle
-                        isVisible={fieldVisibility['personalInfo.socialLinks']}
-                        onToggle={() => toggleFieldVisibility('personalInfo.socialLinks')}
-                    />
+                <label className="block text-base text-slate-900 mb-2">
+                    Social Links
                 </label>
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3 text-sm">
+                <div className="bg-slate-50 border-l-4 border-slate-300 p-4 mb-4 text-base">
                     <span className="font-semibold">Tip:</span> Add your professional social profiles to enhance your resume. Links will appear in the header.
                 </div>
                 <button
                     type="button"
-                    className="inline-flex items-center px-3 py-2 border border-indigo-300 shadow-sm text-sm font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50"
+                    className="inline-flex items-center px-4 py-2.5 border border-slate-300 text-base rounded-lg text-slate-900 bg-white hover:bg-slate-50 transition-colors"
                     onClick={() => {
                         const newLinks = [...(resumeData.personalInfo.socialLinks || []), {
                             platform: 'linkedin',
