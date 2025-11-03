@@ -212,30 +212,10 @@ const LandingPage: React.FC = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.3 }}
                         >
-                            {/* Main Image Container */}
-                            <div className="relative w-full h-full rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 shadow-2xl">
-                                <img
-                                    src="/assets/resumepng.png"
-                                    alt="Resume Example"
-                                    className="w-full h-full object-contain"
-                                />
-
-                                {/* Overlay gradient */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none"></div>
-                            </div>
-
-                            {/* Floating accent - bottom left */}
-                            <motion.div
-                                className="absolute -bottom-4 -left-4 w-24 h-24 bg-blue-100 rounded-full blur-3xl opacity-60"
-                                animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.8, 0.6] }}
-                                transition={{ duration: 4, repeat: Infinity }}
-                            />
-
-                            {/* Floating accent - top right */}
-                            <motion.div
-                                className="absolute -top-4 -right-4 w-32 h-32 bg-indigo-100 rounded-full blur-3xl opacity-60"
-                                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.8, 0.6] }}
-                                transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+                            <img
+                                src="/assets/resumepxx.png"
+                                alt="Resume Example"
+                                className="w-full h-full object-contain"
                             />
                         </motion.div>
                     </div>
@@ -465,42 +445,11 @@ const LandingPage: React.FC = () => {
                             viewport={{ once: true }}
                             transition={{ duration: 0.6 }}
                         >
-                            <motion.div
-                                className="bg-white/50 backdrop-blur-sm rounded-3xl p-6 border border-slate-200/50 shadow-xl"
-                                whileHover={{ y: -5 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                {/* Mini Template Preview */}
-                                <div className="bg-white rounded-2xl shadow-lg p-8 w-64 h-72">
-                                    <div className="space-y-3">
-                                        {/* Header */}
-                                        <div className="border-b border-slate-200 pb-3">
-                                            <div className="h-5 bg-slate-900 rounded w-3/4 mb-1.5"></div>
-                                            <div className="h-3 bg-slate-300 rounded w-1/2"></div>
-                                        </div>
-
-                                        {/* Sections */}
-                                        <div className="space-y-1.5">
-                                            <div className="h-4 bg-slate-700 rounded w-2/5"></div>
-                                            <div className="h-2.5 bg-slate-200 rounded w-full"></div>
-                                            <div className="h-2.5 bg-slate-200 rounded w-4/5"></div>
-                                        </div>
-
-                                        <div className="space-y-1.5">
-                                            <div className="h-4 bg-slate-700 rounded w-1/3"></div>
-                                            <div className="h-2.5 bg-slate-200 rounded w-full"></div>
-                                            <div className="h-2.5 bg-slate-200 rounded w-5/6"></div>
-                                            <div className="h-2.5 bg-slate-200 rounded w-4/5"></div>
-                                        </div>
-
-                                        <div className="space-y-1.5">
-                                            <div className="h-4 bg-slate-700 rounded w-2/5"></div>
-                                            <div className="h-2.5 bg-slate-200 rounded w-3/4"></div>
-                                            <div className="h-2.5 bg-slate-200 rounded w-2/3"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
+                            <img
+                                src="/assets/templates3.png"
+                                alt="Professional Resume Templates"
+                                className="w-full h-auto object-contain"
+                            />
                         </motion.div>
 
                         {/* Right Column - Content */}
