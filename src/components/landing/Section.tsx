@@ -17,12 +17,12 @@ export const Section: React.FC<OptimizedSectionProps> = ({
     threshold = 0.1,
     rootMargin = '50px'
 }) => {
-    const ref = useRef<HTMLDivElement>(null);
+    const ref = useRef<HTMLElement>(null);
     const isInView = useInView(ref, { threshold, rootMargin });
     const prefersReducedMotion = useReducedMotion();
 
     return (
-        <motion.div
+        <motion.section
             ref={ref}
             className={className}
             variants={optimizedContainerVariants}
@@ -34,7 +34,7 @@ export const Section: React.FC<OptimizedSectionProps> = ({
             }}
         >
             {children}
-        </motion.div>
+        </motion.section>
     );
 };
 
