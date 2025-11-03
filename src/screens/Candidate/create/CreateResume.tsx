@@ -8,6 +8,8 @@ import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../.
 import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
 import ResumeEditor from './components/ResumeEditor';
 import ResumeFullScreenModal from './components/ResumeFullScreenModal';
+import fileTextIconUrl from '../../../assets/file-text.svg';
+import paintBrushIconUrl from '../../../assets/paint-brush.svg';
 
 const CreateResume: React.FC = () => {
     const navigate = useNavigate();
@@ -554,7 +556,7 @@ const CreateResume: React.FC = () => {
                                     onClick={() => setActiveTab('content')}
                                 >
                                     <div className="flex items-center justify-center gap-2">
-                                        <img src="/file-text.svg" alt="Content" className="w-4 h-4" />
+                                        <img src={fileTextIconUrl} alt="Content" className="w-4 h-4" />
                                         <span className="text-base">Content</span>
                                     </div>
                                 </button>
@@ -566,7 +568,7 @@ const CreateResume: React.FC = () => {
                                     onClick={() => setActiveTab('customization')}
                                 >
                                     <div className="flex items-center justify-center gap-2">
-                                        <img src="/paint-brush.svg" alt="Customize" className="w-4 h-4" />
+                                        <img src={paintBrushIconUrl} alt="Customize" className="w-4 h-4" />
                                         <span className="text-base">Customize</span>
                                     </div>
                                 </button>

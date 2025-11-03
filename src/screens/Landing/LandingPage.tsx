@@ -21,6 +21,11 @@ import Button from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
 import './landing.css';
+import demoVideoUrl from '../../assets/assets/demo.mp4';
+import createResumeImgUrl from '../../assets/assets/create-resume.png';
+import launchSvgUrl from '../../assets/assets/Launch.svg';
+import productBadgeUrl from '../../assets/project-rank-one-badge-weekly.svg';
+import wtcvLogoUrl from '../../assets/wtcv.svg';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -42,9 +47,9 @@ const LandingPage: React.FC = () => {
     useEffect(() => {
         const preloadCriticalResources = () => {
             const criticalPaths = [
-                '/assets/demo.mp4',
-                '/assets/create-resume.png',
-                '/assets/Launch.svg'
+                demoVideoUrl,
+                createResumeImgUrl,
+                launchSvgUrl
             ];
             criticalPaths.forEach((path) => {
                 if (path.endsWith('.mp4')) {
@@ -106,7 +111,7 @@ const LandingPage: React.FC = () => {
                                 transition={{ duration: 0.6, delay: 0.1 }}
                             >
                                 <img
-                                    src="/project-rank-one-badge-weekly.svg"
+                                    src={productBadgeUrl}
                                     alt="#1 Product of the Week"
                                     className="h-14 w-auto cursor-pointer transition-transform hover:scale-105"
                                 />
@@ -215,7 +220,7 @@ const LandingPage: React.FC = () => {
                             {/* Main Video/Image Container */}
                             <div className="relative w-full h-full rounded-3xl overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 shadow-2xl">
                                 <Video
-                                    src="/assets/demo.mp4"
+                                    src={demoVideoUrl}
                                     className="w-full h-full object-cover opacity-90"
                                 />
 
@@ -625,7 +630,7 @@ const LandingPage: React.FC = () => {
                     {/* Top Section - Logo & Tagline */}
                     <div className="py-12 border-b border-slate-200">
                         <div className="flex items-center gap-3 mb-4">
-                            <img src="/wtcv.svg" alt="WhatTheCV Logo" className="h-10 w-10" />
+                            <img src={wtcvLogoUrl} alt="WhatTheCV Logo" className="h-10 w-10" />
                             <h3 className="font-display text-2xl font-medium text-slate-900">what the cv</h3>
                         </div>
                         <p className="text-slate-600 text-base">
