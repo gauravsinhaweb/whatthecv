@@ -7,6 +7,10 @@ export default {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                'display': ['Libre Baskerville', 'serif'],
+                'mono': ['IBM Plex Mono', 'monospace'],
+            },
             animation: {
                 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             },

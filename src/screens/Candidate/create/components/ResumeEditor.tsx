@@ -42,56 +42,56 @@ const sectionConfigs: SectionConfig[] = [
         id: 'personalInfo',
         title: 'Personal Info',
         icon: User,
-        color: { bg: 'from-blue-50 to-white', text: 'text-blue-800', icon: 'text-indigo-600' },
+        color: { bg: 'from-slate-50 to-white', text: 'text-slate-900', icon: 'text-slate-600' },
         component: PersonalInfoSection
     },
     {
         id: 'workExperience',
         title: 'Work Experience',
         icon: Briefcase,
-        color: { bg: 'from-indigo-50 to-white', text: 'text-indigo-900', icon: 'text-indigo-600' },
+        color: { bg: 'from-slate-50 to-white', text: 'text-slate-900', icon: 'text-slate-600' },
         component: WorkExperienceSection
     },
     {
         id: 'education',
         title: 'Education',
         icon: BookOpen,
-        color: { bg: 'from-emerald-50 to-white', text: 'text-emerald-900', icon: 'text-emerald-600' },
+        color: { bg: 'from-slate-50 to-white', text: 'text-slate-900', icon: 'text-slate-600' },
         component: EducationSection
     },
     {
         id: 'skills',
         title: 'Skills',
         icon: Code,
-        color: { bg: 'from-amber-50 to-white', text: 'text-amber-900', icon: 'text-amber-600' },
+        color: { bg: 'from-slate-50 to-white', text: 'text-slate-900', icon: 'text-slate-600' },
         component: SkillsSection
     },
     {
         id: 'projects',
         title: 'Projects',
         icon: Award,
-        color: { bg: 'from-purple-50 to-white', text: 'text-purple-900', icon: 'text-purple-600' },
+        color: { bg: 'from-slate-50 to-white', text: 'text-slate-900', icon: 'text-slate-600' },
         component: ProjectsSection
     },
     {
         id: 'achievements',
         title: 'Achievements',
         icon: Trophy,
-        color: { bg: 'from-emerald-50 to-white', text: 'text-emerald-900', icon: 'text-emerald-600' },
+        color: { bg: 'from-slate-50 to-white', text: 'text-slate-900', icon: 'text-slate-600' },
         component: AchievementsSection
     },
     {
         id: 'publications',
         title: 'Publications',
         icon: FileText,
-        color: { bg: 'from-blue-50 to-white', text: 'text-blue-900', icon: 'text-blue-600' },
+        color: { bg: 'from-slate-50 to-white', text: 'text-slate-900', icon: 'text-slate-600' },
         component: PublicationsSection
     },
     {
         id: 'certifications',
         title: 'Certifications',
         icon: GraduationCap,
-        color: { bg: 'from-purple-50 to-white', text: 'text-purple-900', icon: 'text-purple-600' },
+        color: { bg: 'from-slate-50 to-white', text: 'text-slate-900', icon: 'text-slate-600' },
         component: CertificationsSection
     }
 ];
@@ -138,12 +138,9 @@ const ResumeEditor: React.FC = () => {
     // Add defensive check for resumeData
     if (!resumeData || !resumeData.personalInfo) {
         return (
-            <div className="bg-white rounded-lg shadow-md border border-slate-200">
-                <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
-                    <h2 className="text-xl font-bold text-blue-800">Content</h2>
-                </div>
+            <div className="bg-white rounded-xl border border-slate-200">
                 <div className="p-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 mx-auto"></div>
                     <p className="mt-4 text-slate-600">Loading resume data...</p>
                 </div>
             </div>
@@ -348,11 +345,11 @@ const ResumeEditor: React.FC = () => {
         const props = { ...sectionProps, ...(specificProps[config.id as keyof typeof specificProps] || {}) };
 
         return (
-            <div key={config.id} className="border-b border-slate-200">
+            <div key={config.id} className="border-b border-slate-100">
                 <div
-                    className={`flex justify-between items-center p-4 cursor-pointer transition-all duration-200 ${isExpanded && isActive
-                        ? `bg-gradient-to-r ${config.color.bg} shadow-sm rounded-t-md`
-                        : 'hover:bg-slate-50/80'
+                    className={`flex justify-between items-center px-6 py-4 cursor-pointer transition-all duration-200 ${isExpanded && isActive
+                        ? 'bg-slate-50'
+                        : 'hover:bg-slate-50'
                         }`}
                     onClick={() => toggleSection(config.id)}
                 >
@@ -413,7 +410,7 @@ const ResumeEditor: React.FC = () => {
                     </div>
                 </div>
                 {isExpanded && isActive && (
-                    <div className="p-6 bg-white border-t border-slate-100 animate-fadeIn">
+                    <div className="px-6 py-6 bg-slate-50 animate-fadeIn">
                         <Component {...props} />
                     </div>
                 )}
@@ -422,11 +419,8 @@ const ResumeEditor: React.FC = () => {
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-md border border-slate-200">
+        <div className="bg-white rounded-xl border border-slate-200">
             <style>{styles}</style>
-            <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
-                <h2 className="text-xl font-bold text-blue-800">Content</h2>
-            </div>
             <div className="divide-y divide-slate-200">
                 {sectionConfigs.map(renderSection)}
                 <CustomSections
@@ -464,7 +458,7 @@ const ResumeEditor: React.FC = () => {
                                 }
                             }
                         }}
-                        className="hover:bg-blue-50 text-blue-700 border-blue-300"
+                        className="hover:bg-slate-50 text-slate-900 border-slate-300"
                         leftIcon={<Plus className="h-4 w-4" />}
                     >
                         Add Custom Section
