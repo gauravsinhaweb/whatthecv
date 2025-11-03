@@ -95,11 +95,11 @@ const LandingPage: React.FC = () => {
                         <motion.div
                             className="flex flex-col justify-center"
                             initial={{ opacity: 0, y: -30 }}
-                    animate={{ opacity: 1, y: 0 }}
+                            animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
                         >
                             {/* Product Hunt Badge */}
-                <motion.div
+                            <motion.div
                                 className="mb-8 relative inline-block group"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -138,7 +138,7 @@ const LandingPage: React.FC = () => {
                             </motion.p>
 
                             {/* CTA Buttons */}
-                        <motion.div
+                            <motion.div
                                 className="flex flex-col sm:flex-row gap-4 mb-10"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -158,7 +158,7 @@ const LandingPage: React.FC = () => {
                                     whileHover={{ y: -2 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
-                                Browse Templates
+                                    Browse Templates
                                 </motion.button>
                             </motion.div>
 
@@ -212,42 +212,79 @@ const LandingPage: React.FC = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.3 }}
                         >
-                            {/* Main Video/Image Container */}
-                            <div className="relative w-full h-full rounded-3xl overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 shadow-2xl">
-                                <Video
-                                    src="/assets/demo.mp4"
-                                    className="w-full h-full object-cover opacity-90"
+                            {/* Main Image Container */}
+                            <div className="relative w-full h-full rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 shadow-2xl">
+                                <img
+                                    src="/assets/resumepng.png"
+                                    alt="Resume Example"
+                                    className="w-full h-full object-contain"
                                 />
 
                                 {/* Overlay gradient */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent pointer-events-none"></div>
-
-                                {/* Demo Badge */}
-                                <motion.div
-                                    className="absolute top-6 left-6 bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 text-slate-700 text-sm font-semibold shadow-lg"
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.8, duration: 0.5 }}
-                                >
-                                    ✨ Live Demo
-                                </motion.div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none"></div>
                             </div>
 
                             {/* Floating accent - bottom left */}
                             <motion.div
                                 className="absolute -bottom-4 -left-4 w-24 h-24 bg-blue-100 rounded-full blur-3xl opacity-60"
-                            animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.8, 0.6] }}
+                                animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.8, 0.6] }}
                                 transition={{ duration: 4, repeat: Infinity }}
-                        />
+                            />
 
                             {/* Floating accent - top right */}
-                        <motion.div
+                            <motion.div
                                 className="absolute -top-4 -right-4 w-32 h-32 bg-indigo-100 rounded-full blur-3xl opacity-60"
                                 animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.8, 0.6] }}
                                 transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-                        />
-                    </motion.div>
+                            />
+                        </motion.div>
                     </div>
+                </div>
+            </Section>
+
+            {/* Live Demo Section */}
+            <Section className="py-16 lg:py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+                <div className="container mx-auto px-4 lg:px-8">
+                    <motion.div
+                        className="mb-12"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <motion.div
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full font-mono font-normal text-sm uppercase tracking-wider text-slate-600 mb-6"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            ✨ Live Demo
+                        </motion.div>
+                        <h2 className="font-display text-4xl lg:text-5xl font-medium text-slate-900 mb-4">
+                            See Our AI in Action
+                        </h2>
+                        <p className="text-lg text-slate-600 max-w-2xl">
+                            Our advanced AI analyzes your resume for ATS compatibility, keyword optimization, and provides tailored recommendations to help you land more interviews
+                        </p>
+                    </motion.div>
+
+                    {/* Demo Video */}
+                    <motion.div
+                        className="max-w-6xl"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-blue-500 to-indigo-600">
+                            <Video
+                                src="/assets/demo.mp4"
+                                className="w-full h-auto"
+                            />
+                            {/* Overlay gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-blue-900/10 to-transparent pointer-events-none"></div>
+                        </div>
+                    </motion.div>
                 </div>
             </Section>
 
@@ -421,7 +458,7 @@ const LandingPage: React.FC = () => {
                 <div className="container mx-auto px-4 lg:px-8">
                     <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
                         {/* Left Column - Visual Preview */}
-                    <motion.div
+                        <motion.div
                             className="flex items-center justify-center lg:justify-start"
                             initial={{ opacity: 0, y: -30 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -474,14 +511,14 @@ const LandingPage: React.FC = () => {
                             viewport={{ once: true }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                                <motion.div
+                            <motion.div
                                 className="px-4 py-1.5 bg-orange-100 rounded-full text-orange-700 font-mono font-normal text-sm mb-6 uppercase"
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                             >
                                 Professional Templates
-                                </motion.div>
+                            </motion.div>
 
                             <motion.h2
                                 className="font-display text-4xl lg:text-5xl font-medium text-slate-900 leading-[1.6] mb-6 text-left"
@@ -503,7 +540,7 @@ const LandingPage: React.FC = () => {
                                 Choose from over 30+ professionally designed templates tailored for different industries and career levels.
                             </motion.p>
 
-                                <motion.div
+                            <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -518,7 +555,7 @@ const LandingPage: React.FC = () => {
                                     Browse Templates
                                 </motion.button>
                             </motion.div>
-                    </motion.div>
+                        </motion.div>
                     </div>
                 </div>
             </Section>
@@ -653,7 +690,7 @@ const LandingPage: React.FC = () => {
                                         </li>
                                     ))}
                                 </ul>
-                        </div>
+                            </div>
 
                             {/* Resources Column */}
                             <div>
@@ -686,25 +723,25 @@ const LandingPage: React.FC = () => {
                                     </li>
                                 </ul>
                                 <div className="flex flex-col gap-3">
-                            <a
-                                href="https://github.com/sponsors/gauravsinhaweb"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                    <a
+                                        href="https://github.com/sponsors/gauravsinhaweb"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors duration-200 w-fit"
-                                title="Support us on GitHub Sponsors"
-                            >
+                                        title="Support us on GitHub Sponsors"
+                                    >
                                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                         </svg>
                                         Sponsor
-                            </a>
-                            <a
-                                href="https://www.buymeacoffee.com/gauravsinha"
-                                target="_blank"
+                                    </a>
+                                    <a
+                                        href="https://www.buymeacoffee.com/gauravsinha"
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 w-fit"
-                                title="Buy us a coffee"
-                            >
+                                        title="Buy us a coffee"
+                                    >
                                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M2 21h18v-2H2v2zm0-9h4v7H2v-7zm6 0h4v7H8v-7zm6 0h4v7h-4v-7zM2 3v8h18V3H2zm16 6H4V5h14v4z" />
                                         </svg>
@@ -740,7 +777,7 @@ const LandingPage: React.FC = () => {
                     {/* Bottom Section - Copyright & Legal */}
                     <div className="py-6">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-600">
-                        <p>© {new Date().getFullYear()} WhatTheCV. All rights reserved.</p>
+                            <p>© {new Date().getFullYear()} WhatTheCV. All rights reserved.</p>
                             <div className="flex gap-6">
                                 <a href="/terms" className="hover:text-slate-900 transition-colors">Terms & Conditions</a>
                                 <a href="/privacy-policy" className="hover:text-slate-900 transition-colors">Privacy Policy</a>
