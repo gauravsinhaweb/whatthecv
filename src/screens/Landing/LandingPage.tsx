@@ -625,7 +625,7 @@ const LandingPage: React.FC = () => {
                     <div className="py-12 border-b border-slate-200">
                         <div className="flex items-center gap-3 mb-4">
                             <img src={wtcvLogoUrl} alt="WhatTheCV Logo" className="h-10 w-10" />
-                            <h3 className="font-display text-2xl font-medium text-slate-900">what the cv</h3>
+                            <h3 className="font-display text-2xl font-medium text-slate-900">WTCV</h3>
                         </div>
                         <p className="text-slate-600 text-base">
                             AI-powered resume platform that helps you land your dream job
