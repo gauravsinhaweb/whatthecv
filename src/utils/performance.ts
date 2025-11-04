@@ -1,4 +1,7 @@
 import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import demoVideoUrl from '../assets/assets/demo.mp4';
+import createResumeImgUrl from '../assets/assets/create-resume.png';
+import launchSvgUrl from '../assets/assets/Launch.svg';
 
 export const optimizedContainerVariants = {
     hidden: { opacity: 0 },
@@ -190,9 +193,9 @@ export const optimizeImages = () => {
 
 export const preloadCriticalResources = () => {
     const criticalPaths = [
-        '/assets/demo.mp4',
-        '/assets/create-resume.png',
-        '/assets/Launch.svg'
+        demoVideoUrl,
+        createResumeImgUrl,
+        launchSvgUrl
     ];
 
     criticalPaths.forEach((path) => {
