@@ -10,6 +10,7 @@ import { useResumeStore } from '../store/resumeStore';
 import { exportResumeToPDF } from '../utils/resumeExport';
 import { isSuperUser } from '../utils/superuser';
 import SaveResumeModal from './modals/SaveResumeModal';
+import SignInModal from './modals/SignInModal';
 import AutoSaveIndicator from './ui/AutoSaveIndicator';
 import Button from './ui/Button';
 import ExportConfirmationModal from './ui/ExportConfirmationModal';
@@ -19,17 +20,20 @@ const Navigation: React.FC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [resumeTitle, setResumeTitle] = useState('');
   const [saveMode, setSaveMode] = useState<'new' | 'replace'>('new');
   const [userResumes, setUserResumes] = useState<any[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>('');
   const [isLoadingResumes, setIsLoadingResumes] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = getPageFromPath(location.pathname);
   const isCreateResumePage = location.pathname === '/create-resume';
+  const isAnalyzePage = location.pathname === '/analyze';
 
   const { user, isAuthenticated, isLoading: authLoading, error: authError, signIn, signOut, clearError } = useAuth();
   const {
@@ -46,6 +50,7 @@ const Navigation: React.FC = () => {
   const closeAllModals = () => {
     setIsSaveModalOpen(false);
     setIsExportModalOpen(false);
+    setIsSignInModalOpen(false);
     setResumeTitle('');
     setSelectedResumeId('');
     setSaveMode('new');
@@ -124,13 +129,9 @@ const Navigation: React.FC = () => {
     }
   };
 
-  const handleLogin = async () => {
-    try {
-      await signIn();
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Failed to login');
-    }
+  const handleLogin = () => {
+    setIsSignInModalOpen(true);
+    setIsMobileMenuOpen(false);
   };
 
   const handleExportPDF = () => {
@@ -357,12 +358,56 @@ const Navigation: React.FC = () => {
     }
   }, [ui.shouldShowSaveModal, setShouldShowSaveModal]);
 
+  // Handle scroll detection for analyze page
+  useEffect(() => {
+    if (!isAnalyzePage) {
+      setIsScrolled(false);
+      return;
+    }
+
+    const handleScroll = () => {
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        const scrollPosition = mainElement.scrollTop;
+        setIsScrolled(scrollPosition > 10);
+      } else {
+        // Fallback to window scroll if main element not found
+        const scrollPosition = window.scrollY || document.documentElement.scrollTop;
+        setIsScrolled(scrollPosition > 10);
+      }
+    };
+
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+      mainElement.addEventListener('scroll', handleScroll);
+      handleScroll(); // Check initial position
+      return () => {
+        mainElement.removeEventListener('scroll', handleScroll);
+      };
+    } else {
+      window.addEventListener('scroll', handleScroll);
+      handleScroll();
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [isAnalyzePage]);
+
+  const navBackgroundClass = isAnalyzePage && !isScrolled
+    ? 'bg-transparent backdrop-blur-sm h-20 flex-shrink-0 transition-all duration-300'
+    : 'bg-white h-20 flex-shrink-0 transition-all duration-300';
+
   return (
-    <nav className="bg-white h-20 flex-shrink-0">
+    <nav className={navBackgroundClass}>
       <ExportConfirmationModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onConfirm={handleConfirmExport}
+      />
+      {/* Sign In Modal */}
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
       />
       {/* Save Draft Modal */}
       <SaveResumeModal
@@ -394,7 +439,7 @@ const Navigation: React.FC = () => {
                 className="h-9 w-9"
               />
               <span className="font-display text-xl font-medium text-slate-900">
-                what the cv
+                WTCV
               </span>
             </div>
             <div className="hidden sm:ml-12 sm:flex sm:items-center sm:space-x-10">
