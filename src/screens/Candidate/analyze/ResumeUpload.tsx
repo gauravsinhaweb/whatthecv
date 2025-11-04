@@ -173,8 +173,8 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 paper-texture flex items-center">
-      <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen animated-gradient-bg flex items-center">
+      <div className="container mx-auto px-4 py-4 relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* Main Content Box */}
           {!file && uploadStatus === 'idle' && (

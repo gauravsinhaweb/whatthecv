@@ -1,8 +1,8 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useEffect, useState, useMemo, useCallback } from 'preact/hooks';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { OptimizedSection, OptimizedItem } from '../../components/landing/OptimizedSection';
-import { OptimizedVideo } from '../../components/landing/OptimizedVideo';
+import { Section as OptimizedSection, Item as OptimizedItem } from '../../components/landing/Section';
+import { Video } from '../../components/landing/Video';
 import { OptimizedIcons } from '../../components/ui/OptimizedIcons';
 import FaqSection from '../../components/landing/FaqSection';
 import Button from '../../components/ui/Button';
@@ -301,7 +301,7 @@ const OptimizedLandingPage: React.FC = () => {
                     >
                         <div className="bg-white rounded-xl sm:rounded-2xl shadow-[0_20px_70px_-10px_rgba(0,0,0,0.5),0_0_0_1px_rgba(0,0,0,0.1),0_-20px_70px_-10px_rgba(36,99,235,0.2),0_-10px_40px_-5px_rgba(36,99,235,0.15)] sm:shadow-[0_30px_100px_-15px_rgba(0,0,0,0.6),0_0_0_1px_rgba(0,0,0,0.1),0_10px_30px_-5px_rgba(0,0,0,0.3),0_-30px_100px_-15px_rgba(36,99,235,0.25),0_-15px_50px_-10px_rgba(36,99,235,0.2)] overflow-hidden border border-slate-200 transition-all duration-300 ease-out">
                             <div className="relative aspect-[16/10] sm:aspect-video">
-                                <OptimizedVideo
+                                <Video
                                     src={demoVideoUrl}
                                     className="w-full h-full object-cover transform-gpu"
                                 />
