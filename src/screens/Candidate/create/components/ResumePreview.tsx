@@ -1,6 +1,7 @@
 import { ArrowUpRight, BookOpen, Link as ChainLink, ExternalLink, FileCode, Github, Linkedin, Mail, MapPin, MessageSquare, Phone, Twitter } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
 import { ResumeCustomizationOptions, ResumeData } from '../../../../types/resume';
+import peerlistIconUrl from '../../../../assets/assets/peerlist.svg';
 import { SafeHTML } from '../../../../utils/html';
 
 interface ResumePreviewProps {
@@ -647,7 +648,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                         break;
                                     case 'peerlist':
                                         icon = <img
-                                            src="/assets/peerlist.svg"
+                                            src={peerlistIconUrl}
                                             alt="Peerlist"
                                             className={iconSize}
                                             style={{

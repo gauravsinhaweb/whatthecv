@@ -11,6 +11,7 @@ import { exportResumeToPDF } from '../utils/resumeExport';
 import { isSuperUser } from '../utils/superuser';
 import SaveResumeModal from './modals/SaveResumeModal';
 import SignInModal from './modals/SignInModal';
+import wtcvLogoUrl from '../assets/wtcv.svg';
 import AutoSaveIndicator from './ui/AutoSaveIndicator';
 import Button from './ui/Button';
 import ExportConfirmationModal from './ui/ExportConfirmationModal';
@@ -434,7 +435,7 @@ const Navigation: React.FC = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center gap-2.5 cursor-pointer" onClick={goToHome}>
               <img
-                src="/wtcv.svg"
+                src={wtcvLogoUrl}
                 alt="WhatTheCV Logo"
                 className="h-9 w-9"
               />
