@@ -291,46 +291,46 @@ const LandingPage: React.FC = () => {
                             <div className="flex animate-scroll">
                                 {/* First set of logos */}
                                 {[
-                                    "Company One",
-                                    "Company Two",
-                                    "Company Three",
-                                    "Company Four",
-                                    "Company Five",
-                                    "Company Six",
-                                    "Company Seven",
-                                    "Company Eight"
-                                ].map((company, index) => (
+                                    { name: "Google", src: "/assets/logos/Google_2015_logo.svg.webp", alt: "Google" },
+                                    { name: "Microsoft", src: "/assets/logos/Microsoft_logo_(2012).svg.png", alt: "Microsoft" },
+                                    { name: "TCS", src: "/assets/logos/Tata_Consultancy_Services_old_logo.svg.png", alt: "Tata Consultancy Services" },
+                                    { name: "Cognizant", src: "/assets/logos/Cognizant_logo_2022.svg.png", alt: "Cognizant" },
+                                    { name: "IIT Patna", src: "/assets/logos/Indian_Institute_of_Technology,_Patna.svg.png", alt: "IIT Patna" },
+                                    { name: "IIT Roorkee", src: "/assets/logos/Indian_Institute_of_Technology_Roorkee_Logo.svg", alt: "IIT Roorkee" }
+                                ].map((logo, index) => (
                                     <div
                                         key={`logo-1-${index}`}
                                         className="flex-shrink-0 mx-8 flex items-center justify-center"
-                                        style={{ width: '140px' }}
+                                        style={{ width: '140px', height: '60px' }}
                                     >
-                                        <div className="text-slate-400 font-semibold text-lg whitespace-nowrap">
-                                            {company}
-                                        </div>
+                                        <img
+                                            src={logo.src}
+                                            alt={logo.alt}
+                                            className="max-w-full max-h-full object-contain opacity-60 hover:opacity-100 transition-opacity"
+                                        />
                                     </div>
                                 ))}
                             </div>
                             {/* Duplicate set for seamless loop */}
                             <div className="flex animate-scroll" aria-hidden="true">
                                 {[
-                                    "Company One",
-                                    "Company Two",
-                                    "Company Three",
-                                    "Company Four",
-                                    "Company Five",
-                                    "Company Six",
-                                    "Company Seven",
-                                    "Company Eight"
-                                ].map((company, index) => (
+                                    { name: "Google", src: "/assets/logos/Google_2015_logo.svg.webp", alt: "Google" },
+                                    { name: "Microsoft", src: "/assets/logos/Microsoft_logo_(2012).svg.png", alt: "Microsoft" },
+                                    { name: "TCS", src: "/assets/logos/Tata_Consultancy_Services_old_logo.svg.png", alt: "Tata Consultancy Services" },
+                                    { name: "Cognizant", src: "/assets/logos/Cognizant_logo_2022.svg.png", alt: "Cognizant" },
+                                    { name: "IIT Patna", src: "/assets/logos/Indian_Institute_of_Technology,_Patna.svg.png", alt: "IIT Patna" },
+                                    { name: "IIT Roorkee", src: "/assets/logos/Indian_Institute_of_Technology_Roorkee_Logo.svg", alt: "IIT Roorkee" }
+                                ].map((logo, index) => (
                                     <div
                                         key={`logo-2-${index}`}
                                         className="flex-shrink-0 mx-8 flex items-center justify-center"
-                                        style={{ width: '140px' }}
+                                        style={{ width: '140px', height: '60px' }}
                                     >
-                                        <div className="text-slate-400 font-semibold text-lg whitespace-nowrap">
-                                            {company}
-                                        </div>
+                                        <img
+                                            src={logo.src}
+                                            alt={logo.alt}
+                                            className="max-w-full max-h-full object-contain opacity-60 hover:opacity-100 transition-opacity"
+                                        />
                                     </div>
                                 ))}
                             </div>
