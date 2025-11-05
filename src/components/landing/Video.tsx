@@ -14,34 +14,69 @@ export const Video: React.FC<OptimizedVideoProps> = ({
     className = '',
     poster,
     threshold = 0.1,
-    rootMargin = '100px'
+    rootMargin = '300px' // Increased to trigger earlier
 }) => {
     const ref = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const isInView = useInView(ref, { threshold, rootMargin });
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (videoRef.current) {
             const video = videoRef.current;
 
-            const handleLoadedData = () => {
+            // Set preload attribute based on visibility
+            if (isInView) {
+                video.preload = 'auto'; // More aggressive preloading when in view
+            } else {
+                video.preload = 'metadata'; // Light preloading when not in view
+            }
+
+            const handleCanPlay = () => {
                 setIsLoaded(true);
+                setIsLoading(false);
+            };
+
+            const handleLoadStart = () => {
+                setIsLoading(true);
             };
 
             const handleError = () => {
                 console.warn('Video failed to load:', src);
+                setIsLoading(false);
             };
 
-            video.addEventListener('loadeddata', handleLoadedData);
+            video.addEventListener('canplay', handleCanPlay);
+            video.addEventListener('loadstart', handleLoadStart);
             video.addEventListener('error', handleError);
 
+            // If video is already loaded, set loaded state
+            if (video.readyState >= 3) {
+                setIsLoaded(true);
+                setIsLoading(false);
+            }
+
             return () => {
-                video.removeEventListener('loadeddata', handleLoadedData);
+                video.removeEventListener('canplay', handleCanPlay);
+                video.removeEventListener('loadstart', handleLoadStart);
                 video.removeEventListener('error', handleError);
             };
         }
-    }, [src]);
+    }, [src, isInView]);
+
+    // Handle play/pause based on visibility
+    useEffect(() => {
+        if (videoRef.current) {
+            if (isInView && isLoaded) {
+                videoRef.current.play().catch(() => {
+                    // Auto-play may be blocked by browser, ignore error
+                });
+            } else if (!isInView) {
+                videoRef.current.pause();
+            }
+        }
+    }, [isInView, isLoaded]);
 
     return (
         <motion.div
@@ -51,19 +86,31 @@ export const Video: React.FC<OptimizedVideoProps> = ({
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
         >
-            {!isLoaded && (
-                <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg flex items-center justify-center z-10">
-                    <div className="text-gray-400">Loading video...</div>
+            {/* Poster image shows immediately while video loads */}
+            {poster && !isLoaded && (
+                <img
+                    src={poster}
+                    alt="Video preview"
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                />
+            )}
+
+            {/* Loading indicator only shows if no poster and still loading */}
+            {!poster && isLoading && (
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 animate-pulse rounded-lg flex items-center justify-center z-10">
+                    <div className="text-slate-400 text-sm">Loading video...</div>
                 </div>
             )}
+
             <video
                 ref={videoRef}
-                autoPlay
+                autoPlay={isInView}
                 muted
                 playsInline
                 loop
                 poster={poster}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                preload="auto"
+                className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                 style={{ willChange: 'transform' }}
             >
                 <source src={src} type="video/mp4" />
