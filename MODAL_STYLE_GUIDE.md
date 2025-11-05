@@ -30,3 +30,4 @@ All modals should follow these consistent styling patterns:
 - **Modal**: `bg-white rounded-2xl shadow-2xl`
 - **Max Width**: `max-w-md` or `max-w-lg` depending on content
 
+
