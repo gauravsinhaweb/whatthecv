@@ -232,37 +232,20 @@ const LandingPage: React.FC = () => {
             {/* Live Demo Section */}
             <Section className="py-16 lg:py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
                 <div className="container mx-auto px-4 lg:px-8">
-                    <motion.div
-                        className="mb-12"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                    >
-                        <motion.div
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full font-mono font-normal text-sm uppercase tracking-wider text-slate-600 mb-6"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.2 }}
-                        >
+                    <Item className="mb-12">
+                        <Item className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full font-mono font-normal text-sm uppercase tracking-wider text-slate-600 mb-6">
                             ✨ Live Demo
-                        </motion.div>
+                        </Item>
                         <h2 className="font-display text-4xl lg:text-5xl font-medium text-slate-900 mb-4">
                             See Our AI in Action
                         </h2>
                         <p className="text-lg text-slate-600 max-w-2xl">
                             Our advanced AI analyzes your resume for ATS compatibility, keyword optimization, and provides tailored recommendations to help you land more interviews
                         </p>
-                    </motion.div>
+                    </Item>
 
                     {/* Demo Video */}
-                    <motion.div
-                        className="max-w-6xl"
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.3 }}
-                    >
+                    <Item className="max-w-6xl">
                         <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-blue-500 to-indigo-600">
                             <Video
                                 src={demoVideoUrl}
@@ -272,21 +255,16 @@ const LandingPage: React.FC = () => {
                             {/* Overlay gradient */}
                             <div className="absolute inset-0 bg-gradient-to-t from-blue-900/10 to-transparent pointer-events-none"></div>
                         </div>
-                    </motion.div>
+                    </Item>
                 </div>
             </Section>
 
             {/* Trusted By Section */}
             <Section className="py-16 bg-white border-y border-slate-100">
                 <div className="container mx-auto px-4 lg:px-8">
-                    <motion.p
-                        className="text-center text-sm font-medium text-slate-500 mb-8"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                    >
+                    <Item className="text-center text-sm font-medium text-slate-500 mb-8">
                         Trusted by people from
-                    </motion.p>
+                    </Item>
 
                     {/* Logo Scroll Container */}
                     <div className="relative overflow-hidden">
@@ -350,34 +328,17 @@ const LandingPage: React.FC = () => {
             {/* ATS Analysis Section */}
             <Section className="py-24 bg-white paper-texture" threshold={0.2}>
                 <div className="container mx-auto px-4 lg:px-8">
-                    <div className="mb-16">
-                        <motion.div
-                            className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-mono font-normal text-sm mb-6 uppercase"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                        >
+                    <Item className="mb-16">
+                        <Item className="inline-block px-4 py-1.5 bg-blue-100 rounded-full text-blue-700 font-mono font-normal text-sm mb-6 uppercase">
                             ATS Optimization
-                        </motion.div>
-                        <motion.h2
-                            className="font-display text-4xl lg:text-5xl font-medium text-slate-900 mb-6 max-w-3xl"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.1 }}
-                        >
+                        </Item>
+                        <h2 className="font-display text-4xl lg:text-5xl font-medium text-slate-900 mb-6 max-w-3xl">
                             Pass Every ATS System
-                        </motion.h2>
-                        <motion.p
-                            className="text-lg text-slate-600 max-w-2xl leading-relaxed"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.2 }}
-                        >
+                        </h2>
+                        <p className="text-lg text-slate-600 max-w-2xl leading-relaxed">
                             Our advanced AI ensures your resume gets past Applicant Tracking Systems and reaches human recruiters.
-                        </motion.p>
-                    </div>
+                        </p>
+                    </Item>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
@@ -403,13 +364,10 @@ const LandingPage: React.FC = () => {
                                 features: ["Section-by-section analysis", "Actionable improvements", "Progress tracking"]
                             }
                         ].map((feature, index) => (
-                            <motion.div
+                            <Item
                                 key={index}
                                 className="bg-slate-100/80 p-8 rounded-2xl"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 + 0.3 }}
+                                delay={index * 0.08}
                             >
                                 {/* Standout Stat */}
                                 <div className="mb-6">
@@ -435,7 +393,7 @@ const LandingPage: React.FC = () => {
                                         </div>
                                     ))}
                                 </div>
-                            </motion.div>
+                            </Item>
                         ))}
                     </div>
                 </div>
@@ -446,73 +404,37 @@ const LandingPage: React.FC = () => {
                 <div className="container mx-auto px-4 lg:px-8">
                     <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
                         {/* Left Column - Visual Preview */}
-                        <motion.div
-                            className="flex items-center justify-center lg:justify-start"
-                            initial={{ opacity: 0, y: -30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                        >
+                        <Item className="flex items-center justify-center lg:justify-start">
                             <img
                                 src="/assets/templates3.png"
                                 alt="Professional Resume Templates"
                                 className="w-full h-auto object-contain"
                             />
-                        </motion.div>
+                        </Item>
 
                         {/* Right Column - Content */}
-                        <motion.div
-                            className="flex flex-col justify-center items-start"
-                            initial={{ opacity: 0, y: -30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                        >
-                            <motion.div
-                                className="px-4 py-1.5 bg-orange-100 rounded-full text-orange-700 font-mono font-normal text-sm mb-6 uppercase"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                            >
+                        <Item className="flex flex-col justify-center items-start" delay={0.15}>
+                            <Item className="px-4 py-1.5 bg-orange-100 rounded-full text-orange-700 font-mono font-normal text-sm mb-6 uppercase">
                                 Professional Templates
-                            </motion.div>
+                            </Item>
 
-                            <motion.h2
-                                className="font-display text-4xl lg:text-5xl font-medium text-slate-900 leading-[1.6] mb-6 text-left"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.1 }}
-                            >
+                            <h2 className="font-display text-4xl lg:text-5xl font-medium text-slate-900 leading-[1.6] mb-6 text-left">
                                 HR Approved Templates<br />to Get You Hired
-                            </motion.h2>
+                            </h2>
 
-                            <motion.p
-                                className="text-lg text-slate-600 mb-10 leading-relaxed max-w-md"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.2 }}
-                            >
+                            <p className="text-lg text-slate-600 mb-10 leading-relaxed max-w-md">
                                 Choose from over 30+ professionally designed templates tailored for different industries and career levels.
-                            </motion.p>
+                            </p>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.3 }}
+                            <motion.button
+                                onClick={() => handleNavigate('/templates')}
+                                className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all duration-200"
+                                whileHover={{ y: -2 }}
+                                whileTap={{ scale: 0.98 }}
                             >
-                                <motion.button
-                                    onClick={() => handleNavigate('/templates')}
-                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all duration-200"
-                                    whileHover={{ y: -2 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    Browse Templates
-                                </motion.button>
-                            </motion.div>
-                        </motion.div>
+                                Browse Templates
+                            </motion.button>
+                        </Item>
                     </div>
                 </div>
             </Section>
@@ -520,39 +442,16 @@ const LandingPage: React.FC = () => {
             {/* How It Works Section */}
             <Section className="py-24 bg-white" threshold={0.2}>
                 <div className="container mx-auto px-4 lg:px-8">
-                    <div className="mb-16">
-                        <motion.div
-                            className="inline-block px-4 py-1.5 bg-purple-100 rounded-full text-purple-700 font-mono font-normal text-sm mb-6 uppercase"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                        >
+                    <Item className="mb-16">
+                        <Item className="inline-block px-4 py-1.5 bg-purple-100 rounded-full text-purple-700 font-mono font-normal text-sm mb-6 uppercase">
                             How It Works
-                        </motion.div>
-                        <motion.h2
-                            className="font-display text-4xl lg:text-5xl font-medium text-slate-900 mb-6 max-w-3xl"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.1 }}
-                        >
+                        </Item>
+                        <h2 className="font-display text-4xl lg:text-5xl font-medium text-slate-900 mb-6 max-w-3xl">
                             How We Help You Land Your Dream Job
-                        </motion.h2>
-                    </div>
+                        </h2>
+                    </Item>
 
-                    <motion.div
-                        className="grid grid-cols-1 md:grid-cols-3 gap-8"
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.2 }}
-                        variants={{
-                            visible: {
-                                transition: {
-                                    staggerChildren: 0.1
-                                }
-                            }
-                        }}
-                    >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
                             {
                                 title: "Upload or Create",
@@ -573,13 +472,10 @@ const LandingPage: React.FC = () => {
                                 link: "/auth"
                             }
                         ].map((item, index) => (
-                            <motion.div
+                            <Item
                                 key={index}
-                                variants={{
-                                    hidden: { opacity: 0, y: 20 },
-                                    visible: { opacity: 1, y: 0 }
-                                }}
                                 className="bg-slate-100/80 p-8 rounded-2xl flex flex-col"
+                                delay={index * 0.08}
                             >
                                 {/* Icon */}
                                 <div className="mb-6 text-6xl">
@@ -604,9 +500,9 @@ const LandingPage: React.FC = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                     </svg>
                                 </a>
-                            </motion.div>
+                            </Item>
                         ))}
-                    </motion.div>
+                    </div>
                 </div>
             </Section>
 
