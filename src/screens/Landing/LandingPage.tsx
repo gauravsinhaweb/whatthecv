@@ -26,6 +26,14 @@ import createResumeImgUrl from '../../assets/assets/create-resume.png';
 import launchSvgUrl from '../../assets/assets/Launch.svg';
 import productBadgeUrl from '../../assets/project-rank-one-badge-weekly.svg';
 import wtcvLogoUrl from '../../assets/wtcv.svg';
+import resumePxxUrl from '../../assets/resumepxx.png';
+import templates3Url from '../../assets/templates3.png';
+import logoGoogleUrl from '../../assets/logos/Google_2015_logo.svg.webp';
+import logoMicrosoftUrl from '../../assets/logos/Microsoft_logo_(2012).svg.png';
+import logoTcsUrl from '../../assets/logos/Tata_Consultancy_Services_old_logo.svg.png';
+import logoCognizantUrl from '../../assets/logos/Cognizant_logo_2022.svg.png';
+import logoIitPatnaUrl from '../../assets/logos/Indian_Institute_of_Technology,_Patna.svg.png';
+import logoIitRoorkeeUrl from '../../assets/logos/Indian_Institute_of_Technology_Roorkee_Logo.svg';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -220,7 +228,7 @@ const LandingPage: React.FC = () => {
                             transition={{ duration: 0.8, delay: 0.3 }}
                         >
                             <img
-                                src="/assets/resumepxx.png"
+                                src={resumePxxUrl}
                                 alt="Resume Example"
                                 className="w-full h-full object-contain"
                             />
@@ -249,7 +257,6 @@ const LandingPage: React.FC = () => {
                         <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-blue-500 to-indigo-600">
                             <Video
                                 src={demoVideoUrl}
-                                poster={createResumeImgUrl}
                                 className="w-full h-auto"
                             />
                             {/* Overlay gradient */}
@@ -277,12 +284,12 @@ const LandingPage: React.FC = () => {
                             <div className="flex animate-scroll">
                                 {/* First set of logos */}
                                 {[
-                                    { name: "Google", src: "/assets/logos/Google_2015_logo.svg.webp", alt: "Google" },
-                                    { name: "Microsoft", src: "/assets/logos/Microsoft_logo_(2012).svg.png", alt: "Microsoft" },
-                                    { name: "TCS", src: "/assets/logos/Tata_Consultancy_Services_old_logo.svg.png", alt: "Tata Consultancy Services" },
-                                    { name: "Cognizant", src: "/assets/logos/Cognizant_logo_2022.svg.png", alt: "Cognizant" },
-                                    { name: "IIT Patna", src: "/assets/logos/Indian_Institute_of_Technology,_Patna.svg.png", alt: "IIT Patna" },
-                                    { name: "IIT Roorkee", src: "/assets/logos/Indian_Institute_of_Technology_Roorkee_Logo.svg", alt: "IIT Roorkee" }
+                                    { name: "Google", src: logoGoogleUrl, alt: "Google" },
+                                    { name: "Microsoft", src: logoMicrosoftUrl, alt: "Microsoft" },
+                                    { name: "TCS", src: logoTcsUrl, alt: "Tata Consultancy Services" },
+                                    { name: "Cognizant", src: logoCognizantUrl, alt: "Cognizant" },
+                                    { name: "IIT Patna", src: logoIitPatnaUrl, alt: "IIT Patna" },
+                                    { name: "IIT Roorkee", src: logoIitRoorkeeUrl, alt: "IIT Roorkee" }
                                 ].map((logo, index) => (
                                     <div
                                         key={`logo-1-${index}`}
@@ -300,12 +307,12 @@ const LandingPage: React.FC = () => {
                             {/* Duplicate set for seamless loop */}
                             <div className="flex animate-scroll" aria-hidden="true">
                                 {[
-                                    { name: "Google", src: "/assets/logos/Google_2015_logo.svg.webp", alt: "Google" },
-                                    { name: "Microsoft", src: "/assets/logos/Microsoft_logo_(2012).svg.png", alt: "Microsoft" },
-                                    { name: "TCS", src: "/assets/logos/Tata_Consultancy_Services_old_logo.svg.png", alt: "Tata Consultancy Services" },
-                                    { name: "Cognizant", src: "/assets/logos/Cognizant_logo_2022.svg.png", alt: "Cognizant" },
-                                    { name: "IIT Patna", src: "/assets/logos/Indian_Institute_of_Technology,_Patna.svg.png", alt: "IIT Patna" },
-                                    { name: "IIT Roorkee", src: "/assets/logos/Indian_Institute_of_Technology_Roorkee_Logo.svg", alt: "IIT Roorkee" }
+                                    { name: "Google", src: logoGoogleUrl, alt: "Google" },
+                                    { name: "Microsoft", src: logoMicrosoftUrl, alt: "Microsoft" },
+                                    { name: "TCS", src: logoTcsUrl, alt: "Tata Consultancy Services" },
+                                    { name: "Cognizant", src: logoCognizantUrl, alt: "Cognizant" },
+                                    { name: "IIT Patna", src: logoIitPatnaUrl, alt: "IIT Patna" },
+                                    { name: "IIT Roorkee", src: logoIitRoorkeeUrl, alt: "IIT Roorkee" }
                                 ].map((logo, index) => (
                                     <div
                                         key={`logo-2-${index}`}
@@ -406,7 +413,7 @@ const LandingPage: React.FC = () => {
                         {/* Left Column - Visual Preview */}
                         <Item className="flex items-center justify-center lg:justify-start">
                             <img
-                                src="/assets/templates3.png"
+                                src={templates3Url}
                                 alt="Professional Resume Templates"
                                 className="w-full h-auto object-contain"
                             />
