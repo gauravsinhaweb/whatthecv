@@ -46,24 +46,26 @@ const LandingPage: React.FC = () => {
 
     useEffect(() => {
         const preloadCriticalResources = () => {
-            const criticalPaths = [
-                demoVideoUrl,
-                createResumeImgUrl,
-                launchSvgUrl
-            ];
-            criticalPaths.forEach((path) => {
-                if (path.endsWith('.mp4')) {
-                    const video = document.createElement('video');
-                    video.preload = 'metadata';
-                    video.src = path;
-                } else {
-                    const link = document.createElement('link');
-                    link.rel = 'preload';
-                    link.as = path.endsWith('.png') ? 'image' : 'image';
-                    link.href = path;
-                    document.head.appendChild(link);
-                }
-            });
+            // Preload poster image immediately (lightweight)
+            const posterLink = document.createElement('link');
+            posterLink.rel = 'preload';
+            posterLink.as = 'image';
+            posterLink.href = createResumeImgUrl;
+            document.head.appendChild(posterLink);
+
+            // Preload video more aggressively for above-fold content
+            const video = document.createElement('video');
+            video.preload = 'auto'; // Changed from 'metadata' to 'auto' for faster loading
+            video.src = demoVideoUrl;
+            video.muted = true;
+            video.playsInline = true;
+
+            // Preload other critical images
+            const launchLink = document.createElement('link');
+            launchLink.rel = 'preload';
+            launchLink.as = 'image';
+            launchLink.href = launchSvgUrl;
+            document.head.appendChild(launchLink);
         };
         preloadCriticalResources();
     }, []);
@@ -263,7 +265,8 @@ const LandingPage: React.FC = () => {
                     >
                         <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-blue-500 to-indigo-600">
                             <Video
-                                src="/assets/demo.mp4"
+                                src={demoVideoUrl}
+                                poster={createResumeImgUrl}
                                 className="w-full h-auto"
                             />
                             {/* Overlay gradient */}
