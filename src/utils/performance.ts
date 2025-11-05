@@ -15,15 +15,17 @@ export const optimizedContainerVariants = {
 };
 
 export const optimizedItemVariants = {
-    hidden: { y: 10, opacity: 0 },
+    hidden: { y: 20, opacity: 0, scale: 0.96 },
     visible: {
         y: 0,
         opacity: 1,
+        scale: 1,
         transition: {
             type: 'spring',
             stiffness: 100,
             damping: 20,
-            duration: 0.3
+            duration: 0.5,
+            ease: [0.25, 0.1, 0.25, 1]
         }
     }
 };
@@ -192,23 +194,24 @@ export const optimizeImages = () => {
 };
 
 export const preloadCriticalResources = () => {
-    const criticalPaths = [
-        demoVideoUrl,
-        createResumeImgUrl,
-        launchSvgUrl
-    ];
+    // Preload poster image immediately (lightweight)
+    const posterLink = document.createElement('link');
+    posterLink.rel = 'preload';
+    posterLink.as = 'image';
+    posterLink.href = createResumeImgUrl;
+    document.head.appendChild(posterLink);
 
-    criticalPaths.forEach((path) => {
-        if (path.endsWith('.mp4')) {
-            const video = document.createElement('video');
-            video.preload = 'metadata';
-            video.src = path;
-        } else {
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.as = path.endsWith('.png') ? 'image' : 'image';
-            link.href = path;
-            document.head.appendChild(link);
-        }
-    });
+    // Preload video more aggressively for above-fold content
+    const video = document.createElement('video');
+    video.preload = 'auto'; // Changed from 'metadata' to 'auto' for faster loading
+    video.src = demoVideoUrl;
+    video.muted = true;
+    video.playsInline = true;
+
+    // Preload other critical images
+    const launchLink = document.createElement('link');
+    launchLink.rel = 'preload';
+    launchLink.as = 'image';
+    launchLink.href = launchSvgUrl;
+    document.head.appendChild(launchLink);
 }; 

@@ -11,6 +11,7 @@ import { exportResumeToPDF } from '../utils/resumeExport';
 import { isSuperUser } from '../utils/superuser';
 import SaveResumeModal from './modals/SaveResumeModal';
 import SignInModal from './modals/SignInModal';
+import SignInToSaveModal from './modals/SignInToSaveModal';
 import wtcvLogoUrl from '../assets/wtcv.svg';
 import AutoSaveIndicator from './ui/AutoSaveIndicator';
 import Button from './ui/Button';
@@ -22,6 +23,7 @@ const Navigation: React.FC = () => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isSignInToSaveModalOpen, setIsSignInToSaveModalOpen] = useState(false);
   const [resumeTitle, setResumeTitle] = useState('');
   const [saveMode, setSaveMode] = useState<'new' | 'replace'>('new');
   const [userResumes, setUserResumes] = useState<any[]>([]);
@@ -52,6 +54,7 @@ const Navigation: React.FC = () => {
     setIsSaveModalOpen(false);
     setIsExportModalOpen(false);
     setIsSignInModalOpen(false);
+    setIsSignInToSaveModalOpen(false);
     setResumeTitle('');
     setSelectedResumeId('');
     setSaveMode('new');
@@ -75,8 +78,7 @@ const Navigation: React.FC = () => {
   const handleSaveClick = () => {
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
-      toast.error('Please sign in to save your resume');
-      signIn();
+      setIsSignInToSaveModalOpen(true);
       return;
     }
 
@@ -409,6 +411,11 @@ const Navigation: React.FC = () => {
       <SignInModal
         isOpen={isSignInModalOpen}
         onClose={() => setIsSignInModalOpen(false)}
+      />
+      {/* Sign In to Save Modal */}
+      <SignInToSaveModal
+        isOpen={isSignInToSaveModalOpen}
+        onClose={() => setIsSignInToSaveModalOpen(false)}
       />
       {/* Save Draft Modal */}
       <SaveResumeModal

@@ -22,6 +22,7 @@ import { useAuth } from '../../hooks/useAuth';
 import './landing.css';
 import launchSvgUrl from '../../assets/assets/Launch.svg';
 import demoVideoUrl from '../../assets/assets/demo.mp4';
+import createResumeImgUrl from '../../assets/assets/create-resume.png';
 
 const OptimizedLandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -303,6 +304,7 @@ const OptimizedLandingPage: React.FC = () => {
                             <div className="relative aspect-[16/10] sm:aspect-video">
                                 <Video
                                     src={demoVideoUrl}
+                                    poster={createResumeImgUrl}
                                     className="w-full h-full object-cover transform-gpu"
                                 />
                             </div>
