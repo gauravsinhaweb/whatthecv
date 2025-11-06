@@ -31,3 +31,4 @@ All modals should follow these consistent styling patterns:
 - **Max Width**: `max-w-md` or `max-w-lg` depending on content
 
 
+
