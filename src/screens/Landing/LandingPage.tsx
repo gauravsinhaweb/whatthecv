@@ -284,7 +284,7 @@ const LandingPage: React.FC = () => {
                                     whileTap={{ scale: 0.98 }}
                                 >
                                     <Upload className="h-5 w-5 mr-2" />
-                                    Optimize Existing
+                                    Optimise Existing Resume
                                 </motion.button>
                                 <input
                                     ref={fileInputRef}
