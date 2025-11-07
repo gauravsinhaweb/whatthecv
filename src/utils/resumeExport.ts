@@ -143,7 +143,6 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                         font-weight: inherit !important;
                         -webkit-user-select: text !important;
                         user-select: text !important;
-                        color: ${customizationOptions?.colors?.headings || '#000000'} !important;
                         -webkit-text-size-adjust: none !important;
                         text-size-adjust: none !important;
                         pointer-events: auto !important;
