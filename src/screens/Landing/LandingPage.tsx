@@ -1,39 +1,36 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
-    BarChart,
-    CheckCircle,
-    FileCheck,
-    FileText,
     Github,
     Linkedin,
     Mail,
-    Search,
-    Target,
-    ThumbsUp,
-    Twitter
+    Twitter,
+    Upload
 } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import createResumeImgUrl from '../../assets/assets/create-resume.png';
+import demoVideoUrl from '../../assets/assets/demo.mp4';
+import launchSvgUrl from '../../assets/assets/Launch.svg';
+import logoCognizantUrl from '../../assets/logos/Cognizant_logo_2022.svg.png';
+import logoGoogleUrl from '../../assets/logos/Google_2015_logo.svg.webp';
+import logoIitPatnaUrl from '../../assets/logos/Indian_Institute_of_Technology,_Patna.svg.png';
+import logoIitRoorkeeUrl from '../../assets/logos/Indian_Institute_of_Technology_Roorkee_Logo.svg';
+import logoMicrosoftUrl from '../../assets/logos/Microsoft_logo_(2012).svg.png';
+import logoTcsUrl from '../../assets/logos/Tata_Consultancy_Services_old_logo.svg.png';
+import productBadgeUrl from '../../assets/project-rank-one-badge-weekly.svg';
+import resumePxxUrl from '../../assets/resumepxx.png';
+import templates3Url from '../../assets/templates3.png';
+import wtcvLogoUrl from '../../assets/wtcv.svg';
 import FaqSection from '../../components/landing/FaqSection';
 import { Item, Section } from '../../components/landing/Section';
 import { Video } from '../../components/landing/Video';
-import Button from '../../components/ui/Button';
+import EnhancingLoader from '../../components/resume/EnhancingLoader';
 import { useAuth } from '../../hooks/useAuth';
-import { cardVariants, containerVariants, itemVariants } from '../../utils/animations';
+import { useResumeStore } from '../../store/resumeStore';
+import { enhanceResumeFromFile } from '../../utils/api';
+import { checkFileIsResume } from '../../utils/resumeService';
 import './landing.css';
-import demoVideoUrl from '../../assets/assets/demo.mp4';
-import createResumeImgUrl from '../../assets/assets/create-resume.png';
-import launchSvgUrl from '../../assets/assets/Launch.svg';
-import productBadgeUrl from '../../assets/project-rank-one-badge-weekly.svg';
-import wtcvLogoUrl from '../../assets/wtcv.svg';
-import resumePxxUrl from '../../assets/resumepxx.png';
-import templates3Url from '../../assets/templates3.png';
-import logoGoogleUrl from '../../assets/logos/Google_2015_logo.svg.webp';
-import logoMicrosoftUrl from '../../assets/logos/Microsoft_logo_(2012).svg.png';
-import logoTcsUrl from '../../assets/logos/Tata_Consultancy_Services_old_logo.svg.png';
-import logoCognizantUrl from '../../assets/logos/Cognizant_logo_2022.svg.png';
-import logoIitPatnaUrl from '../../assets/logos/Indian_Institute_of_Technology,_Patna.svg.png';
-import logoIitRoorkeeUrl from '../../assets/logos/Indian_Institute_of_Technology_Roorkee_Logo.svg';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -41,10 +38,106 @@ const LandingPage: React.FC = () => {
     const { isAuthenticated, user } = useAuth();
     const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 1]);
     const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.85]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [file, setFile] = useState<File | null>(null);
+
+    const {
+        ui: { isEnhancing, enhancementStage },
+        setIsEnhancing,
+        setEnhancementStage,
+        setEnhancedResumeData
+    } = useResumeStore();
 
     const handleNavigate = useCallback((path: string) => {
         navigate(path);
     }, [navigate]);
+
+    const handleEnhanceResume = useCallback(async (selectedFile: File) => {
+        if (!selectedFile || isEnhancing) return;
+
+        try {
+            setIsEnhancing(true);
+            setEnhancementStage('extracting');
+
+            const checkResult = await checkFileIsResume(selectedFile, false);
+
+            if (!checkResult.is_resume) {
+                throw new Error('The uploaded document does not appear to be a resume. Please upload a valid resume document.');
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            setEnhancementStage('enhancing');
+
+            const enhanceResult = await enhanceResumeFromFile(selectedFile);
+
+            setEnhancementStage('finalizing');
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            setEnhancedResumeData(enhanceResult);
+
+            navigate('/create-resume');
+
+        } catch (error) {
+            console.error('Error enhancing resume:', error);
+            setEnhancementStage('error');
+
+            let errorMessage = '';
+            if (error instanceof Error) {
+                if (error.message.includes('does not appear to be a resume')) {
+                    errorMessage = error.message;
+                } else if (error.message.includes('cancelled') || error.message.includes('aborted')) {
+                    errorMessage = 'The enhancement process was interrupted. Please try again.';
+                } else if (error.message.includes('timed out')) {
+                    errorMessage = 'The request took too long. Please try again with a smaller file.';
+                } else if (error.message.includes('File size too large')) {
+                    errorMessage = 'The file is too large. Please upload a smaller file (max 10MB).';
+                } else if (error.message.includes('Unsupported file type')) {
+                    errorMessage = 'Please upload a PDF, DOCX, or TXT file.';
+                } else if (error.message.includes('Insufficient tokens')) {
+                    errorMessage = 'Insufficient tokens. Please try again later.';
+                } else {
+                    errorMessage = error.message;
+                }
+            } else {
+                errorMessage = 'Failed to enhance resume. Please try again.';
+            }
+
+            toast.error(errorMessage);
+
+            setTimeout(() => {
+                setIsEnhancing(false);
+                setEnhancementStage('extracting');
+            }, 2000);
+        } finally {
+            setIsEnhancing(false);
+        }
+    }, [isEnhancing, setIsEnhancing, setEnhancementStage, setEnhancedResumeData, navigate]);
+
+    const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = (e.target as HTMLInputElement).files;
+        if (files && files.length > 0) {
+            const selectedFile = files[0];
+            const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
+            const maxSizeInBytes = 10 * 1024 * 1024;
+
+            if (!fileExtension || !['pdf', 'doc', 'docx', 'txt'].includes(fileExtension)) {
+                toast.error('Please upload a PDF, DOC, DOCX, or TXT file.');
+                return;
+            }
+
+            if (selectedFile.size > maxSizeInBytes) {
+                toast.error('File size exceeds 10MB limit. Please upload a smaller file.');
+                return;
+            }
+
+            setFile(selectedFile);
+            handleEnhanceResume(selectedFile);
+        }
+    }, [handleEnhanceResume]);
+
+    const handleBrowseTemplates = useCallback(() => {
+        fileInputRef.current?.click();
+    }, []);
 
     useEffect(() => {
         if (isAuthenticated && user) {
@@ -99,6 +192,16 @@ const LandingPage: React.FC = () => {
         }
     ], []);
 
+    if (isEnhancing) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+                <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
+                    <EnhancingLoader stage={enhancementStage} />
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen">
 
@@ -120,11 +223,18 @@ const LandingPage: React.FC = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.1 }}
                             >
-                                <img
-                                    src={productBadgeUrl}
-                                    alt="#1 Product of the Week"
-                                    className="h-14 w-auto cursor-pointer transition-transform hover:scale-105"
-                                />
+                                <a
+                                    href="https://peerlist.io/gauravsinha/project/whatthecv"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-block"
+                                >
+                                    <img
+                                        src={productBadgeUrl}
+                                        alt="#1 Product of the Week"
+                                        className="h-14 w-auto cursor-pointer transition-transform hover:scale-105"
+                                    />
+                                </a>
                                 {/* Hover Tooltip */}
                                 <div className="absolute left-0 top-full mt-3 px-4 py-2.5 bg-white text-slate-700 text-sm font-medium rounded-xl shadow-xl border border-slate-200 opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10">
                                     #1 Peerlist product of the Week
@@ -168,13 +278,21 @@ const LandingPage: React.FC = () => {
                                     Get Started Free
                                 </motion.button>
                                 <motion.button
-                                    onClick={() => handleNavigate('/templates')}
+                                    onClick={handleBrowseTemplates}
                                     className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all duration-200"
                                     whileHover={{ y: -2 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
-                                    Browse Templates
+                                    <Upload className="h-5 w-5 mr-2" />
+                                    Optimize Existing
                                 </motion.button>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    className="hidden"
+                                    accept=".pdf,.doc,.docx,.txt"
+                                    onChange={handleFileSelect}
+                                />
                             </motion.div>
 
                             {/* User Avatars */}
@@ -434,12 +552,12 @@ const LandingPage: React.FC = () => {
                             </p>
 
                             <motion.button
-                                onClick={() => handleNavigate('/templates')}
+                                onClick={() => handleNavigate('/create-resume?tab=customize')}
                                 className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all duration-200"
                                 whileHover={{ y: -2 }}
                                 whileTap={{ scale: 0.98 }}
                             >
-                                Browse Templates
+                                Create with Templates
                             </motion.button>
                         </Item>
                     </div>

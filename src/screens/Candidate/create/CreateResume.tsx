@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { ResumeData, initialResumeData } from '../../../types/resume';
@@ -13,6 +13,7 @@ import paintBrushIconUrl from '../../../assets/paint-brush.svg';
 
 const CreateResume: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const {
         resumeData,
         ui: { activeSection, expandedSections, previewScale },
@@ -32,7 +33,9 @@ const CreateResume: React.FC = () => {
         setSelectedDocument,
         save: { isSavingDraft }
     } = useResumeState();
-    const [activeTab, setActiveTab] = useState<string>('content');
+    const tabParam = searchParams.get('tab');
+    const initialTab = tabParam === 'customize' ? 'customization' : 'content';
+    const [activeTab, setActiveTab] = useState<string>(initialTab);
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
@@ -47,6 +50,16 @@ const CreateResume: React.FC = () => {
             setResumeData(initialResumeData);
         }
     }, [selectedDocument, resumeData, setResumeData]);
+
+    // Handle tab parameter from URL
+    useEffect(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'customize') {
+            setActiveTab('customization');
+        } else if (tabParam === 'content' || !tabParam) {
+            setActiveTab('content');
+        }
+    }, [searchParams]);
 
 
 
