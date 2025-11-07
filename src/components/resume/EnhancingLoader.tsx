@@ -53,9 +53,11 @@ const animationStyles = `
 
 interface EnhancingLoaderProps {
     stage: 'extracting' | 'enhancing' | 'finalizing' | 'completed' | 'error';
+    errorMessage?: string;
+    onUploadAnother?: () => void;
 }
 
-const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
+const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, onUploadAnother }) => {
     const [funnyMessageIndex, setFunnyMessageIndex] = useState(0);
     const [elapsedTime, setElapsedTime] = useState(0);
 
@@ -291,157 +293,173 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
 
             {/* Modern Progress Card */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
-                <div className="p-6 border-b border-slate-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="font-display text-2xl font-medium text-slate-900 mb-2">Enhancing Your Resume</h3>
-                            <p className="text-base text-slate-600">Our AI is working its magic on your document</p>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-xs text-slate-500">Time elapsed</div>
-                            <div className="text-lg font-bold text-slate-900">{elapsedTime}s</div>
+                {stage === 'error' && errorMessage ? (
+                    <div className="p-8">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6">
+                                <AlertCircle className="h-8 w-8 text-amber-600" />
+                            </div>
+                            <h3 className="font-display text-2xl font-medium text-slate-900 mb-2">This doesn't look like a resume</h3>
+                            <p className="text-lg text-slate-600 mb-8 max-w-md">No worries! Just upload a valid resume file and we'll get started.</p>
+                            {onUploadAnother && (
+                                <button
+                                    onClick={onUploadAnother}
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                >
+                                    Upload Another File
+                                </button>
+                            )}
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <>
+                        <div className="p-6">
+                            <div>
+                                <h3 className="font-display text-2xl font-medium text-slate-900 mb-2">Enhancing Your Resume</h3>
+                                <p className="text-base text-slate-600">Our AI is working its magic on your document</p>
+                            </div>
+                        </div>
 
-                {/* Progress Visualization */}
-                <div className="p-6">
-                    {/* Circular progress */}
-                    <div className="flex justify-center mb-6">
-                        <div className="relative w-24 h-24">
-                            {/* Background circle */}
-                            <div className="w-full h-full rounded-full border-8 border-slate-100"></div>
+                        {/* Progress Visualization */}
+                        <div className="p-6">
+                            {/* Circular progress */}
+                            <div className="flex justify-center mb-6">
+                                <div className="relative w-24 h-24">
+                                    {/* Background circle */}
+                                    <div className="w-full h-full rounded-full border-8 border-slate-100"></div>
 
-                            {/* Progress arc - using SVG for proper circular progress */}
-                            <svg className="absolute top-0 left-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-                                <circle
-                                    cx="50" cy="50" r="42"
-                                    fill="none"
-                                    strokeWidth="8"
-                                    stroke="#3B82F6"
-                                    strokeDasharray={`${getProgress() * 2.64} 264`}
-                                    strokeLinecap="round"
-                                    className="transition-all duration-500"
-                                />
-                            </svg>
+                                    {/* Progress arc - using SVG for proper circular progress */}
+                                    <svg className="absolute top-0 left-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                        <circle
+                                            cx="50" cy="50" r="42"
+                                            fill="none"
+                                            strokeWidth="8"
+                                            stroke="#3B82F6"
+                                            strokeDasharray={`${getProgress() * 2.64} 264`}
+                                            strokeLinecap="round"
+                                            className="transition-all duration-500"
+                                        />
+                                    </svg>
 
-                            {/* Percentage text */}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="text-center">
-                                    <span className="text-2xl font-bold text-blue-600">{getProgress()}%</span>
+                                    {/* Percentage text */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <span className="text-2xl font-bold text-blue-600">{getProgress()}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Funny message */}
+                            {stage !== 'completed' && (
+                                <div className="flex items-center justify-center mb-6">
+                                    <p className="text-sm text-slate-600 flex items-center gap-2">
+                                        <FunnyIcon />
+                                        <span>{getFunnyMessage()}</span>
+                                        <span className="inline-flex items-baseline gap-0.5 w-6">
+                                            <span className="animate-[bounce_1.4s_ease-in-out_infinite] inline-block">.</span>
+                                            <span className="animate-[bounce_1.4s_ease-in-out_infinite_0.2s] inline-block">.</span>
+                                            <span className="animate-[bounce_1.4s_ease-in-out_infinite_0.4s] inline-block">.</span>
+                                        </span>
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Stage indicators */}
+                            <div className="space-y-4">
+                            {/* Extracting Stage */}
+                            <div className="flex items-start">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'extracting'
+                                    ? 'bg-blue-600 text-white'
+                                    : stage === 'enhancing' || stage === 'finalizing'
+                                        ? 'bg-emerald-500 text-white'
+                                        : 'bg-slate-100 text-slate-400'
+                                    }`}>
+                                    {stage === 'extracting' ? (
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                    ) : stage === 'enhancing' || stage === 'finalizing' ? (
+                                        <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
+                                    ) : (
+                                        <FileText className="h-5 w-5" />
+                                    )}
+                                </div>
+                                <div className="ml-4 flex-1">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-base font-medium text-slate-900">Extracting Resume Information</h3>
+                                        {(stage === 'enhancing' || stage === 'finalizing') && (
+                                            <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-slate-600 mt-1">Analyzing your resume structure and content</p>
+                                </div>
+                            </div>
+
+                            {/* Enhancing Stage */}
+                            <div className="flex items-start">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'enhancing'
+                                    ? 'bg-indigo-600 text-white'
+                                    : stage === 'finalizing'
+                                        ? 'bg-emerald-500 text-white'
+                                        : 'bg-slate-100 text-slate-400'
+                                    }`}>
+                                    {stage === 'enhancing' ? (
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                    ) : stage === 'finalizing' ? (
+                                        <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
+                                    ) : (
+                                        <Settings className="h-5 w-5" />
+                                    )}
+                                </div>
+                                <div className="ml-4 flex-1">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-base font-medium text-slate-900">AI Enhancement</h3>
+                                        {stage === 'finalizing' && (
+                                            <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-slate-600 mt-1">Improving content quality and formatting</p>
+
+                                </div>
+                            </div>
+
+                            {/* Finalizing Stage */}
+                            <div className="flex items-start">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'finalizing'
+                                    ? 'bg-purple-600 text-white'
+                                    : stage === 'completed'
+                                        ? 'bg-emerald-500 text-white'
+                                        : 'bg-slate-100 text-slate-400'
+                                    }`}>
+                                    {stage === 'finalizing' ? (
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                    ) : stage === 'completed' ? (
+                                        <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
+                                    ) : (
+                                        <Sparkles className="h-5 w-5" />
+                                    )}
+                                </div>
+                                <div className="ml-4 flex-1">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-base font-medium text-slate-900">Finalizing Resume</h3>
+                                        {stage === 'completed' && (
+                                            <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-slate-600 mt-1">Preparing your resume for editing</p>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                        </div>
 
-                    {/* Funny message */}
-                    {stage !== 'completed' && (
-                        <div className="flex items-center justify-center mb-6">
-                            <p className="text-sm text-slate-600 flex items-center gap-2">
-                                <FunnyIcon />
-                                <span>{getFunnyMessage()}</span>
-                                <span className="inline-flex items-baseline gap-0.5 w-6">
-                                    <span className="animate-[bounce_1.4s_ease-in-out_infinite] inline-block">.</span>
-                                    <span className="animate-[bounce_1.4s_ease-in-out_infinite_0.2s] inline-block">.</span>
-                                    <span className="animate-[bounce_1.4s_ease-in-out_infinite_0.4s] inline-block">.</span>
-                                </span>
+                        {/* Footer message */}
+                        <div className="p-3 border-t border-slate-200 bg-slate-50 text-center">
+                            <p className="text-sm text-slate-600">
+                                <span>AI-powered enhancement in progress.</span>{' '}
+                                <span>This may take a few moments.</span>
                             </p>
                         </div>
-                    )}
-
-                    {/* Stage indicators */}
-                    <div className="space-y-4">
-                        {/* Extracting Stage */}
-                        <div className="flex items-start">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'extracting'
-                                ? 'bg-blue-600 text-white'
-                                : stage === 'enhancing' || stage === 'finalizing'
-                                    ? 'bg-emerald-500 text-white'
-                                    : 'bg-slate-100 text-slate-400'
-                                }`}>
-                                {stage === 'extracting' ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                ) : stage === 'enhancing' || stage === 'finalizing' ? (
-                                    <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
-                                ) : (
-                                    <FileText className="h-5 w-5" />
-                                )}
-                            </div>
-                            <div className="ml-4 flex-1">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-base font-medium text-slate-900">Extracting Resume Information</h3>
-                                    {(stage === 'enhancing' || stage === 'finalizing') && (
-                                        <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-slate-600 mt-1">Analyzing your resume structure and content</p>
-                            </div>
-                        </div>
-
-                        {/* Enhancing Stage */}
-                        <div className="flex items-start">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'enhancing'
-                                ? 'bg-indigo-600 text-white'
-                                : stage === 'finalizing'
-                                    ? 'bg-emerald-500 text-white'
-                                    : 'bg-slate-100 text-slate-400'
-                                }`}>
-                                {stage === 'enhancing' ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                ) : stage === 'finalizing' ? (
-                                    <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
-                                ) : (
-                                    <Settings className="h-5 w-5" />
-                                )}
-                            </div>
-                            <div className="ml-4 flex-1">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-base font-medium text-slate-900">AI Enhancement</h3>
-                                    {stage === 'finalizing' && (
-                                        <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-slate-600 mt-1">Improving content quality and formatting</p>
-
-                            </div>
-                        </div>
-
-                        {/* Finalizing Stage */}
-                        <div className="flex items-start">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'finalizing'
-                                ? 'bg-purple-600 text-white'
-                                : stage === 'completed'
-                                    ? 'bg-emerald-500 text-white'
-                                    : 'bg-slate-100 text-slate-400'
-                                }`}>
-                                {stage === 'finalizing' ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                ) : stage === 'completed' ? (
-                                    <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
-                                ) : (
-                                    <Sparkles className="h-5 w-5" />
-                                )}
-                            </div>
-                            <div className="ml-4 flex-1">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-base font-medium text-slate-900">Finalizing Resume</h3>
-                                    {stage === 'completed' && (
-                                        <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-slate-600 mt-1">Preparing your resume for editing</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer message */}
-                <div className="p-4 border-t border-slate-200 bg-slate-50 text-center">
-                    <p className="text-base text-slate-600">
-                        <span className="font-medium">AI-powered enhancement in progress.</span>{' '}
-                        <span>This may take a few moments.</span>
-                    </p>
-                </div>
+                    </>
+                )}
             </div>
         </div>
     );
