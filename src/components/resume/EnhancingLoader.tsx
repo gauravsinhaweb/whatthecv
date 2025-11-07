@@ -60,6 +60,7 @@ interface EnhancingLoaderProps {
 const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, onUploadAnother }) => {
     const [funnyMessageIndex, setFunnyMessageIndex] = useState(0);
     const [elapsedTime, setElapsedTime] = useState(0);
+    const [displayProgress, setDisplayProgress] = useState(0);
 
     // Array of funny, sarcastic messages to display while processing
     const funnyMessages = [
@@ -187,6 +188,36 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                 return 0;
         }
     };
+
+    // Smooth progress animation
+    useEffect(() => {
+        const targetProgress = getProgress();
+        if (displayProgress === targetProgress) return;
+
+        const duration = 800; // Animation duration in ms
+        const startProgress = displayProgress;
+        const startTime = Date.now();
+
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function for smooth animation (ease-out cubic)
+            const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+            const currentProgress = Math.round(startProgress + (targetProgress - startProgress) * easeOutCubic);
+            
+            setDisplayProgress(currentProgress);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                setDisplayProgress(targetProgress);
+            }
+        };
+
+        const animationFrame = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrame);
+    }, [stage, displayProgress]);
 
     // Get status message based on the stage
     const getMessage = (): string => {
@@ -335,7 +366,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                                             fill="none"
                                             strokeWidth="8"
                                             stroke="#3B82F6"
-                                            strokeDasharray={`${getProgress() * 2.64} 264`}
+                                            strokeDasharray={`${displayProgress * 2.64} 264`}
                                             strokeLinecap="round"
                                             className="transition-all duration-500"
                                         />
@@ -344,7 +375,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                                     {/* Percentage text */}
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <div className="text-center">
-                                            <span className="text-2xl font-bold text-blue-600">{getProgress()}%</span>
+                                            <span className="text-2xl font-bold text-blue-600 transition-all duration-300">{displayProgress}%</span>
                                         </div>
                                     </div>
                                 </div>
