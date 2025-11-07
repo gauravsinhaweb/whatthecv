@@ -61,64 +61,64 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
 
     // Array of funny, sarcastic messages to display while processing
     const funnyMessages = [
-        "Convincing AI that your resume isn't just fiction...",
-        "Translating your job history from 'barely survived' to 'exceeded expectations'...",
-        "Making your 3 months of Excel experience sound like you're a spreadsheet wizard...",
-        "Calculating how many coffees it would take to actually do all skills you listed...",
-        "Removing all instances of 'passionate, detail-oriented team player'...",
-        "Converting your resume from 'rejection material' to 'interview worthy'...",
-        "Replacing 'proficient in Microsoft Word' with actual skills...",
-        "Adding enough buzzwords to impress even the most soulless HR bot...",
-        "Strategically hiding all evidence of your imposter syndrome...",
-        "Making your part-time dog sitting job sound like executive leadership...",
-        "Searching for synonyms of 'responsible for' that sound less boring...",
-        "Attempting to explain your six-month 'finding myself' gap year...",
-        "Turning 'I watched someone else do it once' into 'extensive experience'...",
-        "Convincing algorithms that you're worth more than minimum wage...",
-        "Converting your gaming achievements into transferable corporate skills...",
-        "Teaching AI to appreciate your unique 'organizational methodology' (aka chaos)...",
-        "Negotiating with the algorithm to rate your skills higher than a 3/10...",
-        "Politely removing the phrase 'familiar with' from your skills section...",
-        "Transforming your LinkedIn lurking into 'industry research experience'...",
+        "Convincing AI that your resume isn't just fiction",
+        "Translating your job history from 'barely survived' to 'exceeded expectations'",
+        "Making your 3 months of Excel experience sound like you're a spreadsheet wizard",
+        "Calculating how many coffees it would take to actually do all skills you listed",
+        "Removing all instances of 'passionate, detail-oriented team player'",
+        "Converting your resume from 'rejection material' to 'interview worthy'",
+        "Replacing 'proficient in Microsoft Word' with actual skills",
+        "Adding enough buzzwords to impress even the most soulless HR bot",
+        "Strategically hiding all evidence of your imposter syndrome",
+        "Making your part-time dog sitting job sound like executive leadership",
+        "Searching for synonyms of 'responsible for' that sound less boring",
+        "Attempting to explain your six-month 'finding myself' gap year",
+        "Turning 'I watched someone else do it once' into 'extensive experience'",
+        "Convincing algorithms that you're worth more than minimum wage",
+        "Converting your gaming achievements into transferable corporate skills",
+        "Teaching AI to appreciate your unique 'organizational methodology' (aka chaos)",
+        "Negotiating with the algorithm to rate your skills higher than a 3/10",
+        "Politely removing the phrase 'familiar with' from your skills section",
+        "Transforming your LinkedIn lurking into 'industry research experience'",
     ];
 
     // Messages specific to each stage
     const stageSpecificMessages = {
         extracting: [
-            "Reading between the lines of your job descriptions...",
-            "Extracting the truth from your slightly exaggerated skills section...",
-            "Trying to understand how you fit 10 years of experience into 2 pages...",
-            "Deciphering whether your references actually like you...",
-            "Calculating your real GPA vs. the one you wrote down...",
-            "Scanning for typos that spell check apparently missed...",
-            "Counting how many times you used 'utilized' instead of 'used'...",
-            "Verifying if those certifications are still valid or expired in 2015...",
-            "Decoding what you actually meant by 'proficient in Python'...",
-            "Determining if your entire resume is just a ChatGPT hallucination..."
+            "Reading between the lines of your job descriptions",
+            "Extracting the truth from your slightly exaggerated skills section",
+            "Trying to understand how you fit 10 years of experience into 2 pages",
+            "Deciphering whether your references actually like you",
+            "Calculating your real GPA vs. the one you wrote down",
+            "Scanning for typos that spell check apparently missed",
+            "Counting how many times you used 'utilized' instead of 'used'",
+            "Verifying if those certifications are still valid or expired in 2015",
+            "Decoding what you actually meant by 'proficient in Python'",
+            "Determining if your entire resume is just a ChatGPT hallucination"
         ],
         enhancing: [
-            "Making you sound competent (our hardest job yet)...",
-            "Translating 'I watched a YouTube tutorial' into 'proficient'...",
-            "Adding corporate jargon that nobody understands but everyone respects...",
-            "Turning your coffee-fetching internship into executive experience...",
-            "Sprinkling in keywords that will confuse even you about your skills...",
-            "Finding creative ways to hide that 2-year employment gap...",
-            "Making your weekend hobby sound like professional qualification...",
-            "Converting your Reddit moderator role into 'community leadership'...",
-            "Applying the perfect amount of exaggeration without triggering HR alarms...",
-            "Improving your resume without making even your mom question its authenticity..."
+            "Making you sound competent (our hardest job yet)",
+            "Translating 'I watched a YouTube tutorial' into 'proficient'",
+            "Adding corporate jargon that nobody understands but everyone respects",
+            "Turning your coffee-fetching internship into executive experience",
+            "Sprinkling in keywords that will confuse even you about your skills",
+            "Finding creative ways to hide that 2-year employment gap",
+            "Making your weekend hobby sound like professional qualification",
+            "Converting your Reddit moderator role into 'community leadership'",
+            "Applying the perfect amount of exaggeration without triggering HR alarms",
+            "Improving your resume without making even your mom question its authenticity"
         ],
         finalizing: [
-            "Checking if anyone will actually believe this version of you...",
-            "Performing final reality distortion checks...",
-            "Preparing you for inevitable interview questions about skills you don't have...",
-            "Calculating percentage chance of getting past ATS systems...",
-            "Inserting subliminal messages to hypnotize hiring managers...",
-            "Checking if this resume violates any laws of physics or reality...",
-            "Ensuring your salary expectations don't cause spontaneous laughter...",
-            "Running final sanity check on your 'transferable skills' claims...",
-            "Adding strategic white space to hide the fact that you lack experience...",
-            "Creating a polished version of you that even you won't recognize..."
+            "Checking if anyone will actually believe this version of you",
+            "Performing final reality distortion checks",
+            "Preparing you for inevitable interview questions about skills you don't have",
+            "Calculating percentage chance of getting past ATS systems",
+            "Inserting subliminal messages to hypnotize hiring managers",
+            "Checking if this resume violates any laws of physics or reality",
+            "Ensuring your salary expectations don't cause spontaneous laughter",
+            "Running final sanity check on your 'transferable skills' claims",
+            "Adding strategic white space to hide the fact that you lack experience",
+            "Creating a polished version of you that even you won't recognize"
         ],
         error: [
             "Oops! Something went wrong...",
@@ -255,7 +255,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
         const messageHash = funnyMessageIndex % icons.length;
         const RandomIcon = icons[messageHash];
 
-        return <RandomIcon className="h-4 w-4 text-blue-600" />;
+        return <RandomIcon className="h-4 w-4 text-slate-500" />;
     };
 
     const [showConfetti, setShowConfetti] = useState(false);
@@ -337,10 +337,15 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                     {/* Funny message */}
                     {stage !== 'completed' && (
                         <div className="flex items-center justify-center mb-6">
-                            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
+                            <p className="text-sm text-slate-600 flex items-center gap-2">
                                 <FunnyIcon />
-                                <p className="text-sm text-slate-700">{getFunnyMessage()}</p>
-                            </div>
+                                <span>{getFunnyMessage()}</span>
+                                <span className="inline-flex items-baseline gap-0.5 w-6">
+                                    <span className="animate-[bounce_1.4s_ease-in-out_infinite] inline-block">.</span>
+                                    <span className="animate-[bounce_1.4s_ease-in-out_infinite_0.2s] inline-block">.</span>
+                                    <span className="animate-[bounce_1.4s_ease-in-out_infinite_0.4s] inline-block">.</span>
+                                </span>
+                            </p>
                         </div>
                     )}
 
@@ -348,7 +353,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                     <div className="space-y-4">
                         {/* Extracting Stage */}
                         <div className="flex items-start">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${stage === 'extracting'
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'extracting'
                                 ? 'bg-blue-600 text-white'
                                 : stage === 'enhancing' || stage === 'finalizing'
                                     ? 'bg-emerald-500 text-white'
@@ -357,7 +362,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                                 {stage === 'extracting' ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : stage === 'enhancing' || stage === 'finalizing' ? (
-                                    <CheckCircle2 className="h-5 w-5" />
+                                    <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
                                 ) : (
                                     <FileText className="h-5 w-5" />
                                 )}
@@ -366,7 +371,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-base font-medium text-slate-900">Extracting Resume Information</h3>
                                     {(stage === 'enhancing' || stage === 'finalizing') && (
-                                        <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200">Completed</span>
+                                        <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
                                     )}
                                 </div>
                                 <p className="text-sm text-slate-600 mt-1">Analyzing your resume structure and content</p>
@@ -375,7 +380,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
 
                         {/* Enhancing Stage */}
                         <div className="flex items-start">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${stage === 'enhancing'
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'enhancing'
                                 ? 'bg-indigo-600 text-white'
                                 : stage === 'finalizing'
                                     ? 'bg-emerald-500 text-white'
@@ -384,7 +389,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                                 {stage === 'enhancing' ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : stage === 'finalizing' ? (
-                                    <CheckCircle2 className="h-5 w-5" />
+                                    <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
                                 ) : (
                                     <Settings className="h-5 w-5" />
                                 )}
@@ -393,7 +398,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-base font-medium text-slate-900">AI Enhancement</h3>
                                     {stage === 'finalizing' && (
-                                        <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200">Completed</span>
+                                        <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
                                     )}
                                 </div>
                                 <p className="text-sm text-slate-600 mt-1">Improving content quality and formatting</p>
@@ -403,7 +408,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
 
                         {/* Finalizing Stage */}
                         <div className="flex items-start">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${stage === 'finalizing'
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'finalizing'
                                 ? 'bg-purple-600 text-white'
                                 : stage === 'completed'
                                     ? 'bg-emerald-500 text-white'
@@ -412,7 +417,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                                 {stage === 'finalizing' ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : stage === 'completed' ? (
-                                    <CheckCircle2 className="h-5 w-5" />
+                                    <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
                                 ) : (
                                     <Sparkles className="h-5 w-5" />
                                 )}
@@ -421,7 +426,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-base font-medium text-slate-900">Finalizing Resume</h3>
                                     {stage === 'completed' && (
-                                        <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200">Completed</span>
+                                        <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
                                     )}
                                 </div>
                                 <p className="text-sm text-slate-600 mt-1">Preparing your resume for editing</p>
