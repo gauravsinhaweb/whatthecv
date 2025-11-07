@@ -111,14 +111,14 @@ const LandingPage: React.FC = () => {
     }, [isEnhancing, setIsEnhancing, setEnhancementStage, setEnhancedResumeData, navigate]);
 
     const handleUploadAnother = useCallback(() => {
-        setErrorMessage('');
-        setEnhancementStage('extracting');
         setFile(null);
+        // Keep error state visible - don't clear errorMessage or enhancementStage
+        // Only clear when a new file is selected and processing starts
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
             fileInputRef.current.click();
         }
-    }, [setEnhancementStage]);
+    }, []);
 
     const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const files = (e.target as HTMLInputElement).files;
@@ -137,6 +137,8 @@ const LandingPage: React.FC = () => {
                 return;
             }
 
+            // Clear error state when a new file is selected
+            setErrorMessage('');
             setFile(selectedFile);
             handleEnhanceResume(selectedFile);
         }
@@ -199,7 +201,7 @@ const LandingPage: React.FC = () => {
         }
     ], []);
 
-    if (isEnhancing) {
+    if (isEnhancing || (enhancementStage === 'error' && errorMessage)) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
                 <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
@@ -207,6 +209,14 @@ const LandingPage: React.FC = () => {
                         stage={enhancementStage}
                         errorMessage={errorMessage}
                         onUploadAnother={handleUploadAnother}
+                    />
+                    {/* Hidden file input for upload another file */}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt"
+                        onChange={handleFileSelect}
+                        className="hidden"
                     />
                 </div>
             </div>

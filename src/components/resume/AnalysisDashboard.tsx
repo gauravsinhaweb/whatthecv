@@ -14,16 +14,19 @@ interface AnalysisDashboardProps {
     extractedText: string;
     file: File | null;
     clearFile: () => void;
+    onFileSelect?: (file: File) => void;
 }
 
 const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     analysisResult,
     extractedText,
     file,
-    clearFile
+    clearFile,
+    onFileSelect
 }) => {
     const navigate = useNavigate();
     const [expandedSuggestions, setExpandedSuggestions] = useState<string[]>([]);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const {
         ui: { isEnhancing, enhancementStage },
@@ -111,18 +114,42 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     };
 
     const handleUploadAnother = () => {
-        setErrorMessage('');
-        setEnhancementStage('extracting');
         clearFile();
+        // Keep error state visible - don't clear errorMessage or enhancementStage
+        // Only clear when a new file is selected and processing starts
+        // Trigger file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = (e.target as HTMLInputElement).files;
+        if (files && files.length > 0 && onFileSelect) {
+            // Clear error state when a new file is selected
+            setErrorMessage('');
+            onFileSelect(files[0]);
+        }
     };
 
     if (isEnhancing) {
         return (
-            <EnhancingLoader
-                stage={enhancementStage}
-                errorMessage={errorMessage}
-                onUploadAnother={handleUploadAnother}
-            />
+            <>
+                <EnhancingLoader
+                    stage={enhancementStage}
+                    errorMessage={errorMessage}
+                    onUploadAnother={handleUploadAnother}
+                />
+                {/* Hidden file input for upload another file */}
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                />
+            </>
         );
     }
 
