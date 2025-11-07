@@ -300,6 +300,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
                 extractedText={extractedText}
                 file={file}
                 clearFile={clearFile}
+                onFileSelect={handleFile}
               />
             </div>
           )}

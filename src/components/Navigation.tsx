@@ -45,7 +45,9 @@ const Navigation: React.FC = () => {
     customizationOptions,
     save: { isAutoSaving, lastSavedTime, isSavingDraft },
     ui,
-    setShouldShowSaveModal
+    setShouldShowSaveModal,
+    setIsEnhancing,
+    setEnhancementStage
   } = useResumeStore();
   const saveResumeMutation = useSaveResume();
 
@@ -343,10 +345,9 @@ const Navigation: React.FC = () => {
   };
 
   const goToHome = () => {
-    if (isAuthenticated && user) {
-      navigate('/dashboard');
-      return;
-    }
+    // Reset enhancement state when navigating to home
+    setIsEnhancing(false);
+    setEnhancementStage('extracting');
     navigate('/');
   };
 
