@@ -64,7 +64,10 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
             setEnhancementStage('finalizing');
             await new Promise(resolve => setTimeout(resolve, 800));
 
+            setEnhancementStage('completed' as any);
             setEnhancedResumeData(enhanceResult);
+
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             navigate('/create-resume');
 

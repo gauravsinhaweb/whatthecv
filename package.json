@@ -28,6 +28,7 @@
     "dompurify": "^3.2.5",
     "framer-motion": "^12.9.2",
     "js-cookie": "^3.0.5",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.503.0",
     "preact": "^10.19.0",
     "preact-router": "^4.1.2",
