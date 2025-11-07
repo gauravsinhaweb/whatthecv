@@ -40,6 +40,7 @@ const LandingPage: React.FC = () => {
     const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.85]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [file, setFile] = useState<File | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     const {
         ui: { isEnhancing, enhancementStage },
@@ -84,37 +85,40 @@ const LandingPage: React.FC = () => {
             console.error('Error enhancing resume:', error);
             setEnhancementStage('error');
 
-            let errorMessage = '';
+            let message = '';
             if (error instanceof Error) {
                 if (error.message.includes('does not appear to be a resume')) {
-                    errorMessage = error.message;
+                    message = error.message;
                 } else if (error.message.includes('cancelled') || error.message.includes('aborted')) {
-                    errorMessage = 'The enhancement process was interrupted. Please try again.';
+                    message = 'The enhancement process was interrupted. Please try again.';
                 } else if (error.message.includes('timed out')) {
-                    errorMessage = 'The request took too long. Please try again with a smaller file.';
+                    message = 'The request took too long. Please try again with a smaller file.';
                 } else if (error.message.includes('File size too large')) {
-                    errorMessage = 'The file is too large. Please upload a smaller file (max 10MB).';
+                    message = 'The file is too large. Please upload a smaller file (max 10MB).';
                 } else if (error.message.includes('Unsupported file type')) {
-                    errorMessage = 'Please upload a PDF, DOCX, or TXT file.';
+                    message = 'Please upload a PDF, DOCX, or TXT file.';
                 } else if (error.message.includes('Insufficient tokens')) {
-                    errorMessage = 'Insufficient tokens. Please try again later.';
+                    message = 'Insufficient tokens. Please try again later.';
                 } else {
-                    errorMessage = error.message;
+                    message = error.message;
                 }
             } else {
-                errorMessage = 'Failed to enhance resume. Please try again.';
+                message = 'Failed to enhance resume. Please try again.';
             }
 
-            toast.error(errorMessage);
-
-            setTimeout(() => {
-                setIsEnhancing(false);
-                setEnhancementStage('extracting');
-            }, 2000);
-        } finally {
-            setIsEnhancing(false);
+            setErrorMessage(message);
         }
     }, [isEnhancing, setIsEnhancing, setEnhancementStage, setEnhancedResumeData, navigate]);
+
+    const handleUploadAnother = useCallback(() => {
+        setErrorMessage('');
+        setEnhancementStage('extracting');
+        setFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+            fileInputRef.current.click();
+        }
+    }, [setEnhancementStage]);
 
     const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const files = (e.target as HTMLInputElement).files;
@@ -199,7 +203,11 @@ const LandingPage: React.FC = () => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
                 <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-                    <EnhancingLoader stage={enhancementStage} />
+                    <EnhancingLoader
+                        stage={enhancementStage}
+                        errorMessage={errorMessage}
+                        onUploadAnother={handleUploadAnother}
+                    />
                 </div>
             </div>
         );

@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useResumeStore } from '../../store/resumeStore';
 import { enhanceResumeFromFile } from '../../utils/api';
+import { checkFileIsResume } from '../../utils/resumeService';
 import Button from '../ui/Button';
 import EnhancingLoader from './EnhancingLoader';
 
@@ -49,12 +50,21 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
         );
     };
 
+    const [errorMessage, setErrorMessage] = useState<string>('');
+
     const handleEnhanceResume = async () => {
         if (!file || isEnhancing) return;
 
         try {
             setIsEnhancing(true);
             setEnhancementStage('extracting');
+            setErrorMessage('');
+
+            const checkResult = await checkFileIsResume(file, false);
+
+            if (!checkResult.is_resume) {
+                throw new Error('The uploaded document does not appear to be a resume. Please upload a valid resume document.');
+            }
 
             await new Promise(resolve => setTimeout(resolve, 1000));
             setEnhancementStage('enhancing');
@@ -75,38 +85,45 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
             console.error('Error enhancing resume:', error);
             setEnhancementStage('error');
 
-            let errorMessage = '';
+            let message = '';
             if (error instanceof Error) {
-                if (error.message.includes('cancelled') || error.message.includes('aborted')) {
-                    errorMessage = 'The enhancement process was interrupted. Please try again.';
+                if (error.message.includes('does not appear to be a resume')) {
+                    message = error.message;
+                } else if (error.message.includes('cancelled') || error.message.includes('aborted')) {
+                    message = 'The enhancement process was interrupted. Please try again.';
                 } else if (error.message.includes('timed out')) {
-                    errorMessage = 'The request took too long. Please try again with a smaller file.';
+                    message = 'The request took too long. Please try again with a smaller file.';
                 } else if (error.message.includes('File size too large')) {
-                    errorMessage = 'The file is too large. Please upload a smaller file (max 10MB).';
+                    message = 'The file is too large. Please upload a smaller file (max 10MB).';
                 } else if (error.message.includes('Unsupported file type')) {
-                    errorMessage = 'Please upload a PDF, DOCX, or TXT file.';
+                    message = 'Please upload a PDF, DOCX, or TXT file.';
                 } else if (error.message.includes('Insufficient tokens')) {
-                    errorMessage = 'Insufficient tokens. Please try again later.';
+                    message = 'Insufficient tokens. Please try again later.';
                 } else {
-                    errorMessage = error.message;
+                    message = error.message;
                 }
             } else {
-                errorMessage = 'Failed to enhance resume. Please try again.';
+                message = 'Failed to enhance resume. Please try again.';
             }
 
-            toast.error(errorMessage);
-
-            setTimeout(() => {
-                setIsEnhancing(false);
-                setEnhancementStage('extracting');
-            }, 2000);
-        } finally {
-            setIsEnhancing(false);
+            setErrorMessage(message);
         }
     };
 
+    const handleUploadAnother = () => {
+        setErrorMessage('');
+        setEnhancementStage('extracting');
+        clearFile();
+    };
+
     if (isEnhancing) {
-        return <EnhancingLoader stage={enhancementStage} />;
+        return (
+            <EnhancingLoader
+                stage={enhancementStage}
+                errorMessage={errorMessage}
+                onUploadAnother={handleUploadAnother}
+            />
+        );
     }
 
     const careerAlignment = (analysisResult as any)?.career_alignment;
