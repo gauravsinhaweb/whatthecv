@@ -1,9 +1,7 @@
 import { CheckCircle, Sparkles, Upload } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import AnalysisDashboard from '../../../components/resume/AnalysisDashboard';
-import ErrorState from '../../../components/resume/ErrorState';
-import HowItWorks from '../../../components/resume/HowItWorks';
-import ProgressStatus from '../../../components/resume/ProgressStatus';
+import EnhancingLoader from '../../../components/resume/EnhancingLoader';
 import Button from '../../../components/ui/Button';
 import { analyzeResume, processResume, checkFileIsResume } from '../../../utils/resumeService';
 import type { AIAnalysisResult, ResumeCheckResult } from '../../../utils/types';
@@ -51,6 +49,8 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
   const [hasJobDescription, setHasJobDescription] = useState<boolean>(!!externalJobDescription);
   const [resumeCheckResult, setResumeCheckResult] = useState<ResumeCheckResult | null>(null);
   const [isCheckingResume, setIsCheckingResume] = useState<boolean>(false);
+  const [loaderStage, setLoaderStage] = useState<'extracting' | 'enhancing' | 'finalizing' | 'completed' | 'error'>('extracting');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (externalJobDescription) {
@@ -83,6 +83,8 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     setIsUploading(true);
     setIsAnalyzing(false);
     setIsCheckingResume(true);
+    setLoaderStage('extracting');
+    setErrorMessage('');
 
     try {
       // First, check if the file is actually a resume
@@ -90,12 +92,21 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
       setResumeCheckResult(checkResult);
 
       if (!checkResult.is_resume) {
-        throw new Error('The uploaded document does not appear to be a resume. Please upload a resume document.');
+        setErrorMessage('The uploaded document does not appear to be a resume. Please upload a valid resume document.');
+        setUploadStatus('error');
+        setLoaderStage('error');
+        setIsCheckingResume(false);
+        setIsUploading(false);
+        setIsAnalyzing(false);
+        return;
       }
 
       setIsCheckingResume(false);
       setIsUploading(false);
       setIsAnalyzing(true);
+      setLoaderStage('enhancing');
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Process the file using the backend endpoint
       const analysis = await processResume(selectedFile, jobDescription || undefined);
@@ -104,17 +115,34 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
         throw new Error('Failed to analyze the resume. Please try again.');
       }
 
+      setLoaderStage('finalizing');
+      await new Promise(resolve => setTimeout(resolve, 800));
+
       // Set extracted text if available in the response
       if (analysis.extracted_text) {
         setExtractedText(analysis.extracted_text);
       }
 
+      setLoaderStage('completed');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setAnalysisResult(analysis);
       setUploadStatus('success');
     } catch (error) {
       console.error('Resume processing error:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to analyze resume. Please try again.');
+      let message = '';
+      if (error instanceof Error) {
+        if (error.message.includes('does not appear to be a resume')) {
+          message = error.message;
+        } else {
+          message = error.message;
+        }
+      } else {
+        message = 'Failed to analyze resume. Please try again.';
+      }
+      setErrorMessage(message);
       setUploadStatus('error');
+      setLoaderStage('error');
     } finally {
       setIsUploading(false);
       setIsAnalyzing(false);
@@ -129,12 +157,14 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     if (!fileExtension || !['pdf', 'doc', 'docx', 'txt'].includes(fileExtension)) {
       setErrorMessage('Please upload a PDF, DOC, DOCX, or TXT file.');
       setUploadStatus('error');
+      setLoaderStage('error');
       return;
     }
 
     if (selectedFile.size > maxSizeInBytes) {
       setErrorMessage('File size exceeds 5MB limit. Please upload a smaller file.');
       setUploadStatus('error');
+      setLoaderStage('error');
       return;
     }
 
@@ -143,13 +173,31 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
     setErrorMessage('');
     setAnalysisResult(null);
     setExtractedText('');
+    setLoaderStage('extracting');
 
     processResumeFile(selectedFile);
   };
 
+  const handleUploadAnother = useCallback(() => {
+    setErrorMessage('');
+    setFile(null);
+    setUploadStatus('idle');
+    setLoaderStage('extracting');
+    setIsUploading(false);
+    setIsAnalyzing(false);
+    setIsCheckingResume(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = (e.target as HTMLInputElement).files;
     if (files && files.length > 0) {
+      // Clear error state when a new file is selected
+      setErrorMessage('');
+      setLoaderStage('extracting');
       handleFile(files[0]);
     }
   };
@@ -268,29 +316,26 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
           )}
 
           {/* Processing State */}
-          {(isUploading || isAnalyzing || isCheckingResume) && (
-            <div className="bg-white rounded-2xl p-8 border border-slate-200 transition-all duration-300">
-              <ProgressStatus
-                isUploading={isUploading}
-                isAnalyzing={isAnalyzing}
-                isCheckingResume={isCheckingResume}
-                file={file}
+          {(isUploading || isAnalyzing || isCheckingResume || (loaderStage === 'error' && errorMessage)) && (
+            <>
+              <EnhancingLoader
+                stage={loaderStage}
+                errorMessage={loaderStage === 'error' ? errorMessage : undefined}
+                onUploadAnother={handleUploadAnother}
+                mode="analyze"
               />
-            </div>
+              {/* Hidden file input for upload another file */}
+              <input
+                ref={fileInputRef}
+                id="file-upload"
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                onChange={handleInputChange}
+                className="hidden"
+              />
+            </>
           )}
 
-          {/* Error State */}
-          {uploadStatus === 'error' && (
-            <div className="bg-white rounded-2xl p-8 border border-slate-200 transition-all duration-300">
-              <ErrorState
-                errorMessage={errorMessage}
-                clearFile={clearFile}
-                tryAgain={tryAgain}
-                hasFile={!!file}
-                resumeCheckResult={resumeCheckResult}
-              />
-            </div>
-          )}
 
           {/* Analysis Results */}
           {uploadStatus === 'success' && analysisResult && (

@@ -55,15 +55,36 @@ interface EnhancingLoaderProps {
     stage: 'extracting' | 'enhancing' | 'finalizing' | 'completed' | 'error';
     errorMessage?: string;
     onUploadAnother?: () => void;
+    mode?: 'enhance' | 'analyze';
 }
 
-const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, onUploadAnother }) => {
+const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, onUploadAnother, mode = 'enhance' }) => {
     const [funnyMessageIndex, setFunnyMessageIndex] = useState(0);
     const [elapsedTime, setElapsedTime] = useState(0);
     const [displayProgress, setDisplayProgress] = useState(0);
 
     // Array of funny, sarcastic messages to display while processing
-    const funnyMessages = [
+    const funnyMessages = mode === 'analyze' ? [
+        "Evaluating how many employers will actually believe this",
+        "Calculating the probability that someone will hire you",
+        "Checking if this is actually a resume or your grocery list",
+        "Making sure you didn't upload your dating profile by accident",
+        "Confirming this isn't just Lorem Ipsum with your name on it",
+        "Teaching AI to understand why 'Sandwich Artist' isn't executive experience",
+        "Filtering out emojis you sneakily added to your bullet points",
+        "Making your references sound like they actually remember you",
+        "Creating an alternative reality where your skills are impressive",
+        "Converting your 'extensive travel' into legitimate cultural awareness",
+        "Translating your gaming achievements into corporate leadership qualities",
+        "Making 'managed a Twitter account' sound like social media expertise",
+        "Detecting questionable achievements that defy physics",
+        "Computing your actual skill level vs. what you claimed",
+        "Checking if your resume violates any laws of physics or reality",
+        "Evaluating whether your skills section is fact or fiction",
+        "Analyzing if your job titles match your actual responsibilities",
+        "Determining if your entire resume is just a ChatGPT hallucination",
+        "Calculating how many buzzwords you used vs. actual skills"
+    ] : [
         "Convincing AI that your resume isn't just fiction",
         "Translating your job history from 'barely survived' to 'exceeded expectations'",
         "Making your 3 months of Excel experience sound like you're a spreadsheet wizard",
@@ -86,7 +107,56 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
     ];
 
     // Messages specific to each stage
-    const stageSpecificMessages = {
+    const stageSpecificMessages = mode === 'analyze' ? {
+        extracting: [
+            "Reading between the lines of your job descriptions",
+            "Extracting the truth from your slightly exaggerated skills section",
+            "Trying to understand how you fit 10 years of experience into 2 pages",
+            "Deciphering whether your references actually like you",
+            "Calculating your real GPA vs. the one you wrote down",
+            "Scanning for typos that spell check apparently missed",
+            "Counting how many times you used 'utilized' instead of 'used'",
+            "Verifying if those certifications are still valid or expired in 2015",
+            "Decoding what you actually meant by 'proficient in Python'",
+            "Determining if your entire resume is just a ChatGPT hallucination"
+        ],
+        enhancing: [
+            "Analyzing your resume structure and ATS compatibility",
+            "Evaluating how your skills match industry standards",
+            "Checking if your job descriptions actually make sense",
+            "Comparing your resume against successful candidates",
+            "Identifying areas where you're underselling yourself",
+            "Finding gaps in your experience that need addressing",
+            "Assessing whether your achievements are quantifiable enough",
+            "Reviewing if your keywords will pass the ATS filters",
+            "Determining if your resume tells a coherent career story",
+            "Calculating your actual market value based on your resume"
+        ],
+        finalizing: [
+            "Compiling your personalized feedback report",
+            "Preparing actionable recommendations for improvement",
+            "Finalizing your ATS compatibility score",
+            "Generating specific suggestions for each section",
+            "Creating a roadmap to make your resume interview-ready",
+            "Summarizing strengths and areas for improvement",
+            "Preparing detailed analysis of your resume sections",
+            "Calculating your overall resume quality score",
+            "Finalizing feedback that's actually helpful (not just nice)",
+            "Preparing your comprehensive resume analysis report"
+        ],
+        error: [
+            "Oops! Something went wrong...",
+            "The AI is having an existential crisis...",
+            "Our servers are taking a coffee break...",
+            "The analysis machine needs a reboot...",
+            "Even AI has bad days sometimes...",
+            "The algorithm is having a moment...",
+            "Our robots are on strike...",
+            "The analysis process needs a timeout...",
+            "The AI is questioning its life choices...",
+            "Our servers are having a midlife crisis..."
+        ]
+    } : {
         extracting: [
             "Reading between the lines of your job descriptions",
             "Extracting the truth from your slightly exaggerated skills section",
@@ -143,7 +213,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
             ...funnyMessages,
             ...(stageSpecificMessages[stage] || [])
         ];
-    }, [stage]);
+    }, [stage, mode]);
 
     // Rotate through funny messages every 5 seconds
     useEffect(() => {
@@ -345,9 +415,13 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                 ) : (
                     <>
                         <div className="p-6">
-                            <div>
-                                <h3 className="font-display text-2xl font-medium text-slate-900 mb-2">Enhancing Your Resume</h3>
-                                <p className="text-base text-slate-600">Our AI is working its magic on your document</p>
+                            <div className="text-center">
+                                <h3 className="font-display text-2xl font-medium text-slate-900 mb-2">
+                                    {mode === 'analyze' ? 'Analyzing Your Resume' : 'Enhancing Your Resume'}
+                                </h3>
+                                <p className="text-base text-slate-600">
+                                    {mode === 'analyze' ? 'Our AI is analyzing your resume and preparing detailed feedback' : 'Our AI is working its magic on your document'}
+                                </p>
                             </div>
                         </div>
 
@@ -357,14 +431,14 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                             <div className="flex justify-center mb-6">
                                 <div className="relative w-24 h-24">
                                     {/* Background circle */}
-                                    <div className="w-full h-full rounded-full border-8 border-slate-100"></div>
+                                    <div className="w-full h-full rounded-full border-[12px] border-slate-100"></div>
 
                                     {/* Progress arc - using SVG for proper circular progress */}
                                     <svg className="absolute top-0 left-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
                                         <circle
                                             cx="50" cy="50" r="42"
                                             fill="none"
-                                            strokeWidth="8"
+                                            strokeWidth="12"
                                             stroke="#3B82F6"
                                             strokeDasharray={`${displayProgress * 2.64} 264`}
                                             strokeLinecap="round"
@@ -441,16 +515,20 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                                         <Settings className="h-5 w-5" />
                                     )}
                                 </div>
-                                <div className="ml-4 flex-1">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-base font-medium text-slate-900">AI Enhancement</h3>
-                                        {stage === 'finalizing' && (
-                                            <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
-                                        )}
-                                    </div>
-                                    <p className="text-sm text-slate-600 mt-1">Improving content quality and formatting</p>
+                                    <div className="ml-4 flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-base font-medium text-slate-900">
+                                                {mode === 'analyze' ? 'AI Analysis' : 'AI Enhancement'}
+                                            </h3>
+                                            {stage === 'finalizing' && (
+                                                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-slate-600 mt-1">
+                                            {mode === 'analyze' ? 'Generating detailed feedback and recommendations' : 'Improving content quality and formatting'}
+                                        </p>
 
-                                </div>
+                                    </div>
                             </div>
 
                             {/* Finalizing Stage */}
@@ -469,15 +547,19 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                                         <Sparkles className="h-5 w-5" />
                                     )}
                                 </div>
-                                <div className="ml-4 flex-1">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-base font-medium text-slate-900">Finalizing Resume</h3>
-                                        {stage === 'completed' && (
-                                            <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
-                                        )}
+                                    <div className="ml-4 flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-base font-medium text-slate-900">
+                                                {mode === 'analyze' ? 'Finalizing Analysis' : 'Finalizing Resume'}
+                                            </h3>
+                                            {stage === 'completed' && (
+                                                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-slate-600 mt-1">
+                                            {mode === 'analyze' ? 'Preparing your detailed feedback report' : 'Preparing your resume for editing'}
+                                        </p>
                                     </div>
-                                    <p className="text-sm text-slate-600 mt-1">Preparing your resume for editing</p>
-                                </div>
                             </div>
                         </div>
                         </div>
@@ -485,7 +567,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                         {/* Footer message */}
                         <div className="p-3 border-t border-slate-200 bg-slate-50 text-center">
                             <p className="text-sm text-slate-600">
-                                <span>AI-powered enhancement in progress.</span>{' '}
+                                <span>{mode === 'analyze' ? 'AI-powered analysis in progress.' : 'AI-powered enhancement in progress.'}</span>{' '}
                                 <span>This may take a few moments.</span>
                             </p>
                         </div>
