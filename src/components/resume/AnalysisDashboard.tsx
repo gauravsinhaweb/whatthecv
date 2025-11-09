@@ -191,14 +191,19 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                             </div>
                             <div className="flex items-center gap-3">
                                 <button
-                                    onClick={clearFile}
-                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 focus:outline-none transition-all duration-200"
+                                    type="button"
+                                    onClick={() => {
+                                        if (fileInputRef.current) {
+                                            fileInputRef.current.click();
+                                        }
+                                    }}
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-emerald-700 bg-emerald-50 rounded-xl hover:bg-emerald-100 focus:outline-none transition-all duration-200"
                                 >
                                     Upload Another
                                 </button>
                                 <button
                                     onClick={() => navigate('/')}
-                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 focus:outline-none transition-all duration-200 shadow-lg"
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 focus:outline-none transition-all duration-200 shadow-lg"
                                 >
                                     <Sparkles className="h-5 w-5 mr-2" />
                                     One Click Optimise
@@ -523,12 +528,31 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                         </div>
                                     ))}
                                 </div>
+                                <div className="mt-6 flex justify-start">
+                                    <button
+                                        onClick={handleEnhanceResume}
+                                        disabled={isEnhancing}
+                                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-600 text-white font-semibold text-base rounded-xl hover:bg-emerald-700 focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                                    >
+                                        <Sparkles className="h-5 w-5" />
+                                        Optimize with improvements
+                                    </button>
+                                </div>
                             </motion.section>
                         )}
 
                     </div>
                 </div>
             </section>
+
+            {/* Hidden file input for upload another file */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                onChange={handleFileInputChange}
+                className="hidden"
+            />
 
             {/* File Preview Modal */}
             {showFilePreview && file && (
