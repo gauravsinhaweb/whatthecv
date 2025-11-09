@@ -202,11 +202,12 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                     Upload Another
                                 </button>
                                 <button
-                                    onClick={() => navigate('/')}
-                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 focus:outline-none transition-all duration-200 shadow-lg"
+                                    onClick={handleEnhanceResume}
+                                    disabled={isEnhancing}
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 focus:outline-none transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Sparkles className="h-5 w-5 mr-2" />
-                                    One Click Optimise
+                                    {isEnhancing ? 'Processing...' : 'One Click Optimise'}
                                 </button>
                             </div>
                         </div>
@@ -259,7 +260,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                         overallScore >= 60 ? 'bg-gradient-to-br from-amber-100 to-amber-200' :
                                             'bg-gradient-to-br from-blue-100 to-blue-200'
                                         }`}>
-                                        <span className={`text-5xl font-bold ${getScoreColor(overallScore)}`}>
+                                        <span className={`text-5xl font-display font-bold ${getScoreColor(overallScore)}`}>
                                             {overallScore}
                                         </span>
                                         <div className={`px-3 py-1 rounded-full text-xs font-semibold mt-1 ${overallScore >= 80 ? 'bg-emerald-500 text-white' :
