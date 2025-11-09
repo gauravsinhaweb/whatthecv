@@ -316,7 +316,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
           )}
 
           {/* Processing State */}
-          {(isUploading || isAnalyzing || isCheckingResume || (loaderStage === 'error' && errorMessage)) && (
+          {(isUploading || isAnalyzing || isCheckingResume || (loaderStage === 'error' && errorMessage)) && loaderStage !== 'completed' && (
             <>
               <EnhancingLoader
                 stage={loaderStage}
