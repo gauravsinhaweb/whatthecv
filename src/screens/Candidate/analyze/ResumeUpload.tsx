@@ -125,7 +125,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
 
       setLoaderStage('completed');
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       setAnalysisResult(analysis);
       setUploadStatus('success');
     } catch (error) {
@@ -273,36 +273,36 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ jobDescription: externalJob
 
               {/* Job Description Section */}
               {!externalJobDescription && (
-                <div className="bg-slate-50 rounded-2xl p-5">
-                  <div className="flex items-start">
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                  <div className="flex items-start gap-3">
                     <input
                       id="has-job-description"
                       type="checkbox"
-                      className="w-5 h-5 mt-1 text-slate-900 bg-white border-slate-300 rounded focus:ring-slate-900 focus:ring-2"
+                      className="w-5 h-5 mt-0.5 text-emerald-600 bg-white border-slate-300 rounded focus:ring-emerald-500 focus:ring-2"
                       checked={hasJobDescription}
                       onChange={() => setHasJobDescription(!hasJobDescription)}
                       disabled={isUploading || isAnalyzing}
                     />
-                    <label htmlFor="has-job-description" className="ml-3 text-base font-medium text-slate-900 cursor-pointer">
+                    <label htmlFor="has-job-description" className="text-base font-medium text-slate-900 cursor-pointer">
                       I have a job description I'd like to tailor my resume for
                     </label>
                   </div>
 
                   {hasJobDescription && (
-                    <div className="transition-all duration-500 ease-in-out mt-5">
-                      <div className="bg-slate-100 rounded-xl p-5 mb-4">
-                        <p className="text-sm text-slate-900 mb-2 flex items-center font-semibold">
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Recommended for best results
-                        </p>
-                        <p className="text-sm text-slate-600 leading-relaxed">
-                          Adding a job description helps our AI tailor the analysis specifically to the role you're applying for,
-                          increasing your chances of getting past ATS systems.
-                        </p>
+                    <div className="transition-all duration-500 ease-in-out mt-6 space-y-4">
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-emerald-900 mb-1">Recommended for best results</p>
+                          <p className="text-sm text-slate-700 leading-relaxed">
+                            Adding a job description helps our AI tailor the analysis specifically to the role you're applying for,
+                            increasing your chances of getting past ATS systems.
+                          </p>
+                        </div>
                       </div>
                       <textarea
-                        className="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 text-base bg-white transition-all duration-200 resize-none"
-                        rows={3}
+                        className="w-full p-4 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-base bg-white transition-all duration-200 resize-none text-slate-900 placeholder:text-slate-400"
+                        rows={8}
                         placeholder="Paste the job description here for more accurate analysis..."
                         value={jobDescription}
                         onChange={(e) => setJobDescription((e.target as HTMLTextAreaElement).value)}

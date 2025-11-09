@@ -581,8 +581,8 @@ const CreateResume: React.FC = () => {
                                     onClick={() => setActiveTab('customization')}
                                 >
                                     <div className="flex items-center justify-center gap-2">
-                                        <img src={paintBrushIconUrl} alt="Customize" className="w-4 h-4" />
-                                        <span className="text-base">Customize</span>
+                                        <img src={paintBrushIconUrl} alt="Design" className="w-4 h-4" />
+                                        <span className="text-base">Design</span>
                                     </div>
                                 </button>
                             </div>

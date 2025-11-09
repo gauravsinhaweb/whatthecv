@@ -422,35 +422,35 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                                 <p className="text-base text-slate-600">
                                     {mode === 'analyze' ? 'Our AI is analyzing your resume and preparing detailed feedback' : 'Our AI is working its magic on your document'}
                                 </p>
-                            </div>
-                        </div>
+                    </div>
+                </div>
 
-                        {/* Progress Visualization */}
+                {/* Progress Visualization */}
                         <div className="p-6">
-                            {/* Circular progress */}
-                            <div className="flex justify-center mb-6">
-                                <div className="relative w-24 h-24">
-                                    {/* Background circle */}
+                    {/* Circular progress */}
+                    <div className="flex justify-center mb-6">
+                        <div className="relative w-24 h-24">
+                            {/* Background circle */}
                                     <div className="w-full h-full rounded-full border-[12px] border-slate-100"></div>
 
-                                    {/* Progress arc - using SVG for proper circular progress */}
-                                    <svg className="absolute top-0 left-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-                                        <circle
-                                            cx="50" cy="50" r="42"
-                                            fill="none"
+                            {/* Progress arc - using SVG for proper circular progress */}
+                            <svg className="absolute top-0 left-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                <circle
+                                    cx="50" cy="50" r="42"
+                                    fill="none"
                                             strokeWidth="12"
                                             stroke="#3B82F6"
                                             strokeDasharray={`${displayProgress * 2.64} 264`}
-                                            strokeLinecap="round"
-                                            className="transition-all duration-500"
-                                        />
-                                    </svg>
+                                    strokeLinecap="round"
+                                    className="transition-all duration-500"
+                                />
+                            </svg>
 
-                                    {/* Percentage text */}
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="text-center">
+                            {/* Percentage text */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="text-center">
                                             <span className="text-2xl font-bold text-blue-600 transition-all duration-300">{displayProgress}%</span>
-                                        </div>
+                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -470,84 +470,84 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                                 </div>
                             )}
 
-                            {/* Stage indicators */}
+                    {/* Stage indicators */}
                             <div className="space-y-4">
-                            {/* Extracting Stage */}
-                            <div className="flex items-start">
+                        {/* Extracting Stage */}
+                        <div className="flex items-start">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'extracting'
                                     ? 'bg-blue-600 text-white'
-                                    : stage === 'enhancing' || stage === 'finalizing'
+                                : stage === 'enhancing' || stage === 'finalizing'
                                         ? 'bg-emerald-500 text-white'
-                                        : 'bg-slate-100 text-slate-400'
-                                    }`}>
-                                    {stage === 'extracting' ? (
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                    ) : stage === 'enhancing' || stage === 'finalizing' ? (
+                                    : 'bg-slate-100 text-slate-400'
+                                }`}>
+                                {stage === 'extracting' ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : stage === 'enhancing' || stage === 'finalizing' ? (
                                         <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
-                                    ) : (
-                                        <FileText className="h-5 w-5" />
-                                    )}
-                                </div>
-                                <div className="ml-4 flex-1">
-                                    <div className="flex items-center justify-between">
+                                ) : (
+                                    <FileText className="h-5 w-5" />
+                                )}
+                            </div>
+                            <div className="ml-4 flex-1">
+                                <div className="flex items-center justify-between">
                                         <h3 className="text-base font-medium text-slate-900">Extracting Resume Information</h3>
-                                        {(stage === 'enhancing' || stage === 'finalizing') && (
+                                    {(stage === 'enhancing' || stage === 'finalizing') && (
                                             <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
                                         )}
                                     </div>
                                     <p className="text-sm text-slate-600 mt-1">Analyzing your resume structure and content</p>
-                                </div>
                             </div>
+                        </div>
 
-                            {/* Enhancing Stage */}
-                            <div className="flex items-start">
+                        {/* Enhancing Stage */}
+                        <div className="flex items-start">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'enhancing'
                                     ? 'bg-indigo-600 text-white'
-                                    : stage === 'finalizing'
+                                : stage === 'finalizing'
                                         ? 'bg-emerald-500 text-white'
-                                        : 'bg-slate-100 text-slate-400'
-                                    }`}>
-                                    {stage === 'enhancing' ? (
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                    ) : stage === 'finalizing' ? (
+                                    : 'bg-slate-100 text-slate-400'
+                                }`}>
+                                {stage === 'enhancing' ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : stage === 'finalizing' ? (
                                         <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
-                                    ) : (
-                                        <Settings className="h-5 w-5" />
-                                    )}
-                                </div>
-                                    <div className="ml-4 flex-1">
-                                        <div className="flex items-center justify-between">
+                                ) : (
+                                    <Settings className="h-5 w-5" />
+                                )}
+                            </div>
+                            <div className="ml-4 flex-1">
+                                <div className="flex items-center justify-between">
                                             <h3 className="text-base font-medium text-slate-900">
                                                 {mode === 'analyze' ? 'AI Analysis' : 'AI Enhancement'}
                                             </h3>
-                                            {stage === 'finalizing' && (
+                                    {stage === 'finalizing' && (
                                                 <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
-                                            )}
-                                        </div>
+                                    )}
+                                </div>
                                         <p className="text-sm text-slate-600 mt-1">
                                             {mode === 'analyze' ? 'Generating detailed feedback and recommendations' : 'Improving content quality and formatting'}
                                         </p>
 
-                                    </div>
                             </div>
+                        </div>
 
-                            {/* Finalizing Stage */}
-                            <div className="flex items-start">
+                        {/* Finalizing Stage */}
+                        <div className="flex items-start">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'finalizing'
                                     ? 'bg-purple-600 text-white'
                                     : stage === 'completed'
                                         ? 'bg-emerald-500 text-white'
-                                        : 'bg-slate-100 text-slate-400'
-                                    }`}>
-                                    {stage === 'finalizing' ? (
-                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                : 'bg-slate-100 text-slate-400'
+                                }`}>
+                                {stage === 'finalizing' ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
                                     ) : stage === 'completed' ? (
                                         <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
-                                    ) : (
-                                        <Sparkles className="h-5 w-5" />
-                                    )}
-                                </div>
-                                    <div className="ml-4 flex-1">
+                                ) : (
+                                    <Sparkles className="h-5 w-5" />
+                                )}
+                            </div>
+                            <div className="ml-4 flex-1">
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-base font-medium text-slate-900">
                                                 {mode === 'analyze' ? 'Finalizing Analysis' : 'Finalizing Resume'}
@@ -562,7 +562,7 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, 
                                     </div>
                             </div>
                         </div>
-                        </div>
+                    </div>
 
                         {/* Footer message */}
                         <div className="p-3 border-t border-slate-200 bg-slate-50 text-center">
