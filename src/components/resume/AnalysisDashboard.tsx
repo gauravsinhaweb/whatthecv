@@ -27,6 +27,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
     const navigate = useNavigate();
     const [expandedSuggestions, setExpandedSuggestions] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<string>('');
+    const [showFilePreview, setShowFilePreview] = useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const {
@@ -41,6 +42,8 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
         if (score >= 60) return 'text-amber-600';
         return 'text-blue-600';
     };
+
+
 
     const getOverallScore = () => {
         return analysisResult.score || 0;
@@ -186,12 +189,21 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                     </p>
                                 )}
                             </div>
-                            <button
-                                onClick={clearFile}
-                                className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 focus:outline-none transition-all duration-200"
-                            >
-                                Upload Another Resume
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={clearFile}
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 focus:outline-none transition-all duration-200"
+                                >
+                                    Upload Another
+                                </button>
+                                <button
+                                    onClick={() => navigate('/')}
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 focus:outline-none transition-all duration-200 shadow-lg"
+                                >
+                                    <Sparkles className="h-5 w-5 mr-2" />
+                                    One Click Optimise
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
 
@@ -428,12 +440,25 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                             {analysisResult.suggestions && analysisResult.suggestions.length > 0 ? (
                                 <>
                                     <div className="relative mb-6">
-                                        <div className="flex gap-3 overflow-x-auto scrollbar-hide">
-                                            {analysisResult.suggestions.map((suggestion: any, index: number) => (
+                                        <div className="flex gap-3 overflow-x-auto scrollbar-hide relative z-0">
+                                            {(() => {
+                                                const uniqueSections = new Map();
+                                                analysisResult.suggestions.forEach((suggestion: any) => {
+                                                    if (!uniqueSections.has(suggestion.section)) {
+                                                        uniqueSections.set(suggestion.section, suggestion);
+                                                    }
+                                                });
+                                                return Array.from(uniqueSections.values());
+                                            })().map((suggestion: any, index: number) => (
                                                 <button
-                                                    key={index}
-                                                    onClick={() => setActiveTab(suggestion.section)}
-                                                    className={`px-6 py-3 rounded-lg font-medium text-base whitespace-nowrap transition-colors ${
+                                                    key={`${suggestion.section}-${index}`}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setActiveTab(suggestion.section);
+                                                    }}
+                                                    className={`px-6 py-3 rounded-lg font-medium text-base whitespace-nowrap transition-colors cursor-pointer relative z-10 ${
                                                         activeTab === suggestion.section
                                                             ? 'bg-slate-900 text-white'
                                                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -443,8 +468,8 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                                 </button>
                                             ))}
                                         </div>
-                                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
-                                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+                                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none z-20"></div>
+                                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none z-20"></div>
                                     </div>
                                     <div className="min-h-[200px]">
                                         {activeTab ? (
@@ -483,19 +508,16 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.7 }}
-                                className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 rounded-xl border border-slate-200 p-8"
+                                className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 rounded-xl border-2 border-dashed border-emerald-300 shadow-lg p-8"
                             >
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="p-2 bg-white rounded-xl shadow-sm">
-                                        <Lightbulb className="h-6 w-6 text-indigo-600" />
-                                    </div>
+                                <div className="mb-6">
                                     <h2 className="font-display text-2xl font-medium text-slate-900">Improvement Opportunities</h2>
                                 </div>
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     {analysisResult.feedback.improvements.map((point: string, i: number) => (
-                                        <div key={i} className="flex items-start gap-4 bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                                            <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                                                <Zap className="h-4 w-4 text-indigo-600" />
+                                        <div key={i} className="flex items-start gap-4">
+                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-semibold text-xs mt-0.5">
+                                                {i + 1}
                                             </div>
                                             <span className="text-slate-700 leading-relaxed flex-1">{point}</span>
                                         </div>
@@ -504,60 +526,58 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({
                             </motion.section>
                         )}
 
-                        <motion.section
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.8 }}
-                            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 p-8 text-white"
-                        >
-                            <div className="max-w-3xl mx-auto text-center mb-6">
-                                <h2 className="font-display text-3xl font-medium mb-4">Ready to Transform Your Resume?</h2>
-                                <p className="text-lg text-slate-300 leading-relaxed mb-8">
-                                    Transform your resume into an ATS-optimized document that will impress recruiters
-                                </p>
-                            </div>
-                            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6 border border-white/20">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                                        <FileText className="h-6 w-6" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-sm truncate">
-                                            {file?.name || "Resume file"}
-                                        </p>
-                                        <p className="text-xs text-slate-300 mt-0.5">
-                                            {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : "No file selected"}
-                                        </p>
-                                    </div>
-                                </div>
-                                <Button
-                                    size="lg"
-                                    onClick={handleEnhanceResume}
-                                    disabled={isEnhancing}
-                                    className="w-full bg-white text-slate-900 hover:bg-slate-100 font-semibold shadow-xl"
-                                    leftIcon={<Sparkles className="h-5 w-5" />}
-                                >
-                                    {isEnhancing ? 'Processing...' : 'Create My Resume'}
-                                </Button>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
-                                <div className="flex items-center gap-2 justify-center">
-                                    <Check className="h-4 w-4 text-emerald-300" />
-                                    <span className="text-xs text-slate-300">ATS-Optimized</span>
-                                </div>
-                                <div className="flex items-center gap-2 justify-center">
-                                    <Check className="h-4 w-4 text-emerald-300" />
-                                    <span className="text-xs text-slate-300">Professional</span>
-                                </div>
-                                <div className="flex items-center gap-2 justify-center">
-                                    <Check className="h-4 w-4 text-emerald-300" />
-                                    <span className="text-xs text-slate-300">Instant</span>
-                                </div>
-                            </div>
-                        </motion.section>
                     </div>
                 </div>
             </section>
+
+            {/* File Preview Modal */}
+            {showFilePreview && file && (
+                <div
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                    onClick={() => setShowFilePreview(false)}
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+                >
+                    <div
+                        className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between p-4 border-b border-slate-200">
+                            <div className="flex items-center gap-3">
+                                <FileText className="h-5 w-5 text-slate-600" />
+                                <h3 className="text-lg font-semibold text-slate-900">{file.name}</h3>
+                            </div>
+                            <button
+                                onClick={() => setShowFilePreview(false)}
+                                className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                            >
+                                <X className="h-5 w-5 text-slate-600" />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-auto p-4">
+                            {file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf') ? (
+                                <iframe
+                                    src={URL.createObjectURL(file)}
+                                    className="w-full h-full min-h-[600px] border border-slate-200 rounded-lg"
+                                    title="PDF Preview"
+                                />
+                            ) : file.type.includes('text') || file.type.includes('document') || file.name.toLowerCase().endsWith('.txt') || file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx') ? (
+                                <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
+                                    <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono">
+                                        {extractedText || 'Preview not available for this file type.'}
+                                    </pre>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-12">
+                                    <FileText className="h-16 w-16 text-slate-400 mb-4" />
+                                    <p className="text-slate-600">Preview not available for this file type.</p>
+                                    <p className="text-sm text-slate-500 mt-2">File: {file.name}</p>
+                                    <p className="text-sm text-slate-500">Size: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
