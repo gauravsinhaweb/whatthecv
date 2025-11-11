@@ -10,6 +10,9 @@ import { useResumeStore } from '../store/resumeStore';
 import { exportResumeToPDF } from '../utils/resumeExport';
 import { isSuperUser } from '../utils/superuser';
 import SaveResumeModal from './modals/SaveResumeModal';
+import SignInModal from './modals/SignInModal';
+import SignInToSaveModal from './modals/SignInToSaveModal';
+import wtcvLogoUrl from '../assets/wtcv.svg';
 import AutoSaveIndicator from './ui/AutoSaveIndicator';
 import Button from './ui/Button';
 import ExportConfirmationModal from './ui/ExportConfirmationModal';
@@ -19,17 +22,21 @@ const Navigation: React.FC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isSignInToSaveModalOpen, setIsSignInToSaveModalOpen] = useState(false);
   const [resumeTitle, setResumeTitle] = useState('');
   const [saveMode, setSaveMode] = useState<'new' | 'replace'>('new');
   const [userResumes, setUserResumes] = useState<any[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>('');
   const [isLoadingResumes, setIsLoadingResumes] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = getPageFromPath(location.pathname);
   const isCreateResumePage = location.pathname === '/create-resume';
+  const isAnalyzePage = location.pathname === '/analyze';
 
   const { user, isAuthenticated, isLoading: authLoading, error: authError, signIn, signOut, clearError } = useAuth();
   const {
@@ -38,7 +45,9 @@ const Navigation: React.FC = () => {
     customizationOptions,
     save: { isAutoSaving, lastSavedTime, isSavingDraft },
     ui,
-    setShouldShowSaveModal
+    setShouldShowSaveModal,
+    setIsEnhancing,
+    setEnhancementStage
   } = useResumeStore();
   const saveResumeMutation = useSaveResume();
 
@@ -46,6 +55,8 @@ const Navigation: React.FC = () => {
   const closeAllModals = () => {
     setIsSaveModalOpen(false);
     setIsExportModalOpen(false);
+    setIsSignInModalOpen(false);
+    setIsSignInToSaveModalOpen(false);
     setResumeTitle('');
     setSelectedResumeId('');
     setSaveMode('new');
@@ -69,8 +80,7 @@ const Navigation: React.FC = () => {
   const handleSaveClick = () => {
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
-      toast.error('Please sign in to save your resume');
-      signIn();
+      setIsSignInToSaveModalOpen(true);
       return;
     }
 
@@ -124,13 +134,9 @@ const Navigation: React.FC = () => {
     }
   };
 
-  const handleLogin = async () => {
-    try {
-      await signIn();
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Failed to login');
-    }
+  const handleLogin = () => {
+    setIsSignInModalOpen(true);
+    setIsMobileMenuOpen(false);
   };
 
   const handleExportPDF = () => {
@@ -339,10 +345,9 @@ const Navigation: React.FC = () => {
   };
 
   const goToHome = () => {
-    if (isAuthenticated && user) {
-      navigate('/dashboard');
-      return;
-    }
+    // Reset enhancement state when navigating to home
+    setIsEnhancing(false);
+    setEnhancementStage('extracting');
     navigate('/');
   };
 
@@ -357,12 +362,61 @@ const Navigation: React.FC = () => {
     }
   }, [ui.shouldShowSaveModal, setShouldShowSaveModal]);
 
+  // Handle scroll detection for analyze page
+  useEffect(() => {
+    if (!isAnalyzePage) {
+      setIsScrolled(false);
+      return;
+    }
+
+    const handleScroll = () => {
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        const scrollPosition = mainElement.scrollTop;
+        setIsScrolled(scrollPosition > 10);
+      } else {
+        // Fallback to window scroll if main element not found
+        const scrollPosition = window.scrollY || document.documentElement.scrollTop;
+        setIsScrolled(scrollPosition > 10);
+      }
+    };
+
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+      mainElement.addEventListener('scroll', handleScroll);
+      handleScroll(); // Check initial position
+      return () => {
+        mainElement.removeEventListener('scroll', handleScroll);
+      };
+    } else {
+      window.addEventListener('scroll', handleScroll);
+      handleScroll();
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [isAnalyzePage]);
+
+  const navBackgroundClass = isAnalyzePage && !isScrolled
+    ? 'bg-transparent backdrop-blur-sm h-20 flex-shrink-0 transition-all duration-300'
+    : 'bg-white h-20 flex-shrink-0 transition-all duration-300';
+
   return (
-    <nav className="bg-white shadow-sm h-16 flex-shrink-0">
+    <nav className={navBackgroundClass}>
       <ExportConfirmationModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onConfirm={handleConfirmExport}
+      />
+      {/* Sign In Modal */}
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+      />
+      {/* Sign In to Save Modal */}
+      <SignInToSaveModal
+        isOpen={isSignInToSaveModalOpen}
+        onClose={() => setIsSignInToSaveModalOpen(false)}
       />
       {/* Save Draft Modal */}
       <SaveResumeModal
@@ -384,25 +438,27 @@ const Navigation: React.FC = () => {
       />
 
 
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <span
-                className="text-xl font-bold text-blue-600 cursor-pointer"
-                onClick={goToHome}
-              >
-                WhatThe<span className="text-slate-800">CV</span>
+      <div className="container mx-auto px-4 lg:px-8">
+        <div className="flex justify-between h-20">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 flex items-center gap-2.5 cursor-pointer" onClick={goToHome}>
+              <img
+                src={wtcvLogoUrl}
+                alt="WhatTheCV Logo"
+                className="h-9 w-9"
+              />
+              <span className="font-display text-xl font-medium text-slate-900">
+                WTCV
               </span>
             </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div className="hidden sm:ml-12 sm:flex sm:items-center sm:space-x-10">
               {navItems.map((item) => (
                 <button
                   key={item.page}
                   onClick={() => handleNavigation(item.path)}
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${currentPage === item.page
-                    ? 'border-blue-500 text-slate-900'
-                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                  className={`inline-flex items-center text-base font-medium transition-colors ${currentPage === item.page
+                    ? 'text-slate-900'
+                    : 'text-slate-600 hover:text-slate-900'
                     }`}
                 >
                   {item.name}
@@ -411,7 +467,7 @@ const Navigation: React.FC = () => {
             </div>
           </div>
 
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-3">
             {isCreateResumePage ? (
               <div className="flex items-center space-x-3">
                 {(selectedDocument?.title) && (
@@ -421,19 +477,19 @@ const Navigation: React.FC = () => {
                   />
                 )}
                 <button
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="inline-flex items-center px-6 py-3 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 focus:outline-none transition-all duration-200"
                   onClick={handleExportPDF}
                 >
-                  <FileDown className="w-4 h-4 mr-2" />
+                  <FileDown className="w-5 h-5 mr-2" />
                   <span>Export</span>
                 </button>
                 <button
                   data-testid="save-button"
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  className="inline-flex items-center px-6 py-3 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                   onClick={handleSaveClick}
                   disabled={isSavingDraft}
                 >
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="w-5 h-5 mr-2" />
                   <span>{isSavingDraft ? 'Saving...' : 'Save'}</span>
                 </button>
               </div>
@@ -441,14 +497,14 @@ const Navigation: React.FC = () => {
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={toggleUserMenu}
-                  className="flex items-center space-x-2 p-1 rounded-full hover:bg-slate-100 focus:outline-none transition"
+                  className="flex items-center space-x-2 px-4 py-3 rounded-xl hover:bg-slate-50 focus:outline-none transition"
                 >
                   <div className="relative">
                     {user.avatar_url ? (
                       <img
                         src={user.avatar_url}
                         alt={user.name || 'User'}
-                        className="h-8 w-8 rounded-xl object-cover"
+                        className="h-9 w-9 rounded-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.onerror = null;
@@ -456,18 +512,18 @@ const Navigation: React.FC = () => {
                         }}
                       />
                     ) : (
-                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <User className="h-5 w-5 text-blue-600" />
+                      <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center">
+                        <User className="h-5 w-5 text-slate-600" />
                       </div>
                     )}
                   </div>
-                  <span className="text-sm font-medium text-slate-700">{user.name || user.email.split('@')[0]}</span>
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                  <span className="text-base font-medium text-slate-700">{user.name || user.email.split('@')[0]}</span>
+                  <ChevronDown className="h-5 w-5 text-slate-400" />
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-slate-200">
-                    <div className="px-4 py-2 border-b border-slate-100">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 z-10 border border-slate-200">
+                    <div className="px-4 py-3 border-b border-slate-100">
                       <p className="text-sm font-medium text-slate-900 truncate">{user.name || user.email.split('@')[0]}</p>
                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     </div>
@@ -477,7 +533,7 @@ const Navigation: React.FC = () => {
                           handleNavigation('/admin');
                           setShowUserMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center"
+                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center"
                       >
                         <Settings className="h-4 w-4 mr-2" />
                         Admin Panel
@@ -485,7 +541,7 @@ const Navigation: React.FC = () => {
                     )}
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center"
+                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center"
                     >
                       <LogOut className="h-4 w-4 mr-2" />
                       Logout
@@ -494,18 +550,16 @@ const Navigation: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="relative">
-                <button
-                  onClick={handleLogin}
-                  disabled={authLoading}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-blue-500 hover:underline underline-offset-2 bg-white-600 hover:bg-white-700 focus:outline-none transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {authLoading && (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  )}
-                  {authLoading ? 'Signing in...' : 'Sign In'}
-                </button>
-              </div>
+              <button
+                onClick={handleLogin}
+                disabled={authLoading}
+                className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {authLoading && (
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                )}
+                {authLoading ? 'Signing in...' : 'Sign in'}
+              </button>
             )}
           </div>
 
@@ -523,7 +577,7 @@ const Navigation: React.FC = () => {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="sm:hidden">
+        <div className="sm:hidden bg-white border-t border-slate-200">
           <div className="pt-2 pb-3 space-y-1">
             {/* User profile for mobile - only show when not on create-resume page */}
             {!isCreateResumePage && isAuthenticated && user && (

@@ -1,6 +1,5 @@
-import { Brush, Pen } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ExportConfirmationModal from '../../../components/ui/ExportConfirmationModal';
 import { useResumeState } from '../../../hooks/useResumeState';
 import { ResumeData, initialResumeData } from '../../../types/resume';
@@ -9,9 +8,12 @@ import { getEditorProps, renderPreviewContainer, setupPrintHandlers } from '../.
 import ResumeCustomizationPanel from './components/ResumeCustomizationPanel';
 import ResumeEditor from './components/ResumeEditor';
 import ResumeFullScreenModal from './components/ResumeFullScreenModal';
+import fileTextIconUrl from '../../../assets/file-text.svg';
+import paintBrushIconUrl from '../../../assets/paint-brush.svg';
 
 const CreateResume: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const {
         resumeData,
         ui: { activeSection, expandedSections, previewScale },
@@ -31,7 +33,9 @@ const CreateResume: React.FC = () => {
         setSelectedDocument,
         save: { isSavingDraft }
     } = useResumeState();
-    const [activeTab, setActiveTab] = useState<string>('content');
+    const tabParam = searchParams.get('tab');
+    const initialTab = tabParam === 'customize' ? 'customization' : 'content';
+    const [activeTab, setActiveTab] = useState<string>(initialTab);
     const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
@@ -46,6 +50,16 @@ const CreateResume: React.FC = () => {
             setResumeData(initialResumeData);
         }
     }, [selectedDocument, resumeData, setResumeData]);
+
+    // Handle tab parameter from URL
+    useEffect(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'customize') {
+            setActiveTab('customization');
+        } else if (tabParam === 'content' || !tabParam) {
+            setActiveTab('content');
+        }
+    }, [searchParams]);
 
 
 
@@ -542,39 +556,39 @@ const CreateResume: React.FC = () => {
                 onConfirm={handleConfirmExport}
             />
 
-            <div className="flex-1 p-6 pb-0 overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-12 h-full overflow-hidden">
+            <div className="flex-1 p-6 pb-0 overflow-hidden bg-slate-50">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-full overflow-hidden">
                     <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
                         <div className="flex-shrink-0 mb-4">
-                            <div className="flex bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
                                 <button
-                                    className={`flex-1 px-4 py-3 font-medium transition-colors relative ${activeTab === 'content'
-                                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                                    className={`flex-1 px-4 py-3 font-medium transition-all duration-200 rounded-lg ${activeTab === 'content'
+                                        ? 'text-slate-900 bg-white shadow-sm'
+                                        : 'text-slate-600 hover:text-slate-900'
                                         }`}
                                     onClick={() => setActiveTab('content')}
                                 >
                                     <div className="flex items-center justify-center gap-2">
-                                        <Pen className="w-4 h-4" />
-                                        <span className="text-sm">Content</span>
+                                        <img src={fileTextIconUrl} alt="Content" className="w-4 h-4" />
+                                        <span className="text-base">Content</span>
                                     </div>
                                 </button>
                                 <button
-                                    className={`flex-1 px-4 py-3 font-medium transition-colors relative ${activeTab === 'customization'
-                                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                                    className={`flex-1 px-4 py-3 font-medium transition-all duration-200 rounded-lg ${activeTab === 'customization'
+                                        ? 'text-slate-900 bg-white shadow-sm'
+                                        : 'text-slate-600 hover:text-slate-900'
                                         }`}
                                     onClick={() => setActiveTab('customization')}
                                 >
                                     <div className="flex items-center justify-center gap-2">
-                                        <Brush className="w-4 h-4" />
-                                        <span className="text-sm">Customize</span>
+                                        <img src={paintBrushIconUrl} alt="Design" className="w-4 h-4" />
+                                        <span className="text-base">Design</span>
                                     </div>
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex-1 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="flex-1 bg-white rounded-xl border border-slate-200 overflow-hidden">
                             <div className="h-full overflow-y-auto">
                                 {activeTab === 'content' ? (
                                     <ResumeEditor />
@@ -589,7 +603,7 @@ const CreateResume: React.FC = () => {
                     </div>
 
                     <div className="md:col-span-6 flex flex-col h-full overflow-hidden">
-                        <div className="h-full pt-4 hide-scrollbar overflow-y-scroll overflow-x-hidden bg-slate-200 border border-slate-200 flex justify-center">
+                        <div className="h-full pt-4 hide-scrollbar overflow-y-scroll overflow-x-hidden bg-slate-100 rounded-xl flex justify-center">
                             {renderPreviewContainer(
                                 resumeData,
                                 customizationOptions,

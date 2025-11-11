@@ -36,7 +36,7 @@ const DateFieldWithToggle: React.FC<DateFieldWithToggleProps> = ({
 
     return (
         <div className={`relative ${className}`}>
-            <label className="block text-sm font-medium text-indigo-700 mb-1.5">
+            <label className="block text-base text-slate-900 mb-2">
                 {label}
             </label>
 
@@ -48,9 +48,9 @@ const DateFieldWithToggle: React.FC<DateFieldWithToggleProps> = ({
                                 value={month}
                                 onChange={(e) => onMonthChange((e.target as HTMLSelectElement).value)}
                                 disabled={isCurrent}
-                                className={`w-full p-2.5 pr-12 border border-slate-300 rounded-md transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isCurrent
+                                className={`w-full px-4 py-3 text-base pr-12 border border-slate-200 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 ${isCurrent
                                     ? 'bg-slate-50 text-slate-500 cursor-not-allowed'
-                                    : 'bg-white hover:border-slate-400'
+                                    : 'bg-white'
                                     }`}
                             >
                                 <option value="">Month</option>
@@ -60,7 +60,7 @@ const DateFieldWithToggle: React.FC<DateFieldWithToggleProps> = ({
                             </select>
                             <button
                                 onClick={onToggleVisibility}
-                                className="absolute right-2.5 top-1/2 transform -translate-y-1/2 p-1.5 text-slate-500 hover:text-slate-700 transition-colors"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 text-slate-500 hover:text-slate-700 transition-colors"
                                 title="Hide month field"
                             >
                                 <Eye className="w-4 h-4" />
@@ -68,12 +68,12 @@ const DateFieldWithToggle: React.FC<DateFieldWithToggleProps> = ({
                         </div>
                     ) : (
                         <div className="relative">
-                            <div className="w-full p-2.5 pr-12 border border-slate-300 rounded-md bg-slate-50 text-slate-500">
+                            <div className="w-full px-4 py-3 text-base pr-12 border border-slate-200 rounded-lg bg-slate-50 text-slate-500">
                                 Month
                             </div>
                             <button
                                 onClick={onToggleVisibility}
-                                className="absolute right-2.5 top-1/2 transform -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 transition-colors"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 transition-colors"
                                 title="Show month field"
                             >
                                 <EyeOff className="w-4 h-4" />
@@ -86,9 +86,9 @@ const DateFieldWithToggle: React.FC<DateFieldWithToggleProps> = ({
                             value={year}
                             onChange={(e) => onYearChange((e.target as HTMLSelectElement).value)}
                             disabled={isCurrent}
-                            className={`w-full p-2.5 border border-slate-300 rounded-md transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isCurrent
+                            className={`w-full px-4 py-3 text-base border border-slate-200 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 ${isCurrent
                                 ? 'bg-slate-50 text-slate-500 cursor-not-allowed'
-                                : 'bg-white hover:border-slate-400'
+                                : 'bg-white'
                                 }`}
                         >
                             <option value="">Year</option>
@@ -106,9 +106,9 @@ const DateFieldWithToggle: React.FC<DateFieldWithToggleProps> = ({
                             id={`current-${label.toLowerCase().replace(/\s+/g, '-')}`}
                             checked={isCurrent}
                             onChange={(e) => onCurrentChange((e.target as HTMLInputElement).checked)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                            className="w-4 h-4 text-slate-900 bg-white border-slate-300 rounded focus:ring-slate-900 focus:ring-2"
                         />
-                        <label htmlFor={`current-${label.toLowerCase().replace(/\s+/g, '-')}`} className="ml-2 text-sm text-gray-700">
+                        <label htmlFor={`current-${label.toLowerCase().replace(/\s+/g, '-')}`} className="ml-2.5 text-base text-slate-900">
                             Current
                         </label>
                     </div>

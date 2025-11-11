@@ -242,11 +242,11 @@ const ResumeCustomizationPanel: React.FC<ResumeCustomizationPanelProps> = ({
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-md border border-slate-200">
+        <div className="bg-white rounded-xl border border-slate-200">
             {/* <div className="flex justify-between items-center p-4 border-b border-slate-200">
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                     <SlidersHorizontal className="w-5 h-5 text-blue-600" />
-                    Customize
+                    Design
                 </h2>
             </div> */}
             <div className="p-6 space-y-10 hide-scrollbar overflow-y-auto">

@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CheckCircle2, FileText, Loader2, Settings, Sparkles, Coffee, Brain, Bot, AlertCircle, Zap, Rocket } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import Lottie from 'lottie-react';
+import confettiAnimation from '../../assets/confetti.json';
 import { Progress } from '../ui/Progress';
 
 // Custom CSS for animations
@@ -49,73 +52,146 @@ const animationStyles = `
 `;
 
 interface EnhancingLoaderProps {
-    stage: 'extracting' | 'enhancing' | 'finalizing' | 'error';
+    stage: 'extracting' | 'enhancing' | 'finalizing' | 'completed' | 'error';
+    errorMessage?: string;
+    onUploadAnother?: () => void;
+    mode?: 'enhance' | 'analyze';
 }
 
-const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
+const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage, errorMessage, onUploadAnother, mode = 'enhance' }) => {
     const [funnyMessageIndex, setFunnyMessageIndex] = useState(0);
     const [elapsedTime, setElapsedTime] = useState(0);
+    const [displayProgress, setDisplayProgress] = useState(0);
 
     // Array of funny, sarcastic messages to display while processing
-    const funnyMessages = [
-        "Convincing AI that your resume isn't just fiction...",
-        "Translating your job history from 'barely survived' to 'exceeded expectations'...",
-        "Making your 3 months of Excel experience sound like you're a spreadsheet wizard...",
-        "Calculating how many coffees it would take to actually do all skills you listed...",
-        "Removing all instances of 'passionate, detail-oriented team player'...",
-        "Converting your resume from 'rejection material' to 'interview worthy'...",
-        "Replacing 'proficient in Microsoft Word' with actual skills...",
-        "Adding enough buzzwords to impress even the most soulless HR bot...",
-        "Strategically hiding all evidence of your imposter syndrome...",
-        "Making your part-time dog sitting job sound like executive leadership...",
-        "Searching for synonyms of 'responsible for' that sound less boring...",
-        "Attempting to explain your six-month 'finding myself' gap year...",
-        "Turning 'I watched someone else do it once' into 'extensive experience'...",
-        "Convincing algorithms that you're worth more than minimum wage...",
-        "Converting your gaming achievements into transferable corporate skills...",
-        "Teaching AI to appreciate your unique 'organizational methodology' (aka chaos)...",
-        "Negotiating with the algorithm to rate your skills higher than a 3/10...",
-        "Politely removing the phrase 'familiar with' from your skills section...",
-        "Transforming your LinkedIn lurking into 'industry research experience'...",
+    const funnyMessages = mode === 'analyze' ? [
+        "Evaluating how many employers will actually believe this",
+        "Calculating the probability that someone will hire you",
+        "Checking if this is actually a resume or your grocery list",
+        "Making sure you didn't upload your dating profile by accident",
+        "Confirming this isn't just Lorem Ipsum with your name on it",
+        "Teaching AI to understand why 'Sandwich Artist' isn't executive experience",
+        "Filtering out emojis you sneakily added to your bullet points",
+        "Making your references sound like they actually remember you",
+        "Creating an alternative reality where your skills are impressive",
+        "Converting your 'extensive travel' into legitimate cultural awareness",
+        "Translating your gaming achievements into corporate leadership qualities",
+        "Making 'managed a Twitter account' sound like social media expertise",
+        "Detecting questionable achievements that defy physics",
+        "Computing your actual skill level vs. what you claimed",
+        "Checking if your resume violates any laws of physics or reality",
+        "Evaluating whether your skills section is fact or fiction",
+        "Analyzing if your job titles match your actual responsibilities",
+        "Determining if your entire resume is just a ChatGPT hallucination",
+        "Calculating how many buzzwords you used vs. actual skills"
+    ] : [
+        "Convincing AI that your resume isn't just fiction",
+        "Translating your job history from 'barely survived' to 'exceeded expectations'",
+        "Making your 3 months of Excel experience sound like you're a spreadsheet wizard",
+        "Calculating how many coffees it would take to actually do all skills you listed",
+        "Removing all instances of 'passionate, detail-oriented team player'",
+        "Converting your resume from 'rejection material' to 'interview worthy'",
+        "Replacing 'proficient in Microsoft Word' with actual skills",
+        "Adding enough buzzwords to impress even the most soulless HR bot",
+        "Strategically hiding all evidence of your imposter syndrome",
+        "Making your part-time dog sitting job sound like executive leadership",
+        "Searching for synonyms of 'responsible for' that sound less boring",
+        "Attempting to explain your six-month 'finding myself' gap year",
+        "Turning 'I watched someone else do it once' into 'extensive experience'",
+        "Convincing algorithms that you're worth more than minimum wage",
+        "Converting your gaming achievements into transferable corporate skills",
+        "Teaching AI to appreciate your unique 'organizational methodology' (aka chaos)",
+        "Negotiating with the algorithm to rate your skills higher than a 3/10",
+        "Politely removing the phrase 'familiar with' from your skills section",
+        "Transforming your LinkedIn lurking into 'industry research experience'",
     ];
 
     // Messages specific to each stage
-    const stageSpecificMessages = {
+    const stageSpecificMessages = mode === 'analyze' ? {
         extracting: [
-            "Reading between the lines of your job descriptions...",
-            "Extracting the truth from your slightly exaggerated skills section...",
-            "Trying to understand how you fit 10 years of experience into 2 pages...",
-            "Deciphering whether your references actually like you...",
-            "Calculating your real GPA vs. the one you wrote down...",
-            "Scanning for typos that spell check apparently missed...",
-            "Counting how many times you used 'utilized' instead of 'used'...",
-            "Verifying if those certifications are still valid or expired in 2015...",
-            "Decoding what you actually meant by 'proficient in Python'...",
-            "Determining if your entire resume is just a ChatGPT hallucination..."
+            "Reading between the lines of your job descriptions",
+            "Extracting the truth from your slightly exaggerated skills section",
+            "Trying to understand how you fit 10 years of experience into 2 pages",
+            "Deciphering whether your references actually like you",
+            "Calculating your real GPA vs. the one you wrote down",
+            "Scanning for typos that spell check apparently missed",
+            "Counting how many times you used 'utilized' instead of 'used'",
+            "Verifying if those certifications are still valid or expired in 2015",
+            "Decoding what you actually meant by 'proficient in Python'",
+            "Determining if your entire resume is just a ChatGPT hallucination"
         ],
         enhancing: [
-            "Making you sound competent (our hardest job yet)...",
-            "Translating 'I watched a YouTube tutorial' into 'proficient'...",
-            "Adding corporate jargon that nobody understands but everyone respects...",
-            "Turning your coffee-fetching internship into executive experience...",
-            "Sprinkling in keywords that will confuse even you about your skills...",
-            "Finding creative ways to hide that 2-year employment gap...",
-            "Making your weekend hobby sound like professional qualification...",
-            "Converting your Reddit moderator role into 'community leadership'...",
-            "Applying the perfect amount of exaggeration without triggering HR alarms...",
-            "Improving your resume without making even your mom question its authenticity..."
+            "Analyzing your resume structure and ATS compatibility",
+            "Evaluating how your skills match industry standards",
+            "Checking if your job descriptions actually make sense",
+            "Comparing your resume against successful candidates",
+            "Identifying areas where you're underselling yourself",
+            "Finding gaps in your experience that need addressing",
+            "Assessing whether your achievements are quantifiable enough",
+            "Reviewing if your keywords will pass the ATS filters",
+            "Determining if your resume tells a coherent career story",
+            "Calculating your actual market value based on your resume"
         ],
         finalizing: [
-            "Checking if anyone will actually believe this version of you...",
-            "Performing final reality distortion checks...",
-            "Preparing you for inevitable interview questions about skills you don't have...",
-            "Calculating percentage chance of getting past ATS systems...",
-            "Inserting subliminal messages to hypnotize hiring managers...",
-            "Checking if this resume violates any laws of physics or reality...",
-            "Ensuring your salary expectations don't cause spontaneous laughter...",
-            "Running final sanity check on your 'transferable skills' claims...",
-            "Adding strategic white space to hide the fact that you lack experience...",
-            "Creating a polished version of you that even you won't recognize..."
+            "Compiling your personalized feedback report",
+            "Preparing actionable recommendations for improvement",
+            "Finalizing your ATS compatibility score",
+            "Generating specific suggestions for each section",
+            "Creating a roadmap to make your resume interview-ready",
+            "Summarizing strengths and areas for improvement",
+            "Preparing detailed analysis of your resume sections",
+            "Calculating your overall resume quality score",
+            "Finalizing feedback that's actually helpful (not just nice)",
+            "Preparing your comprehensive resume analysis report"
+        ],
+        error: [
+            "Oops! Something went wrong...",
+            "The AI is having an existential crisis...",
+            "Our servers are taking a coffee break...",
+            "The analysis machine needs a reboot...",
+            "Even AI has bad days sometimes...",
+            "The algorithm is having a moment...",
+            "Our robots are on strike...",
+            "The analysis process needs a timeout...",
+            "The AI is questioning its life choices...",
+            "Our servers are having a midlife crisis..."
+        ]
+    } : {
+        extracting: [
+            "Reading between the lines of your job descriptions",
+            "Extracting the truth from your slightly exaggerated skills section",
+            "Trying to understand how you fit 10 years of experience into 2 pages",
+            "Deciphering whether your references actually like you",
+            "Calculating your real GPA vs. the one you wrote down",
+            "Scanning for typos that spell check apparently missed",
+            "Counting how many times you used 'utilized' instead of 'used'",
+            "Verifying if those certifications are still valid or expired in 2015",
+            "Decoding what you actually meant by 'proficient in Python'",
+            "Determining if your entire resume is just a ChatGPT hallucination"
+        ],
+        enhancing: [
+            "Making you sound competent (our hardest job yet)",
+            "Translating 'I watched a YouTube tutorial' into 'proficient'",
+            "Adding corporate jargon that nobody understands but everyone respects",
+            "Turning your coffee-fetching internship into executive experience",
+            "Sprinkling in keywords that will confuse even you about your skills",
+            "Finding creative ways to hide that 2-year employment gap",
+            "Making your weekend hobby sound like professional qualification",
+            "Converting your Reddit moderator role into 'community leadership'",
+            "Applying the perfect amount of exaggeration without triggering HR alarms",
+            "Improving your resume without making even your mom question its authenticity"
+        ],
+        finalizing: [
+            "Checking if anyone will actually believe this version of you",
+            "Performing final reality distortion checks",
+            "Preparing you for inevitable interview questions about skills you don't have",
+            "Calculating percentage chance of getting past ATS systems",
+            "Inserting subliminal messages to hypnotize hiring managers",
+            "Checking if this resume violates any laws of physics or reality",
+            "Ensuring your salary expectations don't cause spontaneous laughter",
+            "Running final sanity check on your 'transferable skills' claims",
+            "Adding strategic white space to hide the fact that you lack experience",
+            "Creating a polished version of you that even you won't recognize"
         ],
         error: [
             "Oops! Something went wrong...",
@@ -132,22 +208,29 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
     };
 
     // Get stage-appropriate funny messages
-    const getCurrentStageFunnyMessages = () => {
+    const getCurrentStageFunnyMessages = useCallback(() => {
         return [
             ...funnyMessages,
             ...(stageSpecificMessages[stage] || [])
         ];
-    };
+    }, [stage, mode]);
 
     // Rotate through funny messages every 5 seconds
     useEffect(() => {
         const messages = getCurrentStageFunnyMessages();
+        if (messages.length === 0) return;
+        
+        setFunnyMessageIndex(0);
+        
         const interval = setInterval(() => {
-            setFunnyMessageIndex(prevIndex => (prevIndex + 1) % messages.length);
+            setFunnyMessageIndex(prevIndex => {
+                const nextIndex = (prevIndex + 1) % messages.length;
+                return nextIndex;
+            });
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [stage]);
+    }, [stage, getCurrentStageFunnyMessages]);
 
     // Track elapsed time
     useEffect(() => {
@@ -167,12 +250,44 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
                 return 65;
             case 'finalizing':
                 return 90;
+            case 'completed':
+                return 100;
             case 'error':
                 return 0;
             default:
                 return 0;
         }
     };
+
+    // Smooth progress animation
+    useEffect(() => {
+        const targetProgress = getProgress();
+        if (displayProgress === targetProgress) return;
+
+        const duration = 800; // Animation duration in ms
+        const startProgress = displayProgress;
+        const startTime = Date.now();
+
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function for smooth animation (ease-out cubic)
+            const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+            const currentProgress = Math.round(startProgress + (targetProgress - startProgress) * easeOutCubic);
+            
+            setDisplayProgress(currentProgress);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                setDisplayProgress(targetProgress);
+            }
+        };
+
+        const animationFrame = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrame);
+    }, [stage, displayProgress]);
 
     // Get status message based on the stage
     const getMessage = (): string => {
@@ -243,235 +358,221 @@ const EnhancingLoader: React.FC<EnhancingLoaderProps> = ({ stage }) => {
         const messageHash = funnyMessageIndex % icons.length;
         const RandomIcon = icons[messageHash];
 
-        return <RandomIcon className="h-4 w-4 text-white" />;
+        return <RandomIcon className="h-4 w-4 text-slate-500" />;
+    };
+
+    const [showConfetti, setShowConfetti] = useState(false);
+
+    useEffect(() => {
+        if (stage === 'completed' && !showConfetti) {
+            setShowConfetti(true);
+        }
+    }, [stage, showConfetti]);
+
+    const Confetti = () => {
+        if (!showConfetti) return null;
+
+        return (
+            <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden flex items-center justify-center">
+                <Lottie
+                    animationData={confettiAnimation}
+                    loop={false}
+                    style={{ width: '100%', height: '100%' }}
+                />
+            </div>
+        );
     };
 
     return (
         <div className="w-full space-y-6">
             {/* Include the animation styles */}
             <style>{animationStyles}</style>
+            
+            <AnimatePresence>
+                {stage === 'completed' && <Confetti />}
+            </AnimatePresence>
 
             {/* Modern Progress Card */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 p-4 text-white">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3">
-                                <Sparkles className="h-5 w-5 text-white" />
+                {stage === 'error' && errorMessage ? (
+                    <div className="p-8">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6">
+                                <AlertCircle className="h-8 w-8 text-amber-600" />
                             </div>
-                            <div>
-                                <h3 className="text-lg font-semibold">Enhancing Your Resume</h3>
-                                <p className="text-sm text-blue-100">Our AI is working its magic on your document</p>
-                            </div>
+                            <h3 className="font-display text-2xl font-medium text-slate-900 mb-2">This doesn't look like a resume</h3>
+                            <p className="text-lg text-slate-600 mb-8 max-w-md">No worries! Just upload a valid resume file and we'll get started.</p>
+                            {onUploadAnother && (
+                                <button
+                                    onClick={onUploadAnother}
+                                    className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                >
+                                    Upload Another File
+                                </button>
+                            )}
                         </div>
-                        <div className="text-right">
-                            <div className="text-xs text-blue-100">Time elapsed</div>
-                            <div className="text-xl font-bold">{elapsedTime}s</div>
-                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="p-6">
+                            <div className="text-center">
+                                <h3 className="font-display text-2xl font-medium text-slate-900 mb-2">
+                                    {mode === 'analyze' ? 'Analyzing Your Resume' : 'Enhancing Your Resume'}
+                                </h3>
+                                <p className="text-base text-slate-600">
+                                    {mode === 'analyze' ? 'Our AI is analyzing your resume and preparing detailed feedback' : 'Our AI is working its magic on your document'}
+                                </p>
                     </div>
                 </div>
 
                 {/* Progress Visualization */}
-                <div className="p-5">
+                        <div className="p-6">
                     {/* Circular progress */}
                     <div className="flex justify-center mb-6">
                         <div className="relative w-24 h-24">
                             {/* Background circle */}
-                            <div className="w-full h-full rounded-full border-8 border-slate-100"></div>
+                                    <div className="w-full h-full rounded-full border-[12px] border-slate-100"></div>
 
                             {/* Progress arc - using SVG for proper circular progress */}
                             <svg className="absolute top-0 left-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
                                 <circle
                                     cx="50" cy="50" r="42"
                                     fill="none"
-                                    strokeWidth="8"
-                                    stroke="url(#gradient)"
-                                    strokeDasharray={`${getProgress() * 2.64} 264`}
+                                            strokeWidth="12"
+                                            stroke="#3B82F6"
+                                            strokeDasharray={`${displayProgress * 2.64} 264`}
                                     strokeLinecap="round"
                                     className="transition-all duration-500"
                                 />
-                                <defs>
-                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#3B82F6" />
-                                        <stop offset="100%" stopColor="#8B5CF6" />
-                                    </linearGradient>
-                                </defs>
                             </svg>
 
                             {/* Percentage text */}
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="text-center">
-                                    <span className="text-2xl font-bold text-indigo-600">{getProgress()}%</span>
-                                </div>
-                            </div>
+                                            <span className="text-2xl font-bold text-blue-600 transition-all duration-300">{displayProgress}%</span>
                         </div>
-                    </div>
-
-                    {/* Enhanced funny message banner */}
-                    <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-xl border border-indigo-200 overflow-hidden shadow-sm mb-5">
-                        {/* Background decorative elements */}
-                        <div className="absolute inset-0 overflow-hidden opacity-10">
-                            <div className="absolute top-1/4 left-1/4 w-16 h-16 rounded-full bg-indigo-400 blur-xl"></div>
-                            <div className="absolute bottom-1/3 right-1/4 w-20 h-20 rounded-full bg-purple-400 blur-xl"></div>
-                            <div className="absolute bottom-1/4 left-1/3 w-12 h-12 rounded-full bg-pink-400 blur-xl"></div>
-                        </div>
-
-                        {/* Status bar */}
-                        <div className="w-full px-4 py-2 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 flex justify-between items-center border-b border-indigo-100">
-                            <div className="flex items-center">
-                                <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse mr-2"></div>
-                                <span className="text-xs font-medium text-indigo-700">{getFunnyStatus()}</span>
-                            </div>
-                        </div>
-
-                        {/* Message content */}
-                        <div className="p-4 flex items-start relative">
-                            <div className="bg-white/60 backdrop-blur-sm rounded-full p-2 mr-3 flex-shrink-0 shadow-sm animate-float">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center">
-                                        <FunnyIcon />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="relative overflow-hidden flex-1">
-                                <div className="relative min-h-[1.25rem]">
-                                    <p
-                                        key={funnyMessageIndex}
-                                        className="text-sm text-indigo-800 font-medium animate-fadeIn"
-                                    >
-                                        {getFunnyMessage()}
+                            {/* Funny message */}
+                            {stage !== 'completed' && (
+                                <div className="flex items-center justify-center mb-6">
+                                    <p className="text-sm text-slate-600 flex items-center gap-2">
+                                        <FunnyIcon />
+                                        <span>{getFunnyMessage()}</span>
+                                        <span className="inline-flex items-baseline gap-0.5 w-6">
+                                            <span className="animate-[bounce_1.4s_ease-in-out_infinite] inline-block">.</span>
+                                            <span className="animate-[bounce_1.4s_ease-in-out_infinite_0.2s] inline-block">.</span>
+                                            <span className="animate-[bounce_1.4s_ease-in-out_infinite_0.4s] inline-block">.</span>
+                                        </span>
                                     </p>
                                 </div>
-
-                                <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-indigo-200 to-transparent mt-2 opacity-70 animate-shimmer"></div>
-                            </div>
-                        </div>
-                    </div>
+                            )}
 
                     {/* Stage indicators */}
-                    <div className="space-y-5">
+                            <div className="space-y-4">
                         {/* Extracting Stage */}
                         <div className="flex items-start">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${stage === 'extracting'
-                                ? 'bg-blue-100 text-blue-600'
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'extracting'
+                                    ? 'bg-blue-600 text-white'
                                 : stage === 'enhancing' || stage === 'finalizing'
-                                    ? 'bg-emerald-100 text-emerald-600'
+                                        ? 'bg-emerald-500 text-white'
                                     : 'bg-slate-100 text-slate-400'
                                 }`}>
                                 {stage === 'extracting' ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : stage === 'enhancing' || stage === 'finalizing' ? (
-                                    <CheckCircle2 className="h-5 w-5" />
+                                        <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
                                 ) : (
                                     <FileText className="h-5 w-5" />
                                 )}
                             </div>
                             <div className="ml-4 flex-1">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-sm font-medium text-slate-800">Extracting Resume Information</h3>
+                                        <h3 className="text-base font-medium text-slate-900">Extracting Resume Information</h3>
                                     {(stage === 'enhancing' || stage === 'finalizing') && (
-                                        <span className="text-xs px-2 py-1 bg-emerald-50 text-emerald-600 rounded-full">Completed</span>
-                                    )}
-                                </div>
-                                <p className="text-xs text-slate-500 mt-1">Analyzing your resume structure and content</p>
-
-                                {stage === 'extracting' && (
-                                    <div className="mt-2 text-xs text-blue-600 bg-blue-50 p-2 rounded-md flex items-center">
-                                        <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
-                                        {getDetailMessage()}
+                                            <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
+                                        )}
                                     </div>
-                                )}
+                                    <p className="text-sm text-slate-600 mt-1">Analyzing your resume structure and content</p>
                             </div>
                         </div>
 
                         {/* Enhancing Stage */}
                         <div className="flex items-start">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${stage === 'enhancing'
-                                ? 'bg-blue-100 text-blue-600'
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'enhancing'
+                                    ? 'bg-indigo-600 text-white'
                                 : stage === 'finalizing'
-                                    ? 'bg-emerald-100 text-emerald-600'
+                                        ? 'bg-emerald-500 text-white'
                                     : 'bg-slate-100 text-slate-400'
                                 }`}>
                                 {stage === 'enhancing' ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : stage === 'finalizing' ? (
-                                    <CheckCircle2 className="h-5 w-5" />
+                                        <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
                                 ) : (
                                     <Settings className="h-5 w-5" />
                                 )}
                             </div>
                             <div className="ml-4 flex-1">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-sm font-medium text-slate-800">AI Enhancement</h3>
+                                            <h3 className="text-base font-medium text-slate-900">
+                                                {mode === 'analyze' ? 'AI Analysis' : 'AI Enhancement'}
+                                            </h3>
                                     {stage === 'finalizing' && (
-                                        <span className="text-xs px-2 py-1 bg-emerald-50 text-emerald-600 rounded-full">Completed</span>
+                                                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-500 mt-1">Improving content quality and formatting</p>
+                                        <p className="text-sm text-slate-600 mt-1">
+                                            {mode === 'analyze' ? 'Generating detailed feedback and recommendations' : 'Improving content quality and formatting'}
+                                        </p>
 
                             </div>
                         </div>
 
                         {/* Finalizing Stage */}
                         <div className="flex items-start">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${stage === 'finalizing'
-                                ? 'bg-blue-100 text-blue-600'
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out ${stage === 'finalizing'
+                                    ? 'bg-purple-600 text-white'
+                                    : stage === 'completed'
+                                        ? 'bg-emerald-500 text-white'
                                 : 'bg-slate-100 text-slate-400'
                                 }`}>
                                 {stage === 'finalizing' ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
+                                    ) : stage === 'completed' ? (
+                                        <CheckCircle2 className="h-5 w-5 animate-fadeIn" />
                                 ) : (
                                     <Sparkles className="h-5 w-5" />
                                 )}
                             </div>
                             <div className="ml-4 flex-1">
-                                <h3 className="text-sm font-medium text-slate-800">Finalizing Resume</h3>
-                                <p className="text-xs text-slate-500 mt-1">Preparing your resume for editing</p>
-
-                                {stage === 'finalizing' && (
-                                    <div className="mt-2 text-xs text-blue-600 bg-blue-50 p-2 rounded-md flex items-center">
-                                        <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
-                                        {getDetailMessage()}
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-base font-medium text-slate-900">
+                                                {mode === 'analyze' ? 'Finalizing Analysis' : 'Finalizing Resume'}
+                                            </h3>
+                                            {stage === 'completed' && (
+                                                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 animate-fadeIn">Completed</span>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-slate-600 mt-1">
+                                            {mode === 'analyze' ? 'Preparing your detailed feedback report' : 'Preparing your resume for editing'}
+                                        </p>
                                     </div>
-                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Visual animation elements */}
-                    <div className="mt-5 h-16 relative overflow-hidden">
-                        <div className="absolute inset-0 flex justify-around">
-                            {[...Array(5)].map((_, index) => (
-                                <div
-                                    key={index}
-                                    className={`w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 
-                                               opacity-${30 + (index * 10)} animate-float`}
-                                    style={{
-                                        animationDelay: `${index * 0.7}s`,
-                                        transform: `translateY(${Math.sin(index) * 10}px)`
-                                    }}
-                                >
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        {index % 2 === 0 ? (
-                                            <Sparkles className="h-4 w-4 text-white animate-pulse" />
-                                        ) : (
-                                            <Brain className="h-4 w-4 text-white" />
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                        {/* Footer message */}
+                        <div className="p-3 border-t border-slate-200 bg-slate-50 text-center">
+                            <p className="text-sm text-slate-600">
+                                <span>{mode === 'analyze' ? 'AI-powered analysis in progress.' : 'AI-powered enhancement in progress.'}</span>{' '}
+                                <span>This may take a few moments.</span>
+                            </p>
                         </div>
-                    </div>
-                </div>
-
-                {/* Footer message */}
-                <div className="p-4 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-indigo-50 text-center">
-                    <p className="text-sm text-slate-700">
-                        <span className="font-medium">AI-powered enhancement in progress.</span>{' '}
-                        <span className="text-slate-500">This may take a few moments.</span>
-                    </p>
-                </div>
+                    </>
+                )}
             </div>
         </div>
     );
