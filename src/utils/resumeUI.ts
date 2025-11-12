@@ -82,7 +82,6 @@ export const renderPreviewContainer = (
             style: {
                 maxWidth: '210mm',
                 minHeight: '297mm',
-                aspectRatio: '1 / 1.414',
                 transform: `scale(${previewScale})`,
                 transformOrigin: 'top center',
                 willChange: 'transform',
