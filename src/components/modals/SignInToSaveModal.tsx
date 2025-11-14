@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 interface SignInToSaveModalProps {
@@ -21,8 +22,8 @@ const SignInToSaveModal: React.FC<SignInToSaveModalProps> = ({ isOpen, onClose }
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -82,7 +83,8 @@ const SignInToSaveModal: React.FC<SignInToSaveModalProps> = ({ isOpen, onClose }
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

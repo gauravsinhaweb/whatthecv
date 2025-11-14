@@ -44,6 +44,11 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
             return;
         }
 
+        const marginLeft = customizationOptions?.spacing?.margins?.left ?? 10;
+        const marginRight = customizationOptions?.spacing?.margins?.right ?? 10;
+        const marginTop = customizationOptions?.spacing?.margins?.top ?? 10;
+        const marginBottom = customizationOptions?.spacing?.margins?.bottom ?? 10;
+
         frameDoc.open();
         frameDoc.write(`
             <!DOCTYPE html>
@@ -70,8 +75,9 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                         margin: 0;
                         padding: 0;
                         width: 210mm;
-                        height: 297mm;
-                        overflow: hidden;
+                        min-height: auto;
+                        height: auto;
+                        overflow: visible;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         color-adjust: exact !important;
@@ -87,43 +93,100 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                     .print-container {
                         position: relative;
                         width: 210mm;
-                        height: 297mm;
+                        min-height: auto;
+                        height: auto;
                         margin: 0 auto;
                         padding: 0;
-                        overflow: hidden;
+                        overflow: visible;
                         background-color: white;
                     }
                     .resume-body {
                         display: flex !important;
                         flex-direction: row !important;
                         gap: 1.5rem !important;
-                        height: 297mm !important;
-                        max-height: 297mm !important;
-                        overflow: hidden !important;
+                        overflow: visible !important;
                     }
                     .resume-main-column {
                         flex: 1 1 auto !important;
-                        max-height: 297mm !important;
-                        overflow: hidden !important;
-                        padding-bottom: 10mm !important;
+                        overflow: visible !important;
                     }
                     .resume-side-column {
                         width: 40% !important;
                         flex-shrink: 0 !important;
-                        max-height: 297mm !important;
-                        overflow: hidden !important;
-                        padding-bottom: 10mm !important;
+                        overflow: visible !important;
                     }
                     .resume-section {
-                        margin-bottom: 0.75rem !important;
+                        page-break-after: auto !important;
+                        break-after: auto !important;
+                    }
+                    .resume-section > * {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                    }
+                    .resume-section h2 {
+                        page-break-after: avoid !important;
+                        break-after: avoid !important;
+                    }
+                    .resume-pages-container {
+                        position: relative;
+                        width: 210mm;
+                        padding: 0;
+                        background-color: #ffffff;
+                        min-height: auto;
+                        height: auto;
+                    }
+                    .resume-pages-container [data-id="resume-content"] {
+                        position: relative !important;
+                        z-index: 2 !important;
+                        background-color: transparent !important;
+                        box-sizing: border-box !important;
+                        width: 100% !important;
+                        padding-left: ${marginLeft}mm !important;
+                        padding-right: ${marginRight}mm !important;
+                        padding-top: ${marginTop}mm !important;
+                        padding-bottom: ${marginBottom}mm !important;
+                    }
+                    .resume-pages-container [data-id="resume-content"] > * {
+                        position: relative;
+                        z-index: 2;
+                    }
+                    [data-id="resume-content"] {
+                        font-size: ${customizationOptions?.spacing?.fontSize ?? 11.5}pt !important;
+                        line-height: ${customizationOptions?.spacing?.lineHeight ?? 1.2} !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        padding-left: ${marginLeft}mm !important;
+                        padding-right: ${marginRight}mm !important;
+                        padding-top: ${marginTop}mm !important;
+                        padding-bottom: ${marginBottom}mm !important;
+                        box-sizing: border-box !important;
+                        position: relative !important;
+                        margin: 0 !important;
+                        overflow: visible !important;
+                        height: auto !important;
+                        min-height: auto !important;
+                        page-break-after: auto !important;
+                        break-after: auto !important;
+                        -webkit-user-select: text !important;
+                        user-select: text !important;
+                        -webkit-text-size-adjust: none !important;
+                        text-size-adjust: none !important;
+                        pointer-events: auto !important;
+                    }
+                    [data-id="resume-content"] > * {
+                        max-width: 100% !important;
+                        box-sizing: border-box !important;
                     }
                     .resume-content {
-                        font-size: ${customizationOptions?.spacing?.fontSize || 11.5}pt !important;
-                        line-height: ${customizationOptions?.spacing?.lineHeight || 1.2} !important;
-                        padding-left: ${customizationOptions?.spacing?.margins?.left || 10}mm !important;
-                        padding-right: ${customizationOptions?.spacing?.margins?.right || 10}mm !important;
-                        padding-top: ${customizationOptions?.spacing?.margins?.top || 10}mm !important;
-                        padding-bottom: ${customizationOptions?.spacing?.margins?.bottom || 10}mm !important;
+                        font-size: ${customizationOptions?.spacing?.fontSize ?? 11.5}pt !important;
+                        line-height: ${customizationOptions?.spacing?.lineHeight ?? 1.2} !important;
+                        width: 100% !important;
+                        padding-left: ${marginLeft}mm !important;
+                        padding-right: ${marginRight}mm !important;
+                        padding-top: ${marginTop}mm !important;
+                        padding-bottom: ${marginBottom}mm !important;
+                        box-sizing: border-box !important;
+                        margin: 0 !important;
                         -webkit-user-select: text !important;
                         user-select: text !important;
                         -webkit-text-size-adjust: none !important;
@@ -131,8 +194,7 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                         pointer-events: auto !important;
                     }
                     p, div {
-                        text-overflow: ellipsis !important;
-                        overflow: hidden !important;
+                        overflow: visible !important;
                         -webkit-user-select: text !important;
                         user-select: text !important;
                         -webkit-text-size-adjust: none !important;
@@ -274,7 +336,8 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                         }
                     }
                     .work-experience-item, .education-item, .project-item {
-                        margin-bottom: 0.75rem !important;
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
                     }
                     .work-description, .education-description, .project-description {
                         max-height: none !important;
@@ -285,51 +348,80 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                     }
                     .skills-list, .project-list {
                         max-height: none !important;
-                        overflow: hidden !important;
+                        overflow: visible !important;
                         -webkit-user-select: text !important;
                         user-select: text !important;
                     }
                     .mb-8 {
-                        margin-bottom: 1rem !important;
+                        margin-bottom: 2rem !important;
                     }
                     .mb-5 {
-                        margin-bottom: 0.75rem !important;
+                        margin-bottom: 1.25rem !important;
+                    }
+                    .mb-4 {
+                        margin-bottom: 1rem !important;
                     }
                     .mb-3 {
+                        margin-bottom: 0.75rem !important;
+                    }
+                    .mb-2 {
                         margin-bottom: 0.5rem !important;
                     }
+                    .mb-1 {
+                        margin-bottom: 0.25rem !important;
+                    }
+                    .mt-4 {
+                        margin-top: 1rem !important;
+                    }
+                    .mt-2 {
+                        margin-top: 0.5rem !important;
+                    }
+                    .mt-1 {
+                        margin-top: 0.25rem !important;
+                    }
+                    .space-y-4 > * + * {
+                        margin-top: 1rem !important;
+                    }
+                    .space-y-1 > * + * {
+                        margin-top: 0.25rem !important;
+                    }
+                    .gap-6 {
+                        gap: 1.5rem !important;
+                    }
+                    .gap-y-2 {
+                        row-gap: 0.5rem !important;
+                    }
+                    .gap-x-6 {
+                        column-gap: 1.5rem !important;
+                    }
+                    .pl-6 {
+                        padding-left: 1.5rem !important;
+                    }
+                    .pl-5 {
+                        padding-left: 1.25rem !important;
+                    }
+                    .pl-4 {
+                        padding-left: 1rem !important;
+                    }
+                    .pl-2 {
+                        padding-left: 0.5rem !important;
+                    }
                     .print-container {
-                        padding-bottom: 10mm !important;
+                        padding-bottom: 0 !important;
                     }
                     
-                    /* Header styling based on customization */
-                    [data-id="resume-header"] h1 {
-                        font-weight: ${customizationOptions?.header?.nameBold ? '600' : '500'} !important;
-                        font-size: ${(() => {
-                switch (customizationOptions?.header?.nameSize) {
-                    case 's': return '1.25rem';
-                    case 'm': return '1.75rem';
-                    case 'l': return '2.25rem';
-                    case 'xl': return '2.75rem';
-                    default: return '2.25rem';
-                }
-            })()} !important;
-                        text-align: ${customizationOptions?.header?.alignment || 'center'} !important;
-                    }
-                    
-                    [data-id="resume-header"] h2 {
-                        font-size: ${(() => {
-                switch (customizationOptions?.header?.jobTitleSize) {
-                    case 's': return '1rem';
-                    case 'm': return '1.125rem';
-                    case 'l': return '1.25rem';
-                    default: return '1.125rem';
-                }
-            })()} !important;
-                        color: ${customizationOptions?.colors?.accent || '#000000'} !important;
-                    }
                     
                     /* Accent color styling */
+                    [data-id="resume-body"] {
+                        display: flex !important;
+                        flex-direction: row !important;
+                        gap: 1.5rem !important;
+                        overflow: visible !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        height: auto !important;
+                        min-height: auto !important;
+                    }
                     [data-id="resume-body"] a {
                         color: ${customizationOptions?.colors?.accent || '#000000'} !important;
                         text-decoration: none !important;
@@ -363,6 +455,16 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                     
                     /* Prevent text from being treated as image */
                     .printable-content {
+                        width: 210mm !important;
+                        min-height: auto !important;
+                        height: auto !important;
+                        max-height: none !important;
+                        margin: 0 auto !important;
+                        padding: 0 !important;
+                        box-sizing: border-box !important;
+                        position: relative !important;
+                        page-break-after: auto !important;
+                        break-after: auto !important;
                         -webkit-user-select: text !important;
                         user-select: text !important;
                         -webkit-text-size-adjust: none !important;
@@ -413,17 +515,42 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
 
         const printContent = resumeElement.cloneNode(true) as HTMLElement;
 
-        printContent.style.width = '210mm';
-        printContent.style.height = '297mm';
-        printContent.style.maxHeight = '297mm';
-        printContent.style.margin = '0 auto';
-        printContent.style.boxShadow = 'none';
-        printContent.style.border = 'none';
-        printContent.style.borderRadius = '0';
-        printContent.style.position = 'relative';
-        printContent.style.overflow = 'hidden';
-        printContent.style.pageBreakInside = 'avoid';
-        printContent.style.breakInside = 'avoid';
+        printContent.style.setProperty('width', '210mm', 'important');
+        printContent.style.setProperty('min-height', 'auto', 'important');
+        printContent.style.setProperty('height', 'auto', 'important');
+        printContent.style.setProperty('max-height', 'none', 'important');
+        printContent.style.setProperty('margin', '0 auto', 'important');
+        printContent.style.setProperty('padding', '0', 'important');
+        printContent.style.setProperty('box-sizing', 'border-box', 'important');
+
+        const resumeContentElement = printContent.querySelector('[data-id="resume-content"]') as HTMLElement;
+        if (resumeContentElement) {
+            resumeContentElement.style.setProperty('width', '100%', 'important');
+            resumeContentElement.style.setProperty('max-width', '100%', 'important');
+            resumeContentElement.style.setProperty('height', 'auto', 'important');
+            resumeContentElement.style.setProperty('min-height', 'auto', 'important');
+            resumeContentElement.style.setProperty('max-height', 'none', 'important');
+            resumeContentElement.style.setProperty('padding-left', `${marginLeft}mm`, 'important');
+            resumeContentElement.style.setProperty('padding-right', `${marginRight}mm`, 'important');
+            resumeContentElement.style.setProperty('padding-top', `${marginTop}mm`, 'important');
+            resumeContentElement.style.setProperty('padding-bottom', `${marginBottom}mm`, 'important');
+            resumeContentElement.style.setProperty('box-sizing', 'border-box', 'important');
+            resumeContentElement.style.setProperty('position', 'relative', 'important');
+            resumeContentElement.style.setProperty('margin', '0', 'important');
+            resumeContentElement.style.setProperty('overflow', 'visible', 'important');
+
+            const children = resumeContentElement.children;
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i] as HTMLElement;
+                child.style.setProperty('max-width', '100%', 'important');
+                child.style.setProperty('box-sizing', 'border-box', 'important');
+            }
+        }
+
+        printContent.style.setProperty('box-shadow', 'none', 'important');
+        printContent.style.setProperty('border', 'none', 'important');
+        printContent.style.setProperty('border-radius', '0', 'important');
+        printContent.style.setProperty('overflow', 'visible', 'important');
         printContent.style.fontFamily = customizationOptions?.font?.specificFont || 'Times New Roman, serif';
         printContent.style.color = customizationOptions?.colors?.text || '#000000';
         printContent.style.fontSize = `${customizationOptions?.spacing?.fontSize || 11.5}pt`;
@@ -486,88 +613,44 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
             }
         });
 
-        const nameTitle = printContent.querySelector('h1');
-        if (nameTitle) {
-            nameTitle.style.fontWeight = customizationOptions?.header?.nameBold ? '600' : '500';
-            nameTitle.style.fontSize = (() => {
-                switch (customizationOptions?.header?.nameSize) {
-                    case 's': return '1.25rem';
-                    case 'm': return '1.75rem';
-                    case 'l': return '2.25rem';
-                    case 'xl': return '2.75rem';
-                    default: return '2.25rem';
-                }
-            })();
-            nameTitle.style.textAlign = customizationOptions?.header?.alignment || 'center';
-        }
 
-        // Fix job title styling
-        const jobTitle = printContent.querySelector('[data-id="resume-header"] h2');
-        if (jobTitle) {
-            (jobTitle as HTMLElement).style.fontSize = (() => {
-                switch (customizationOptions?.header?.jobTitleSize) {
-                    case 's': return '1rem';
-                    case 'm': return '1.125rem';
-                    case 'l': return '1.25rem';
-                    default: return '1.125rem';
-                }
-            })();
-            (jobTitle as HTMLElement).style.color = customizationOptions?.colors?.accent || '#000000';
-        }
 
-        // Fix h3 elements font weight for company names and other headings
-        const h3Elements = printContent.querySelectorAll('h3');
-        h3Elements.forEach(h3 => {
-            (h3 as HTMLElement).style.fontWeight = '600';
-        });
 
-        // Fix any elements with font-semibold class
-        const semiboldElements = printContent.querySelectorAll('.font-semibold');
-        semiboldElements.forEach(element => {
-            (element as HTMLElement).style.fontWeight = '600';
-        });
 
-        // Fix any elements with font-bold class
-        const boldElements = printContent.querySelectorAll('.font-bold');
-        boldElements.forEach(element => {
-            (element as HTMLElement).style.fontWeight = '700';
-        });
 
-        // Fix section titles (h2 elements with section-title class)
-        const sectionTitles = printContent.querySelectorAll('h2.section-title, .section-title');
-        sectionTitles.forEach(element => {
-            (element as HTMLElement).style.fontWeight = customizationOptions?.sectionTitles?.bold ? '600' : '400';
-        });
 
-        const educationSection = printContent.querySelectorAll('.mb-8');
-        educationSection.forEach(section => {
-            (section as HTMLElement).style.marginBottom = '1.5rem';
-        });
 
-        const educationItems = printContent.querySelectorAll('.mb-5');
-        educationItems.forEach(item => {
-            (item as HTMLElement).style.marginBottom = '1rem';
-        });
 
         const resumeBody = printContent.querySelector('[data-id="resume-body"]') as HTMLElement;
         if (resumeBody) {
             resumeBody.style.display = 'flex';
             resumeBody.style.flexDirection = 'row';
-            resumeBody.style.gap = '2rem';
+            resumeBody.style.gap = '1.5rem';
+            resumeBody.style.overflow = 'visible';
+            resumeBody.style.visibility = 'visible';
+            resumeBody.style.opacity = '1';
+            resumeBody.style.height = 'auto';
+            resumeBody.style.minHeight = 'auto';
 
             const mainColumn = resumeBody.querySelector('[data-id="resume-main-column"]') as HTMLElement;
             if (mainColumn) {
                 mainColumn.style.flex = '1 1 auto';
-                mainColumn.style.maxHeight = '297mm';
-                mainColumn.style.overflow = 'hidden';
+                mainColumn.style.overflow = 'visible';
+                mainColumn.style.visibility = 'visible';
+                mainColumn.style.opacity = '1';
+                mainColumn.style.height = 'auto';
+                mainColumn.style.minHeight = 'auto';
             }
 
             const sideColumn = resumeBody.querySelector('[data-id="resume-side-column"]') as HTMLElement;
             if (sideColumn) {
                 sideColumn.style.width = '40%';
                 sideColumn.style.flexShrink = '0';
-                sideColumn.style.maxHeight = '297mm';
-                sideColumn.style.overflow = 'hidden';
+                sideColumn.style.overflow = 'visible';
+                sideColumn.style.visibility = 'visible';
+                sideColumn.style.opacity = '1';
+                sideColumn.style.height = 'auto';
+                sideColumn.style.minHeight = 'auto';
             }
         }
 
@@ -577,52 +660,75 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
 
             const containerStyle = container as HTMLElement;
             containerStyle.style.width = '210mm';
-            containerStyle.style.height = '297mm';
+            containerStyle.style.minHeight = 'auto';
+            containerStyle.style.height = 'auto';
             containerStyle.style.margin = '0 auto';
-            containerStyle.style.overflow = 'hidden';
+            containerStyle.style.overflow = 'visible';
             containerStyle.style.position = 'relative';
         }
 
         const fixScript = frameDoc.createElement('script');
         const sectionTitleWeight = customizationOptions?.sectionTitles?.bold ? '600' : '400';
-        const headerNameWeight = customizationOptions?.header?.nameBold ? '600' : '500';
-        const headerNameSize = (() => {
-            switch (customizationOptions?.header?.nameSize) {
-                case 's': return '1.25rem';
-                case 'm': return '1.75rem';
-                case 'l': return '2.25rem';
-                case 'xl': return '2.75rem';
-                default: return '2.25rem';
-            }
-        })();
-        const headerAlignment = customizationOptions?.header?.alignment || 'center';
+
         fixScript.innerHTML = `
             document.addEventListener('DOMContentLoaded', function() {
+                const resumeContent = document.querySelector('[data-id="resume-content"]');
+                if (resumeContent) {
+                    resumeContent.style.setProperty('width', '100%', 'important');
+                    resumeContent.style.setProperty('max-width', '100%', 'important');
+                    resumeContent.style.setProperty('height', 'auto', 'important');
+                    resumeContent.style.setProperty('min-height', 'auto', 'important');
+                    resumeContent.style.setProperty('max-height', 'none', 'important');
+                    resumeContent.style.setProperty('padding-left', '${marginLeft}mm', 'important');
+                    resumeContent.style.setProperty('padding-right', '${marginRight}mm', 'important');
+                    resumeContent.style.setProperty('padding-top', '${marginTop}mm', 'important');
+                    resumeContent.style.setProperty('padding-bottom', '${marginBottom}mm', 'important');
+                    resumeContent.style.setProperty('box-sizing', 'border-box', 'important');
+                    resumeContent.style.setProperty('margin', '0', 'important');
+                    resumeContent.style.setProperty('overflow', 'visible', 'important');
+                    
+                    const children = resumeContent.children;
+                    for (let i = 0; i < children.length; i++) {
+                        const child = children[i];
+                        child.style.setProperty('max-width', '100%', 'important');
+                        child.style.setProperty('box-sizing', 'border-box', 'important');
+                    }
+                }
+                
+            
+                
                 const resumeBody = document.querySelector('[data-id="resume-body"]');
                 if (resumeBody) {
                     resumeBody.style.display = 'flex';
                     resumeBody.style.flexDirection = 'row';
+                    resumeBody.style.gap = '1.5rem';
+                    resumeBody.style.overflow = 'visible';
+                    resumeBody.style.visibility = 'visible';
+                    resumeBody.style.opacity = '1';
+                    resumeBody.style.height = 'auto';
+                    resumeBody.style.minHeight = 'auto';
                     
                     const mainColumn = document.querySelector('[data-id="resume-main-column"]');
                     if (mainColumn) {
-                        mainColumn.style.maxHeight = '297mm';
-                        mainColumn.style.overflow = 'hidden';
+                        mainColumn.style.overflow = 'visible';
+                        mainColumn.style.visibility = 'visible';
+                        mainColumn.style.opacity = '1';
+                        mainColumn.style.height = 'auto';
+                        mainColumn.style.minHeight = 'auto';
                     }
                     
                     const sideColumn = document.querySelector('[data-id="resume-side-column"]');
                     if (sideColumn) {
                         sideColumn.style.width = '40%';
-                        sideColumn.style.maxHeight = '297mm';
-                        sideColumn.style.overflow = 'hidden';
+                        sideColumn.style.overflow = 'visible';
+                        sideColumn.style.visibility = 'visible';
+                        sideColumn.style.opacity = '1';
+                        sideColumn.style.height = 'auto';
+                        sideColumn.style.minHeight = 'auto';
                     }
                 }
                 
-                const nameTitle = document.querySelector('h1');
-                if (nameTitle) {
-                    nameTitle.style.fontWeight = '${headerNameWeight}';
-                    nameTitle.style.fontSize = '${headerNameSize}';
-                    nameTitle.style.textAlign = '${headerAlignment}';
-                }
+           
                 
                 // Fix h3 elements font weight for company names and other headings
                 const h3Elements = document.querySelectorAll('h3');
@@ -648,15 +754,6 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                     element.style.fontWeight = '${sectionTitleWeight}';
                 });
                 
-                const educationSection = document.querySelectorAll('.mb-8');
-                educationSection.forEach(section => {
-                    section.style.marginBottom = '1.5rem';
-                });
-                
-                const educationItems = document.querySelectorAll('.mb-5');
-                educationItems.forEach(item => {
-                    item.style.marginBottom = '1rem';
-                });
                 
                 // Ensure all text elements are selectable
                 const textElements = document.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, span, a, li, td, th');
@@ -671,76 +768,73 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
         `;
         frameDoc.body.appendChild(fixScript);
 
-        const workItems = printContent.querySelectorAll('[data-section="work-experience"] > div');
-        workItems.forEach(item => {
-            (item as HTMLElement).style.marginBottom = '0.75rem';
-        });
-
         const descriptions = printContent.querySelectorAll('p');
         descriptions.forEach(desc => {
             (desc as HTMLElement).style.lineHeight = '1.4';
             (desc as HTMLElement).style.maxHeight = 'none';
-            (desc as HTMLElement).style.overflow = 'hidden';
+            (desc as HTMLElement).style.overflow = 'visible';
         });
 
-        const marginElements = printContent.querySelectorAll('.mb-8, .mb-5, .mb-3');
-        marginElements.forEach(el => {
-            const element = el as HTMLElement;
-            if (element.classList.contains('mb-8')) {
-                element.style.marginBottom = '1rem';
-            } else if (element.classList.contains('mb-5')) {
-                element.style.marginBottom = '0.75rem';
-            } else if (element.classList.contains('mb-3')) {
-                element.style.marginBottom = '0.5rem';
-            }
-        });
-
-        const contentElement = printContent.querySelector('.resume-content');
-        if (contentElement) {
-            (contentElement as HTMLElement).style.fontSize = '0.95em';
-        }
 
         setTimeout(() => {
             try {
+                const resumeContent = frameDoc.querySelector('[data-id="resume-content"]') as HTMLElement;
+                if (resumeContent) {
+                    resumeContent.style.setProperty('width', '100%', 'important');
+                    resumeContent.style.setProperty('max-width', '100%', 'important');
+                    resumeContent.style.setProperty('height', 'auto', 'important');
+                    resumeContent.style.setProperty('min-height', 'auto', 'important');
+                    resumeContent.style.setProperty('max-height', 'none', 'important');
+                    resumeContent.style.setProperty('padding-left', `${marginLeft}mm`, 'important');
+                    resumeContent.style.setProperty('padding-right', `${marginRight}mm`, 'important');
+                    resumeContent.style.setProperty('padding-top', `${marginTop}mm`, 'important');
+                    resumeContent.style.setProperty('padding-bottom', `${marginBottom}mm`, 'important');
+                    resumeContent.style.setProperty('box-sizing', 'border-box', 'important');
+                    resumeContent.style.setProperty('position', 'relative', 'important');
+                    resumeContent.style.setProperty('margin', '0', 'important');
+                    resumeContent.style.setProperty('overflow', 'visible', 'important');
+
+                    const children = resumeContent.children;
+                    for (let i = 0; i < children.length; i++) {
+                        const child = children[i] as HTMLElement;
+                        child.style.setProperty('max-width', '100%', 'important');
+                        child.style.setProperty('box-sizing', 'border-box', 'important');
+                    }
+                }
+
+
+
                 const resumeBody = frameDoc.querySelector('[data-id="resume-body"]') as HTMLElement;
                 if (resumeBody) {
                     resumeBody.style.display = 'flex';
                     resumeBody.style.flexDirection = 'row';
+                    resumeBody.style.gap = '1.5rem';
+                    resumeBody.style.overflow = 'visible';
+                    resumeBody.style.visibility = 'visible';
+                    resumeBody.style.opacity = '1';
+                    resumeBody.style.height = 'auto';
+                    resumeBody.style.minHeight = 'auto';
 
                     const mainColumn = frameDoc.querySelector('[data-id="resume-main-column"]') as HTMLElement;
                     if (mainColumn) {
-                        mainColumn.style.maxHeight = '297mm';
-                        mainColumn.style.overflow = 'hidden';
+                        mainColumn.style.overflow = 'visible';
+                        mainColumn.style.visibility = 'visible';
+                        mainColumn.style.opacity = '1';
+                        mainColumn.style.height = 'auto';
+                        mainColumn.style.minHeight = 'auto';
                     }
 
                     const sideColumn = frameDoc.querySelector('[data-id="resume-side-column"]') as HTMLElement;
                     if (sideColumn) {
                         sideColumn.style.width = '40%';
-                        sideColumn.style.maxHeight = '297mm';
-                        sideColumn.style.overflow = 'hidden';
+                        sideColumn.style.overflow = 'visible';
+                        sideColumn.style.visibility = 'visible';
+                        sideColumn.style.opacity = '1';
+                        sideColumn.style.height = 'auto';
+                        sideColumn.style.minHeight = 'auto';
                     }
                 }
 
-                const nameTitle = frameDoc.querySelector('h1');
-                if (nameTitle) {
-                    (nameTitle as HTMLElement).style.fontWeight = customizationOptions?.header?.nameBold ? '600' : '500';
-                    (nameTitle as HTMLElement).style.fontSize = (() => {
-                        switch (customizationOptions?.header?.nameSize) {
-                            case 's': return '1.25rem';
-                            case 'm': return '1.75rem';
-                            case 'l': return '2.25rem';
-                            case 'xl': return '2.75rem';
-                            default: return '2.25rem';
-                        }
-                    })();
-                    (nameTitle as HTMLElement).style.textAlign = customizationOptions?.header?.alignment || 'center';
-                }
-
-                // Fix h3 elements font weight for company names and other headings
-                const h3Elements = frameDoc.querySelectorAll('h3');
-                h3Elements.forEach(h3 => {
-                    (h3 as HTMLElement).style.fontWeight = '600';
-                });
 
                 // Fix any elements with font-semibold class
                 const semiboldElements = frameDoc.querySelectorAll('.font-semibold');
@@ -760,15 +854,6 @@ export const exportResumeToPDF = (resumeData: ResumeData, customizationOptions?:
                     (element as HTMLElement).style.fontWeight = sectionTitleWeight;
                 });
 
-                const educationSection = frameDoc.querySelectorAll('.mb-8');
-                educationSection.forEach(section => {
-                    (section as HTMLElement).style.marginBottom = '1.5rem';
-                });
-
-                const educationItems = frameDoc.querySelectorAll('.mb-5');
-                educationItems.forEach(item => {
-                    (item as HTMLElement).style.marginBottom = '1rem';
-                });
 
                 // Ensure all text elements are selectable
                 const textElements = frameDoc.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, span, a, li, td, th');
