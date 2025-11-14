@@ -402,182 +402,184 @@ const Navigation: React.FC = () => {
     : 'bg-white h-20 flex-shrink-0 transition-all duration-300';
 
   return (
-    <nav className={navBackgroundClass}>
-      <ExportConfirmationModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        onConfirm={handleConfirmExport}
-      />
-      {/* Sign In Modal */}
-      <SignInModal
-        isOpen={isSignInModalOpen}
-        onClose={() => setIsSignInModalOpen(false)}
-      />
-      {/* Sign In to Save Modal */}
-      <SignInToSaveModal
-        isOpen={isSignInToSaveModalOpen}
-        onClose={() => setIsSignInToSaveModalOpen(false)}
-      />
-      {/* Save Draft Modal */}
-      <SaveResumeModal
-        isOpen={isSaveModalOpen}
-        onClose={closeAllModals}
-        fetchUserResumes={fetchUserResumes}
-        saveMode={saveMode}
-        onSaveModeChange={handleSaveModeChange}
-        resumeTitle={resumeTitle}
-        setResumeTitle={setResumeTitle}
-        isSavingDraft={isSavingDraft}
-        onSaveDraft={handleSaveDraftWithTitle}
-        onReplaceResume={handleReplaceResume}
-        userResumes={userResumes}
-        isLoadingResumes={isLoadingResumes}
-        selectedResumeId={selectedResumeId}
-        setSelectedResumeId={setSelectedResumeId}
-        hasExistingResume={!!selectedDocument?.id}
-      />
+    <div className="relative">
+      <nav className={navBackgroundClass}>
+        <ExportConfirmationModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          onConfirm={handleConfirmExport}
+        />
+        {/* Sign In Modal */}
+        <SignInModal
+          isOpen={isSignInModalOpen}
+          onClose={() => setIsSignInModalOpen(false)}
+        />
+        {/* Sign In to Save Modal */}
+        <SignInToSaveModal
+          isOpen={isSignInToSaveModalOpen}
+          onClose={() => setIsSignInToSaveModalOpen(false)}
+        />
+        {/* Save Draft Modal */}
+        <SaveResumeModal
+          isOpen={isSaveModalOpen}
+          onClose={closeAllModals}
+          fetchUserResumes={fetchUserResumes}
+          saveMode={saveMode}
+          onSaveModeChange={handleSaveModeChange}
+          resumeTitle={resumeTitle}
+          setResumeTitle={setResumeTitle}
+          isSavingDraft={isSavingDraft}
+          onSaveDraft={handleSaveDraftWithTitle}
+          onReplaceResume={handleReplaceResume}
+          userResumes={userResumes}
+          isLoadingResumes={isLoadingResumes}
+          selectedResumeId={selectedResumeId}
+          setSelectedResumeId={setSelectedResumeId}
+          hasExistingResume={!!selectedDocument?.id}
+        />
 
 
-      <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex justify-between h-20">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center gap-2.5 cursor-pointer" onClick={goToHome}>
-              <img
-                src={wtcvLogoUrl}
-                alt="WhatTheCV Logo"
-                className="h-9 w-9"
-              />
-              <span className="font-display text-xl font-medium text-slate-900">
-                WTCV
-              </span>
-            </div>
-            <div className="hidden sm:ml-12 sm:flex sm:items-center sm:space-x-10">
-              {navItems.map((item) => (
-                <button
-                  key={item.page}
-                  onClick={() => handleNavigation(item.path)}
-                  className={`inline-flex items-center text-base font-medium transition-colors ${currentPage === item.page
-                    ? 'text-slate-900'
-                    : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                >
-                  {item.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-3">
-            {isCreateResumePage ? (
-              <div className="flex items-center space-x-3">
-                {(selectedDocument?.title) && (
-                  <AutoSaveIndicator
-                    isAutoSaving={isAutoSaving}
-                    lastSavedTime={lastSavedTime}
-                  />
-                )}
-                <button
-                  className="inline-flex items-center px-6 py-3 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 focus:outline-none transition-all duration-200"
-                  onClick={handleExportPDF}
-                >
-                  <FileDown className="w-5 h-5 mr-2" />
-                  <span>Export</span>
-                </button>
-                <button
-                  data-testid="save-button"
-                  className="inline-flex items-center px-6 py-3 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  onClick={handleSaveClick}
-                  disabled={isSavingDraft}
-                >
-                  <Save className="w-5 h-5 mr-2" />
-                  <span>{isSavingDraft ? 'Saving...' : 'Save'}</span>
-                </button>
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="flex justify-between h-20">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 flex items-center gap-2.5 cursor-pointer" onClick={goToHome}>
+                <img
+                  src={wtcvLogoUrl}
+                  alt="WhatTheCV Logo"
+                  className="h-9 w-9"
+                />
+                <span className="font-display text-xl font-medium text-slate-900">
+                  WTCV
+                </span>
               </div>
-            ) : isAuthenticated && user ? (
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={toggleUserMenu}
-                  className="flex items-center space-x-2 px-4 py-3 rounded-xl hover:bg-slate-50 focus:outline-none transition"
-                >
-                  <div className="relative">
-                    {user.avatar_url ? (
-                      <img
-                        src={user.avatar_url}
-                        alt={user.name || 'User'}
-                        className="h-9 w-9 rounded-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.onerror = null;
-                          target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email.split('@')[0])}&background=3B82F6&color=fff`;
-                        }}
-                      />
-                    ) : (
-                      <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center">
-                        <User className="h-5 w-5 text-slate-600" />
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-base font-medium text-slate-700">{user.name || user.email.split('@')[0]}</span>
-                  <ChevronDown className="h-5 w-5 text-slate-400" />
-                </button>
+              <div className="hidden sm:ml-12 sm:flex sm:items-center sm:space-x-10">
+                {navItems.map((item) => (
+                  <button
+                    key={item.page}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`inline-flex items-center text-base font-medium transition-colors ${currentPage === item.page
+                      ? 'text-slate-900'
+                      : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                  >
+                    {item.name}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 z-10 border border-slate-200">
-                    <div className="px-4 py-3 border-b border-slate-100">
-                      <p className="text-sm font-medium text-slate-900 truncate">{user.name || user.email.split('@')[0]}</p>
-                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
+            <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-3">
+              {isCreateResumePage ? (
+                <div className="flex items-center space-x-3">
+                  {(selectedDocument?.title) && (
+                    <AutoSaveIndicator
+                      isAutoSaving={isAutoSaving}
+                      lastSavedTime={lastSavedTime}
+                    />
+                  )}
+                  <button
+                    className="inline-flex items-center px-6 py-3 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 focus:outline-none transition-all duration-200"
+                    onClick={handleExportPDF}
+                  >
+                    <FileDown className="w-5 h-5 mr-2" />
+                    <span>Export</span>
+                  </button>
+                  <button
+                    data-testid="save-button"
+                    className="inline-flex items-center px-6 py-3 text-base font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    onClick={handleSaveClick}
+                    disabled={isSavingDraft}
+                  >
+                    <Save className="w-5 h-5 mr-2" />
+                    <span>{isSavingDraft ? 'Saving...' : 'Save'}</span>
+                  </button>
+                </div>
+              ) : isAuthenticated && user ? (
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    onClick={toggleUserMenu}
+                    className="flex items-center space-x-2 px-4 py-3 rounded-xl hover:bg-slate-50 focus:outline-none transition"
+                  >
+                    <div className="relative">
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.name || 'User'}
+                          className="h-9 w-9 rounded-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.onerror = null;
+                            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email.split('@')[0])}&background=3B82F6&color=fff`;
+                          }}
+                        />
+                      ) : (
+                        <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center">
+                          <User className="h-5 w-5 text-slate-600" />
+                        </div>
+                      )}
                     </div>
-                    {isSuperUser(user.email) && (
+                    <span className="text-base font-medium text-slate-700">{user.name || user.email.split('@')[0]}</span>
+                    <ChevronDown className="h-5 w-5 text-slate-400" />
+                  </button>
+
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 z-10 border border-slate-200">
+                      <div className="px-4 py-3 border-b border-slate-100">
+                        <p className="text-sm font-medium text-slate-900 truncate">{user.name || user.email.split('@')[0]}</p>
+                        <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                      </div>
+                      {isSuperUser(user.email) && (
+                        <button
+                          onClick={() => {
+                            handleNavigation('/admin');
+                            setShowUserMenu(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center"
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Admin Panel
+                        </button>
+                      )}
                       <button
-                        onClick={() => {
-                          handleNavigation('/admin');
-                          setShowUserMenu(false);
-                        }}
+                        onClick={handleLogout}
                         className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center"
                       >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Admin Panel
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
                       </button>
-                    )}
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={handleLogin}
-                disabled={authLoading}
-                className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {authLoading && (
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                )}
-                {authLoading ? 'Signing in...' : 'Sign in'}
-              </button>
-            )}
-          </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={handleLogin}
+                  disabled={authLoading}
+                  className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {authLoading && (
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  )}
+                  {authLoading ? 'Signing in...' : 'Sign in'}
+                </button>
+              )}
+            </div>
 
-          <div className="-mr-2 flex items-center sm:hidden">
-            <button
-              onClick={toggleMobileMenu}
-              type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none"
-            >
-              <span className="sr-only">Open main menu</span>
-              {isMobileMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
-            </button>
+            <div className="-mr-2 flex items-center sm:hidden">
+              <button
+                onClick={toggleMobileMenu}
+                type="button"
+                className="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none"
+              >
+                <span className="sr-only">Open main menu</span>
+                {isMobileMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
 
       {isMobileMenuOpen && (
-        <div className="sm:hidden bg-white border-t border-slate-200">
+        <div className="fixed top-[5rem] left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-lg max-h-[calc(100vh-5rem)] overflow-y-auto sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
             {/* User profile for mobile - only show when not on create-resume page */}
             {!isCreateResumePage && isAuthenticated && user && (
@@ -711,7 +713,7 @@ const Navigation: React.FC = () => {
           </div>
         </div>
       )}
-    </nav>
+    </div>
   );
 };
 
