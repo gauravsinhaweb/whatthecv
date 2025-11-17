@@ -14,23 +14,36 @@ export const Video: React.FC<OptimizedVideoProps> = ({
     className = '',
     poster,
     threshold = 0.1,
-    rootMargin = '300px' // Increased to trigger earlier
+    rootMargin = '300px'
 }) => {
     const ref = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
-    const isInView = useInView(ref, { threshold, rootMargin });
+    const isInView = useInView(ref, {
+        amount: threshold,
+        margin: rootMargin as any
+    });
     const [isLoaded, setIsLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
+    const [hasUserInteracted, setHasUserInteracted] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+            const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+            setIsMobile(isMobileDevice);
+        };
+        checkMobile();
+    }, []);
 
     useEffect(() => {
         if (videoRef.current) {
             const video = videoRef.current;
 
-            // Set preload attribute based on visibility
             if (isInView) {
-                video.preload = 'auto'; // More aggressive preloading when in view
+                video.preload = 'auto';
             } else {
-                video.preload = 'metadata'; // Light preloading when not in view
+                video.preload = 'metadata';
             }
 
             const handleCanPlay = () => {
@@ -65,18 +78,38 @@ export const Video: React.FC<OptimizedVideoProps> = ({
         }
     }, [src, isInView]);
 
-    // Handle play/pause based on visibility
     useEffect(() => {
         if (videoRef.current) {
+            const handleUserInteraction = () => {
+                setHasUserInteracted(true);
+                if (videoRef.current && isInView) {
+                    videoRef.current.play().catch(() => {
+                        console.warn('Video play failed after user interaction');
+                    });
+                }
+            };
+
             if (isInView && isLoaded) {
-                videoRef.current.play().catch(() => {
-                    // Auto-play may be blocked by browser, ignore error
-                });
+                if (isMobile && !hasUserInteracted) {
+                    videoRef.current.addEventListener('click', handleUserInteraction, { once: true });
+                    videoRef.current.addEventListener('touchstart', handleUserInteraction, { once: true });
+                } else {
+                    videoRef.current.play().catch(() => {
+                        console.warn('Video autoplay blocked');
+                    });
+                }
             } else if (!isInView) {
                 videoRef.current.pause();
             }
+
+            return () => {
+                if (videoRef.current) {
+                    videoRef.current.removeEventListener('click', handleUserInteraction);
+                    videoRef.current.removeEventListener('touchstart', handleUserInteraction);
+                }
+            };
         }
-    }, [isInView, isLoaded]);
+    }, [isInView, isLoaded, isMobile, hasUserInteracted]);
 
     return (
         <motion.div
@@ -104,13 +137,14 @@ export const Video: React.FC<OptimizedVideoProps> = ({
 
             <video
                 ref={videoRef}
-                autoPlay={isInView}
+                autoPlay={isInView && !isMobile}
                 muted
                 playsInline
                 loop
+                controls={isMobile}
                 poster={poster}
                 preload="auto"
-                className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded || isMobile ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                 style={{ willChange: 'transform' }}
             >
                 <source src={src} type="video/mp4" />
