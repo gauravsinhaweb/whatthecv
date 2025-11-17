@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
-import demoVideoUrl from '../assets/demo.mp4';
 import createResumeImgUrl from '../assets/create-resume.png';
 import launchSvgUrl from '../assets/Launch.svg';
+
+const demoVideoUrl = 'https://res.cloudinary.com/dlrm1ch0d/video/upload/v1763366748/demo_1_ozmdct.mp4';
 
 export const optimizedContainerVariants = {
     hidden: { opacity: 0 },

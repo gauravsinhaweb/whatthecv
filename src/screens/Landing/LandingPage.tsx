@@ -10,7 +10,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import createResumeImgUrl from '../../assets/create-resume.png';
-import demoVideoUrl from '../../assets/demo.mp4';
 import launchSvgUrl from '../../assets/Launch.svg';
 import logoCognizantUrl from '../../assets/logos/Cognizant_logo_2022.svg.png';
 import logoGoogleUrl from '../../assets/logos/Google_2015_logo.svg.webp';
@@ -31,6 +30,8 @@ import { useResumeStore } from '../../store/resumeStore';
 import { enhanceResumeFromFile } from '../../utils/api';
 import { checkFileIsResume } from '../../utils/resumeService';
 import './landing.css';
+
+const demoVideoUrl = 'https://res.cloudinary.com/dlrm1ch0d/video/upload/v1763366748/demo_1_ozmdct.mp4';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
