@@ -38,7 +38,7 @@ const DateFieldWithOptions: React.FC<DateFieldWithOptionsProps> = ({
                 <div className="relative">
                     <select
                         value={displayMode}
-                        onChange={(e) => onDisplayModeChange(e.target.value as 'full' | 'year' | 'hidden')}
+                        onChange={(e) => onDisplayModeChange((e.target as HTMLSelectElement).value as 'full' | 'year' | 'hidden')}
                         className="text-xs border border-slate-300 rounded px-2 py-1 bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     >
                         <option value="full">Show Full Date</option>
@@ -55,7 +55,7 @@ const DateFieldWithOptions: React.FC<DateFieldWithOptionsProps> = ({
                         <div>
                             <select
                                 value={month}
-                                onChange={(e) => onMonthChange(e.target.value)}
+                                onChange={(e) => onMonthChange((e.target as HTMLSelectElement).value)}
                                 className="w-full p-2.5 border border-slate-300 rounded-md transition-all bg-white hover:border-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="">Month</option>
@@ -69,7 +69,7 @@ const DateFieldWithOptions: React.FC<DateFieldWithOptionsProps> = ({
                         <input
                             type="text"
                             value={year}
-                            onChange={(e) => onYearChange(e.target.value)}
+                            onChange={(e) => onYearChange((e.target as HTMLInputElement).value)}
                             placeholder={displayMode === 'year' ? '2023' : '2023'}
                             className="w-full p-2.5 border border-slate-300 rounded-md transition-all bg-white hover:border-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />

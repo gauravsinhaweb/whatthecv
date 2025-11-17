@@ -1,7 +1,7 @@
 import { ArrowUpRight, BookOpen, Link as ChainLink, ExternalLink, FileCode, Github, Linkedin, Mail, MapPin, MessageSquare, Phone, Twitter } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ResumeCustomizationOptions, ResumeData } from '../../../../types/resume';
-import peerlistIconUrl from '../../../../assets/assets/peerlist.svg';
+import peerlistIconUrl from '../../../../assets/peerlist.svg';
 import { SafeHTML } from '../../../../utils/html';
 
 interface ResumePreviewProps {
