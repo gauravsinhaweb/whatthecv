@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
-import demoVideoUrl from '../assets/assets/demo.mp4';
-import createResumeImgUrl from '../assets/assets/create-resume.png';
-import launchSvgUrl from '../assets/assets/Launch.svg';
+import demoVideoUrl from '../assets/demo.mp4';
+import createResumeImgUrl from '../assets/create-resume.png';
+import launchSvgUrl from '../assets/Launch.svg';
 
 export const optimizedContainerVariants = {
     hidden: { opacity: 0 },

@@ -9,9 +9,9 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import createResumeImgUrl from '../../assets/assets/create-resume.png';
-import demoVideoUrl from '../../assets/assets/demo.mp4';
-import launchSvgUrl from '../../assets/assets/Launch.svg';
+import createResumeImgUrl from '../../assets/create-resume.png';
+import demoVideoUrl from '../../assets/demo.mp4';
+import launchSvgUrl from '../../assets/Launch.svg';
 import logoCognizantUrl from '../../assets/logos/Cognizant_logo_2022.svg.png';
 import logoGoogleUrl from '../../assets/logos/Google_2015_logo.svg.webp';
 import logoIitPatnaUrl from '../../assets/logos/Indian_Institute_of_Technology,_Patna.svg.png';
