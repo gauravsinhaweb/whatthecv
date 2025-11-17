@@ -1,5 +1,5 @@
 import { ArrowUpRight, BookOpen, Link as ChainLink, ExternalLink, FileCode, Github, Linkedin, Mail, MapPin, MessageSquare, Phone, Twitter } from 'lucide-react';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ResumeCustomizationOptions, ResumeData } from '../../../../types/resume';
 import peerlistIconUrl from '../../../../assets/assets/peerlist.svg';
 import { SafeHTML } from '../../../../utils/html';
@@ -19,6 +19,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     fieldVisibility = {},
 }) => {
     const fontStack = 'Inter, Arial, Helvetica, "Noto Sans Devanagari", "Noto Sans CJK SC Thin", "Noto Sans SC", "Noto Sans Hebrew", "Noto Sans Bengali", sans-serif';
+    const contentRef = useRef<HTMLDivElement>(null);
+    const [contentHeight, setContentHeight] = useState<number>(0);
 
     // Memoize expensive computations
     const getInitials = useMemo(() => {
@@ -305,7 +307,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     // Utility to detect if a string is HTML
     const isHTML = (str: string) => /<[a-z][\s\S]*>/i.test(str);
 
-    // Add Google Fonts
     useEffect(() => {
         const fontFamilies = [
             'Tinos', 'Volkhov', 'Gelasio', 'PT+Serif', 'Alegreya', 'Aleo',
@@ -331,20 +332,59 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         };
     }, []);
 
+    useEffect(() => {
+        const updateContentHeight = () => {
+            if (contentRef.current) {
+                requestAnimationFrame(() => {
+                    if (contentRef.current) {
+                        const computedStyle = window.getComputedStyle(contentRef.current);
+                        const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+                        const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
+                        const height = contentRef.current.scrollHeight - paddingTop - paddingBottom;
+                        setContentHeight(height);
+                    }
+                });
+            }
+        };
+
+        const timeoutId = setTimeout(updateContentHeight, 100);
+
+        const resizeObserver = new ResizeObserver(() => {
+            updateContentHeight();
+        });
+
+        if (contentRef.current) {
+            resizeObserver.observe(contentRef.current);
+        }
+
+        const mutationObserver = new MutationObserver(() => {
+            updateContentHeight();
+        });
+
+        if (contentRef.current) {
+            mutationObserver.observe(contentRef.current, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                characterData: true,
+                attributeFilter: ['style', 'class']
+            });
+        }
+
+        return () => {
+            clearTimeout(timeoutId);
+            resizeObserver.disconnect();
+            mutationObserver.disconnect();
+        };
+    }, [resumeData, customizationOptions, fieldVisibility]);
+
     return (
         <div
-            className="bg-white mx-auto border overflow-hidden shadow-lg transition-all w-full print:shadow-none print:border-0 printable-content"
+            className="resume-pages-container"
             data-id="resume-root"
             style={{
-                maxHeight: fullScreen ? '297mm' : '100%',
-                boxShadow: '0 0 8px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05), 0 8px 16px rgba(0, 0, 0, 0.05)',
                 fontFamily: customizationOptions.font.specificFont || fontStack,
                 color: customizationOptions.colors.text || '#1a202c',
-                backgroundColor: '#ffffff',
-                breakInside: 'avoid',
-                pageBreakInside: 'avoid',
-                width: '210mm',
-                minHeight: '297mm',
                 WebkitFontSmoothing: 'antialiased',
                 MozOsxFontSmoothing: 'grayscale',
                 textRendering: 'optimizeLegibility',
@@ -357,6 +397,59 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
             {/* Inject a style tag with important rules to override any conflicting styles */}
             <style>{`
+                    .resume-pages-container {
+                        position: relative;
+                        width: 210mm;
+                        padding: 0;
+                        background-color: #ffffff;
+                        min-height: 297mm;
+                    }
+                    .resume-pages-container::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        pointer-events: none;
+                        background-color: #ffffff;
+                        z-index: 0;
+                    }
+                    .resume-pages-container::after {
+                        content: '';
+                        position: absolute;
+                        top: 297mm;
+                        left: 0;
+                        right: 0;
+                        height: 0;
+                        border-top: 2px dashed #d1d5db;
+                        pointer-events: none;
+                        z-index: 100;
+                    }
+                    .resume-pages-container [data-id="resume-content"] {
+                        position: relative;
+                        z-index: 2;
+                        background-color: transparent;
+                    }
+                    .resume-pages-container [data-id="resume-content"] > * {
+                        position: relative;
+                        z-index: 2;
+                    }
+                    @media print {
+                        .resume-pages-container::before,
+                        .resume-pages-container::after {
+                            display: none;
+                        }
+                        .resume-pages-container {
+                            padding: 0;
+                            background-color: transparent;
+                        }
+                        .resume-pages-container [data-id="resume-content"] {
+                            box-shadow: none;
+                            border: none;
+                            border-radius: 0;
+                        }
+                    }
                     [data-id="resume-content"] {
                         font-size: ${customizationOptions.spacing.fontSize}pt !important;
                         line-height: ${customizationOptions.spacing.lineHeight} !important;
@@ -447,11 +540,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 `}</style>
 
             <div
-                className="p-8 sm:p-12 print:p-12 hide-scrollbar [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-0.5 [&_li>*]:leading-tight [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_b]:font-extrabold [&_strong]:font-extrabold [&_i]:italic [&_em]:italic [&_u]:underline"
+                ref={contentRef}
+                className="p-8 sm:p-12 print:p-12 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-0.5 [&_li>*]:leading-tight [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_b]:font-extrabold [&_strong]:font-extrabold [&_i]:italic [&_em]:italic [&_u]:underline printable-content"
                 data-id="resume-content"
+                data-content-height={contentHeight}
                 style={{
-                    height: '100%',
-                    overflowY: 'auto',
                     position: 'relative',
                     paddingLeft: `${customizationOptions.spacing.margins.left}mm`,
                     paddingRight: `${customizationOptions.spacing.margins.right}mm`,
@@ -748,7 +841,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             // Summary
                             if (sectionKey === 'personalInfo' && fieldVisibility['personalInfo.summary'] !== false && showSummary) {
                                 return (
-                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                    <div key={sectionKey} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                         {renderSectionTitle('SUMMARY')}
                                         <div className="text-sm">
                                             <SafeHTML html={resumeData.personalInfo.summary} />
@@ -760,13 +853,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             // Work Experience
                             if (sectionKey === 'workExperience' && resumeData.workExperience.some(exp => exp.position || exp.company || exp.description)) {
                                 return (
-                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                    <div key={sectionKey} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                         {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'EXPERIENCE')}
                                         <div className="space-y-4">
                                             {resumeData.workExperience
                                                 .filter(exp => exp.position || exp.company || exp.description)
                                                 .map((exp, index) => (
-                                                    <div key={exp.id || index} className="mb-4">
+                                                    <div key={exp.id || index} className="mb-4" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                                         <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
                                                                 <div className="flex flex-col">
@@ -852,13 +945,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             // Education
                             if (sectionKey === 'education' && resumeData.education.some((edu) => edu.degree || edu.institution)) {
                                 return (
-                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                    <div key={sectionKey} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                         {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'EDUCATION')}
                                         <div className="space-y-4">
                                             {resumeData.education
                                                 .filter((edu) => edu.degree || edu.institution)
                                                 .map((edu, index) => (
-                                                    <div key={index} className="mb-3">
+                                                    <div key={index} className="mb-3" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                                         <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
                                                                 <h3 className="font-semibold text-base">
@@ -929,7 +1022,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 if (!hasSkills) return null;
 
                                 return (
-                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                    <div key={sectionKey} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                         {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'SKILLS')}
                                         <div className="space-y-1 mt-2">
                                             {resumeData.skills
@@ -956,13 +1049,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                             // Projects
                             if (sectionKey === 'projects' && resumeData.projects.some((project) => project.name || project.description)) {
                                 return (
-                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                    <div key={sectionKey} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                         {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'PROJECTS')}
                                         <div className="space-y-4">
                                             {resumeData.projects?.slice(0, 3)
                                                 .filter((project) => project.name || project.description)
                                                 .map((project, index) => (
-                                                    <div key={index} className="mb-3">
+                                                    <div key={index} className="mb-3" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                                         <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
                                                                 <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
@@ -1019,13 +1112,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 if (!hasAny) return null;
 
                                 return (
-                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                    <div key={sectionKey} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                         {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'ACHIEVEMENTS')}
                                         <div className="space-y-4">
                                             {resumeData.achievements
                                                 .filter(achievement => achievement.title || achievement.description || achievement.organization || achievement.year || achievement.link)
                                                 .map((achievement, index) => (
-                                                    <div key={achievement.id || index} className="mb-3">
+                                                    <div key={achievement.id || index} className="mb-3" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                                         <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
                                                                 <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
@@ -1079,13 +1172,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 if (!hasAny) return null;
 
                                 return (
-                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                    <div key={sectionKey} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                         {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'PUBLICATIONS')}
                                         <div className="space-y-4">
                                             {resumeData.publications
                                                 .filter(publication => publication.title || publication.authors || publication.journal || publication.year || publication.doi || publication.link || publication.description)
                                                 .map((publication, index) => (
-                                                    <div key={publication.id || index} className="mb-3">
+                                                    <div key={publication.id || index} className="mb-3" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                                         <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
                                                                 <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
@@ -1144,13 +1237,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 if (!hasAny) return null;
 
                                 return (
-                                    <div key={sectionKey} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                    <div key={sectionKey} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                         {renderSectionTitle(customizationOptions.layout.sectionTitles[sectionKey]?.toUpperCase() || 'CERTIFICATIONS')}
                                         <div className="space-y-4">
                                             {resumeData.certifications
                                                 .filter(certification => certification.name || certification.issuer || certification.year || certification.expiryYear || certification.credentialId || certification.link || certification.description)
                                                 .map((certification, index) => (
-                                                    <div key={certification.id || index} className="mb-3">
+                                                    <div key={certification.id || index} className="mb-3" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                                         <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
                                                             <div className="flex-1">
                                                                 <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
@@ -1216,7 +1309,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                         {customizationOptions.customSections
                             ?.filter(customSection => customizationOptions.layout.visibleSections?.[customSection.id] !== false)
                             ?.map((customSection) => (
-                                <div key={customSection.id} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                <div key={customSection.id} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                     {renderSectionTitle(customSection.title.toUpperCase())}
                                     <div className="space-y-4 text-sm">
                                         <SafeHTML html={customSection.content} />
@@ -1237,13 +1330,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                     if (!hasSkills) return null;
 
                                     return (
-                                        <div style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        <div className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                             {renderSectionTitle(customizationOptions.layout.sectionTitles['skills']?.toUpperCase() || 'SKILLS')}
                                             <div className="space-y-1 mt-2">
                                                 {resumeData.skills
                                                     .filter(category => category.skills && category.skills.length > 0)
                                                     .map((category) => (
-                                                        <div key={category.id} className="flex items-start text-sm py-1">
+                                                        <div key={category.id} className="flex items-start text-sm py-1" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                                             <div className="w-2/5 pr-2 shrink-0">
                                                                 <h3 className="font-semibold" style={{ fontWeight: 600 }}>
                                                                     {category.name}
@@ -1265,13 +1358,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                 {resumeData.projects.some(
                                     (project) => project.name || project.description
                                 ) && customizationOptions.layout.visibleSections?.projects !== false && (
-                                        <div style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                        <div className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                             {renderSectionTitle(customizationOptions.layout.sectionTitles['projects']?.toUpperCase() || 'PROJECTS')}
                                             <div className="space-y-4">
                                                 {resumeData.projects?.slice(0, 2)
                                                     .filter((project) => project.name || project.description)
                                                     .map((project, index) => (
-                                                        <div key={index} className="mb-3">
+                                                        <div key={index} className="mb-3" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                                             <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
                                                                 {project.name || 'Project Name'}
                                                                 {project.link && project.link.startsWith('http') && (
@@ -1319,7 +1412,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                             customSection.content && customSection.content.trim() !== ''
                                         )
                                         ?.map((customSection) => (
-                                            <div key={customSection.id} style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px` }}>
+                                            <div key={customSection.id} className="resume-section" style={{ marginBottom: `${customizationOptions.spacing.sectionGap}px`, pageBreakAfter: 'auto', breakAfter: 'auto' }}>
                                                 {renderSectionTitle(customSection.title.toUpperCase())}
                                                 <div className="space-y-4 text-sm">
                                                     <SafeHTML html={customSection.content} />
@@ -1327,11 +1420,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                             </div>
                                         ))
                                 }
-                            </div >
+                            </div>
                         )}
-                </div >
-            </div >
-        </div >
+                </div>
+            </div>
+        </div>
     );
 };
 
