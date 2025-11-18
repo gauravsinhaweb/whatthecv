@@ -238,30 +238,47 @@ const LandingPage: React.FC = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
                         >
-                            {/* Product Hunt Badge */}
+                            {/* Product Hunt & Peerlist Badges */}
                             <motion.div
-                                className="mb-8 relative inline-block group"
+                                className="mb-8 flex items-center gap-4 flex-wrap"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.1 }}
                             >
                                 <a
-                                    href="https://peerlist.io/gauravsinha/project/whatthecv"
+                                    href="https://www.producthunt.com/products/whatthecv?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-whatthecv"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-block"
+                                    className="inline-block transition-transform hover:scale-105"
                                 >
                                     <img
-                                        src={productBadgeUrl}
-                                        alt="#1 Product of the Week"
-                                        className="h-14 w-auto cursor-pointer transition-transform hover:scale-105"
+                                        src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1039016&theme=light&t=1763457873335"
+                                        alt="WhatTheCV - No fluff, no buzzwords, just brutal optimization | Product Hunt"
+                                        style={{ width: '250px', height: '54px' }}
+                                        width="250"
+                                        height="54"
                                     />
                                 </a>
-                                {/* Hover Tooltip */}
-                                <div className="absolute left-0 top-full mt-3 px-4 py-2.5 bg-white text-slate-700 text-sm font-medium rounded-xl shadow-xl border border-slate-200 opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10">
-                                    #1 Peerlist product of the Week
-                                    <div className="absolute -top-1.5 left-6 w-3 h-3 bg-white border-l border-t border-slate-200 transform rotate-45"></div>
-                                </div>
+                                <motion.div
+                                    className="relative inline-block group"
+                                >
+                                    <a
+                                        href="https://peerlist.io/gauravsinha/project/whatthecv"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-block"
+                                    >
+                                        <img
+                                            src={productBadgeUrl}
+                                            alt="#1 Product of the Week"
+                                            className="h-14 w-auto cursor-pointer transition-transform hover:scale-105"
+                                        />
+                                    </a>
+                                    <div className="absolute left-0 top-full mt-3 px-4 py-2.5 bg-white text-slate-700 text-sm font-medium rounded-xl shadow-xl border border-slate-200 opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10">
+                                        #1 Peerlist product of the Week
+                                        <div className="absolute -top-1.5 left-6 w-3 h-3 bg-white border-l border-t border-slate-200 transform rotate-45"></div>
+                                    </div>
+                                </motion.div>
                             </motion.div>
 
                             {/* Main Heading */}
