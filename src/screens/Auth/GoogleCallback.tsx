@@ -2,6 +2,26 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import supabase, { getSession } from '../../lib/supabase';
 
+function readOAuthParamsFromWindow(): Record<string, string> {
+    if (typeof window === 'undefined') {
+        return {};
+    }
+    const out: Record<string, string> = {};
+    const url = new URL(window.location.href);
+    if (url.hash.startsWith('#')) {
+        try {
+            new URLSearchParams(url.hash.slice(1)).forEach((value, key) => {
+                out[key] = value;
+            });
+        } catch {
+        }
+    }
+    url.searchParams.forEach((value, key) => {
+        out[key] = value;
+    });
+    return out;
+}
+
 export default function GoogleCallback() {
     const [error, setError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(true);
@@ -16,19 +36,18 @@ export default function GoogleCallback() {
                 setIsProcessing(true);
                 setError(null);
 
-                const params = new URLSearchParams(location.search);
-                const oauthError = params.get('error');
-                const oauthDescription = params.get('error_description');
+                const fromUrl = readOAuthParamsFromWindow();
+                const oauthError = fromUrl.error;
+                const oauthDescription = fromUrl.error_description;
                 if (oauthError) {
-                    throw new Error(oauthDescription?.replace(/\+/g, ' ') || oauthError);
+                    throw new Error(
+                        (oauthDescription && oauthDescription.replace(/\+/g, ' ')) || oauthError
+                    );
                 }
 
-                const code = params.get('code');
-                if (code) {
-                    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-                    if (exchangeError) {
-                        throw exchangeError;
-                    }
+                const { error: initError } = await supabase.auth.initialize();
+                if (initError) {
+                    throw new Error(initError.message || 'Authentication failed');
                 }
 
                 let { session } = await getSession();
@@ -76,7 +95,7 @@ export default function GoogleCallback() {
         return () => {
             cancelled = true;
         };
-    }, [location.search, navigate]);
+    }, [location.pathname, location.search, location.hash, navigate]);
 
     if (isProcessing) {
         return (
