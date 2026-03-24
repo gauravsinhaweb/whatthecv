@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getSession } from '../../lib/supabase';
+import supabase, { getSession } from '../../lib/supabase';
 
 export default function GoogleCallback() {
     const [error, setError] = useState<string | null>(null);
@@ -9,34 +9,74 @@ export default function GoogleCallback() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        let cancelled = false;
+
         const handleCallback = async () => {
             try {
                 setIsProcessing(true);
                 setError(null);
 
-                // Wait a bit for Supabase to process the OAuth callback
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                const params = new URLSearchParams(location.search);
+                const oauthError = params.get('error');
+                const oauthDescription = params.get('error_description');
+                if (oauthError) {
+                    throw new Error(oauthDescription?.replace(/\+/g, ' ') || oauthError);
+                }
 
-                // Check if we have a session (the auth state change listener will handle setting the user)
-                const { session } = await getSession();
-                console.log('GoogleCallback session check:', { session, hasUser: !!session?.user });
+                const code = params.get('code');
+                if (code) {
+                    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+                    if (exchangeError) {
+                        throw exchangeError;
+                    }
+                }
+
+                let { session } = await getSession();
+                if (!session?.user) {
+                    session = await new Promise((resolve, reject) => {
+                        let timeoutId: number | undefined;
+                        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+                            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && nextSession?.user) {
+                                if (timeoutId !== undefined) {
+                                    window.clearTimeout(timeoutId);
+                                }
+                                subscription.unsubscribe();
+                                resolve(nextSession);
+                            }
+                        });
+                        timeoutId = window.setTimeout(() => {
+                            subscription.unsubscribe();
+                            reject(new Error('No session found after OAuth callback'));
+                        }, 15000);
+                    });
+                }
+
+                if (cancelled) {
+                    return;
+                }
 
                 if (session?.user) {
-                    console.log('OAuth callback successful, redirecting to dashboard');
-                    navigate('/dashboard');
+                    navigate('/dashboard', { replace: true });
                 } else {
                     throw new Error('No session found after OAuth callback');
                 }
             } catch (err) {
-                console.error('OAuth callback error:', err);
-                setError(err instanceof Error ? err.message : 'Authentication failed');
+                if (!cancelled) {
+                    console.error('OAuth callback error:', err);
+                    setError(err instanceof Error ? err.message : 'Authentication failed');
+                }
             } finally {
-                setIsProcessing(false);
+                if (!cancelled) {
+                    setIsProcessing(false);
+                }
             }
         };
 
         handleCallback();
-    }, [location, navigate]);
+        return () => {
+            cancelled = true;
+        };
+    }, [location.search, navigate]);
 
     if (isProcessing) {
         return (

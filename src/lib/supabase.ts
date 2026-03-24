@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { getCookie, removeCookie, setCookie } from '../utils/cookies';
+import Cookies from 'js-cookie';
 import { removeToken, removeUserProfile, setToken, setUserProfile } from '../utils/storage';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -9,21 +9,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing Supabase environment variables')
 }
 
+const supabaseAuthCookieOptions = {
+    path: '/',
+    sameSite: 'lax' as const,
+    secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
+    expires: 7,
+};
+
 const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
         storage: {
-            getItem: (key) => {
-                const value = getCookie(key);
-                console.log('Supabase storage getItem:', { key, value });
-                return value;
-            },
+            getItem: (key) => Cookies.get(key) ?? null,
             setItem: (key, value) => {
-                console.log('Supabase storage setItem:', { key, value });
-                setCookie(key, value);
+                Cookies.set(key, value, supabaseAuthCookieOptions);
             },
             removeItem: (key) => {
-                console.log('Supabase storage removeItem:', { key });
-                removeCookie(key);
+                Cookies.remove(key, { path: '/' });
             },
         },
         persistSession: true,
