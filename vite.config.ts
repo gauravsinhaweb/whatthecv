@@ -26,20 +26,27 @@ export default defineConfig({
     minify: 'terser',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['preact', 'preact/compat'],
-          'vendor-animations': ['framer-motion'],
-          'vendor-ui': ['lucide-react', 'clsx', 'tailwind-merge'],
-          'vendor-utils': ['axios', 'date-fns', 'js-cookie'],
-          'vendor-analytics': ['@vercel/analytics'],
-          'candidate': [
-            './src/screens/Candidate/create/CreateResume.tsx',
-            './src/screens/Candidate/analyze/ResumeUpload.tsx',
-            './src/screens/Candidate/gallery/TemplateGallery.tsx',
-          ],
-          'recruiter': ['./src/screens/Recruiter/RecruiterPortal.tsx'],
-          'landing': ['./src/screens/Landing/LandingPage.tsx'],
-          'admin': ['./src/screens/Admin/AdminPage.tsx'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('preact')) return 'vendor-react'
+            if (id.includes('framer-motion')) return 'vendor-animations'
+            if (id.includes('lucide-react') || id.includes('clsx') || id.includes('tailwind-merge')) {
+              return 'vendor-ui'
+            }
+            if (id.includes('axios') || id.includes('date-fns') || id.includes('js-cookie')) {
+              return 'vendor-utils'
+            }
+            if (id.includes('@vercel/analytics')) return 'vendor-analytics'
+            if (id.includes('lottie')) return 'vendor-lottie'
+            if (id.includes('@supabase')) return 'vendor-supabase'
+            if (id.includes('@tanstack')) return 'vendor-query'
+            if (id.includes('react-router')) return 'vendor-router'
+            if (id.includes('zustand')) return 'vendor-zustand'
+            if (id.includes('dompurify')) return 'vendor-dompurify'
+            return 'vendor-misc'
+          }
+          if (id.includes('ResumePreview.tsx')) return 'resume-preview'
+          if (id.includes('AnalysisDashboard.tsx')) return 'analysis-dashboard'
         },
         chunkFileNames: (chunkInfo) => {
           const name = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : '[name]';
