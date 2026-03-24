@@ -87,6 +87,6 @@ export const getPageFromPath = (path: string): string => {
     if (path === '/login') return 'login';
     if (path === '/signup') return 'signup';
     if (path.startsWith('/auth/login/success')) return 'auth-callback';
-    if (path.startsWith('/auth/login/failure')) return 'auth-failure';
+    // if (path.startsWith('/auth/login/failure')) return 'auth-failure';
     return 'landing';
 }; 

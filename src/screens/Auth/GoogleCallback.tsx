@@ -30,7 +30,6 @@ export default function GoogleCallback() {
             } catch (err) {
                 console.error('OAuth callback error:', err);
                 setError(err instanceof Error ? err.message : 'Authentication failed');
-                navigate('/auth/login/failure');
             } finally {
                 setIsProcessing(false);
             }
