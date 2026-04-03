@@ -114,7 +114,7 @@ flowchart TD
     FE --> SB[Supabase Auth]
     FE --> API[FastAPI Backend]
     API --> DB[(PostgreSQL or SQLite)]
-    API --> AI[Gemini AI Service]
+    API --> AI[OpenAI Service]
 
     SB -->|OAuth session/access token| FE
     FE -->|Bearer token in cookie| API
