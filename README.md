@@ -24,6 +24,12 @@
 
 WhatTheCV helps job seekers create professionally designed resumes that are optimized to pass through Applicant Tracking Systems, while also providing tools for recruiters to find ideal candidates. Our AI-powered platform offers intelligent feedback, job-specific tailoring, and professional templates.
 
+## Why I Built WhatTheCV
+
+When I was hiring an intern for our company, most applicants were 3rd and 4th year graduates. I noticed a repeated pattern in many resumes: common and unnecessary keywords such as "leadership qualities" and other generic claims that were not aligned with professional job descriptions.
+
+That gap inspired me to build WhatTheCV, an AI-powered platform that helps candidates improve their existing resumes, align content with real company JD requirements, and present their experience in a clearer, more professional way.
+
 ## Getting Started
 
 ### Prerequisites
