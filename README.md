@@ -106,6 +106,59 @@ whatthecv/
 2. **AI Analysis** - Our AI analyzes your resume for ATS compatibility and suggests improvements
 3. **Optimize & Export** - Implement the suggestions, choose your privacy settings, and export your optimized resume
 
+## System UML (Frontend + Backend)
+
+```mermaid
+flowchart TD
+    U[User Browser] --> FE[Frontend Preact App]
+    FE --> SB[Supabase Auth]
+    FE --> API[FastAPI Backend]
+    API --> DB[(PostgreSQL or SQLite)]
+    API --> AI[Gemini AI Service]
+
+    SB -->|OAuth session/access token| FE
+    FE -->|Bearer token in cookie| API
+    API -->|validate token via Supabase|getUser[Supabase get_user]
+    API -->|resume upload/process| AI
+    API -->|store docs/versions| DB
+
+    FE --> ResumeUI[Resume Create/Analyze/Enhance flows]
+    ResumeUI --> API
+```
+
+## Internal Token Management (Auth Tokens)
+
+- Authentication is handled with Supabase OAuth and PKCE in the frontend.
+- The frontend stores the access token in cookies and attaches it as `Authorization: Bearer <token>` for API calls.
+- On `401`, frontend API interceptors attempt `supabase.auth.refreshSession()` and retry requests with the refreshed token.
+- Backend validates bearer tokens against Supabase and maps the Supabase user to local user records.
+
+### Internal Token Management & Payroll UML
+
+```mermaid
+flowchart LR
+    user[User]
+    razorpay[Razorpay Payroll]
+    paymentLog[payment_gateway_log]
+    actions[token_actions]
+    reservations[token_reservations]
+    ledger[token_transaction_log]
+    balance[user_token_balance]
+
+    user -->|makes payment| razorpay
+    razorpay -->|payment result| paymentLog
+    paymentLog -->|add credit| ledger
+
+    user -->|uses feature| actions
+    actions -->|create reservation| reservations
+    reservations -->|confirm or release| ledger
+
+    ledger -->|final token count| balance
+    balance -->|available tokens| user
+```
+
+Token lifecycle at table level: Razorpay payroll records payment status in `payment_gateway_log`, successful payments create credit entries in `token_transaction_log`, reservations track pending usage, reservation confirmation/release writes final ledger entries, and user balance reflects final available tokens.
+
 ## Contributing
 
 We welcome contributions from the community! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
