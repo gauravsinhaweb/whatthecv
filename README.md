@@ -63,7 +63,28 @@ That gap inspired me to build WhatTheCV, an AI-powered platform that helps candi
    npm install
    ```
 
-4. Start the development server:
+4. Configure environment variables:
+
+   Create a `.env` file in the project root (or copy from your own local template) and set:
+
+   ```bash
+   VITE_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+   VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+   VITE_API_BASE_URL=http://localhost:8000/api/v1
+   VITE_GA_MEASUREMENT_ID=
+   VITE_SUPER_USER=
+   ```
+
+   Required variables:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+   Optional variables:
+   - `VITE_API_BASE_URL` (defaults to local backend URL)
+   - `VITE_GA_MEASUREMENT_ID` (leave empty to disable analytics)
+   - `VITE_SUPER_USER` (comma-separated admin emails, optional)
+
+5. Start the development server:
 
    ```
    pnpm dev
@@ -75,7 +96,7 @@ That gap inspired me to build WhatTheCV, an AI-powered platform that helps candi
    npm run dev
    ```
 
-5. Open your browser and navigate to `http://localhost:3000`
+6. Open your browser and navigate to `http://localhost:3000`
 
 ## Technology Stack
 

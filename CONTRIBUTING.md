@@ -80,7 +80,28 @@ Feature suggestions are tracked as GitHub issues. When submitting a feature sugg
    pnpm install
    ```
 
-4. Start the development server
+4. Configure environment variables
+
+   Create a local `.env` file in the project root and add:
+
+   ```bash
+   VITE_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+   VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+   VITE_API_BASE_URL=http://localhost:8000/api/v1
+   VITE_GA_MEASUREMENT_ID=
+   VITE_SUPER_USER=
+   ```
+
+   Required:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+   Optional:
+   - `VITE_API_BASE_URL`
+   - `VITE_GA_MEASUREMENT_ID`
+   - `VITE_SUPER_USER`
+
+5. Start the development server
    ```bash
    pnpm dev
    ```
