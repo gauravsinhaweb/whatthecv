@@ -142,29 +142,64 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     const preprocessBulletPoints = (text: string): string[] => {
         if (!text) return [];
 
-        // First check if there are any bullet points
-        if (text.includes('•')) {
-            // Split by bullet points, but keep the first segment if it's not empty
-            const parts = text.split('•').map(part => part.trim());
-            const result: string[] = [];
+        const normalized = text
+            .replace(/\r\n/g, '\n')
+            .replace(/\u00a0/g, ' ')
+            .replace(/[ \t]+\n/g, '\n')
+            .trim();
+        if (!normalized) return [];
 
-            // The first segment might be regular text, not a bullet point
-            if (parts[0]) {
-                result.push(parts[0]);
-            }
+        const explicitBullets =
+            /(?:^|\n)\s*(?:[•◦▪‣●\-*]|(?:\d{1,2}[.)]))\s+/.test(normalized) ||
+            normalized.includes('•');
 
-            // Add remaining parts as bullet points
-            for (let i = 1; i < parts.length; i++) {
-                if (parts[i]) {
-                    result.push(parts[i]);
-                }
-            }
-
-            return result;
+        if (explicitBullets) {
+            const chunks = normalized
+                .split(/\n(?=\s*(?:[•◦▪‣●\-*]|(?:\d{1,2}[.)]))\s+)/)
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line) => line.replace(/^(?:[•◦▪‣●\-*]|(?:\d{1,2}[.)]))\s+/, '').trim())
+                .filter(Boolean);
+            if (chunks.length > 0) return chunks;
         }
 
-        // If no bullet points, return the whole text as a single item
-        return [text];
+        const byLines = normalized
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0);
+        if (byLines.length > 1) return byLines;
+
+        return [normalized];
+    };
+
+    const normalizeWorkDescriptionHtml = (html: string): string => {
+        if (!html) return '';
+        const lower = html.toLowerCase();
+        if (lower.includes('<ul') || lower.includes('<ol') || lower.includes('<li')) {
+            return html;
+        }
+
+        const plain = html
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/div>/gi, '\n')
+            .replace(/<\/p>/gi, '\n')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\u00a0/g, ' ')
+            .replace(/\s+\n/g, '\n')
+            .replace(/\n{2,}/g, '\n')
+            .trim();
+
+        const points = preprocessBulletPoints(plain)
+            .map((p) => p.trim())
+            .filter(Boolean);
+
+        if (points.length <= 1) {
+            return html;
+        }
+
+        const toEscaped = (s: string) =>
+            s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<ul>${points.map((p) => `<li>${toEscaped(p)}</li>`).join('')}</ul>`;
     };
 
     const ensureBulletPoints = (text: string): string => {
@@ -860,43 +895,38 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                 .filter(exp => exp.position || exp.company || exp.description)
                                                 .map((exp, index) => (
                                                     <div key={exp.id || index} className="mb-4" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start' : 'flex flex-col'}`}>
-                                                            <div className="flex-1">
-                                                                <div className="flex flex-col">
-                                                                    <div className="flex items-baseline">
-                                                                        <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
-                                                                            {exp.company || 'Company'}
-                                                                        </h3>
-                                                                        {exp.experienceLink && exp.experienceLink.startsWith('http') && (
-                                                                            <a
-                                                                                href={exp.experienceLink}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="flex items-center ml-2 hover:text-blue-600 transition-colors"
-                                                                                style={{ color: getAccentColor(0.9) }}
-                                                                                onClick={(e) => e.stopPropagation()}
-                                                                            >
-                                                                                {renderLinkIcon()}
-                                                                            </a>
-                                                                        )}
-                                                                    </div>
-                                                                    <div>
-                                                                        {exp.company && (
-                                                                            <span className="text-base italic text-gray-700">
-                                                                                {exp.position}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
+                                                        <div className={`${isSingleColumnLayout() ? 'flex flex-row justify-between items-start gap-4' : 'flex flex-col'}`}>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-baseline flex-wrap">
+                                                                    <h3 className="font-semibold text-base" style={{ fontWeight: 600 }}>
+                                                                        {exp.position || 'Position'}
+                                                                    </h3>
+                                                                    {exp.experienceLink && exp.experienceLink.startsWith('http') && (
+                                                                        <a
+                                                                            href={exp.experienceLink}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="flex items-center ml-2 hover:text-blue-600 transition-colors"
+                                                                            style={{ color: getAccentColor(0.9) }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {renderLinkIcon()}
+                                                                        </a>
+                                                                    )}
                                                                 </div>
-
+                                                                {exp.company && (
+                                                                    <div className="text-base italic text-gray-700">
+                                                                        {exp.company}
+                                                                    </div>
+                                                                )}
                                                                 {!isSingleColumnLayout() && (exp.startYear || exp.endYear || exp.location) && (
-                                                                    <div className="flex items-center text-sm opacity-80 mb-1">
+                                                                    <div className="flex items-center text-sm opacity-80 mb-1 flex-wrap">
                                                                         {exp.startYear && (
                                                                             <span className="italic">
                                                                                 {formatDateFromFields(exp.startMonth, exp.startYear, exp.showStartMonth)} - {exp.current ? 'Present' : (exp.endYear ? formatDateFromFields(exp.endMonth, exp.endYear, exp.showEndMonth) : '')}
                                                                             </span>
                                                                         )}
-                                                                        {exp.location && <span className='px-1'>{"|"}</span>}
+                                                                        {exp.startYear && exp.location && <span className='px-1'>{"|"}</span>}
                                                                         {exp.location && (
                                                                             <span className="italic">{exp.location || ''}</span>
                                                                         )}
@@ -905,7 +935,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                 {exp.description && (
                                                                     isHTML(exp.description) ? (
                                                                         <SafeHTML
-                                                                            html={exp.description}
+                                                                            html={normalizeWorkDescriptionHtml(exp.description)}
                                                                             className={`text-sm mt-1 pl-2 ${getLineHeightClass(exp.description)}`}
                                                                         />
                                                                     ) : (
@@ -918,12 +948,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                                                                         </ul>
                                                                     )
                                                                 )}
-
-
                                                             </div>
 
                                                             {isSingleColumnLayout() && (exp.startYear || exp.endYear || exp.location) && (
-                                                                <div className="text-sm opacity-80 text-right ml-4 whitespace-nowrap">
+                                                                <div className="text-sm opacity-80 text-right whitespace-nowrap shrink-0">
                                                                     {exp.startYear && (
                                                                         <div className="italic">
                                                                             {formatDateFromFields(exp.startMonth, exp.startYear, exp.showStartMonth)} - {exp.current ? 'Present' : (exp.endYear ? formatDateFromFields(exp.endMonth, exp.endYear, exp.showEndMonth) : '')}
